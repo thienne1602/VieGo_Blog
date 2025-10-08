@@ -1,0 +1,16 @@
+<!-- Placeholder SVG for Banh Mi Saigon -->
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="banhmiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" fill="url(#banhmiGrad)"/>
+  <text x="300" y="180" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="white">
+    🥖 Bánh Mì Sài Gòn
+  </text>
+  <text x="300" y="220" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="white" opacity="0.9">
+    Tinh hoa ẩm thực đường phố
+  </text>
+</svg>

@@ -1,0 +1,16 @@
+<!-- Placeholder SVG for Pho Hanoi -->
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="phoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff9a56;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff6b6b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" fill="url(#phoGrad)"/>
+  <text x="300" y="180" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="white">
+    🍲 Phở Hà Nội
+  </text>
+  <text x="300" y="220" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="white" opacity="0.9">
+    Hương vị đậm đà truyền thống
+  </text>
+</svg>

@@ -1,0 +1,5 @@
+{
+  "python.terminal.activateEnvironment": false,
+  "python.terminal.activateEnvInCurrentTerminal": false,
+  "python.defaultInterpreterPath": "./.venv_new/Scripts/python.exe"
+}

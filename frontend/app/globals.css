@@ -1,0 +1,262 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* VieGo Brand Styles */
+:root {
+  --primary-teal: #008080;
+  --accent-coral: #ff7f50;
+  --neutral-gray: #f5f5f5;
+  --text-dark: #262626;
+  --text-light: #404040;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--text-dark);
+  background-color: var(--neutral-gray);
+  overflow-x: hidden;
+}
+
+/* Desktop optimized typography */
+@media (min-width: 1280px) {
+  body {
+    font-size: 18px;
+  }
+
+  h1 {
+    font-size: 48px;
+    line-height: 1.2;
+  }
+
+  h2 {
+    font-size: 32px;
+    line-height: 1.3;
+  }
+
+  h3 {
+    font-size: 24px;
+    line-height: 1.4;
+  }
+}
+
+/* VieGo Logo Styling */
+.viego-logo {
+  font-family: "Quicksand", sans-serif;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-teal), var(--accent-coral));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Parallax Hero Section */
+.parallax-hero {
+  background: linear-gradient(
+      135deg,
+      rgba(0, 128, 128, 0.8),
+      rgba(255, 127, 80, 0.6)
+    ),
+    url("/hero-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Custom scrollbar for desktop */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--neutral-gray);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-teal);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-coral);
+}
+
+/* Interactive Elements */
+.btn-primary {
+  @apply bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105;
+}
+
+.btn-secondary {
+  @apply bg-purple-500 hover:bg-purple-600 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105;
+}
+
+/* Card Hover Effects */
+.blog-card {
+  @apply bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:transform hover:scale-105;
+}
+
+/* Chat & Modal Styles */
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+}
+
+.chat-bubble {
+  @apply max-w-xs lg:max-w-md px-4 py-2 rounded-lg mb-2;
+}
+
+.chat-bubble.sent {
+  @apply bg-blue-500 text-white ml-auto;
+}
+
+.chat-bubble.received {
+  @apply bg-white border border-gray-200 mr-auto;
+}
+
+/* Loading Animations */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* NFT Gallery Grid */
+.nft-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 24px;
+}
+
+/* Virtual Tour Builder Canvas */
+.tour-canvas {
+  background: radial-gradient(circle at 25px 25px, lightgray 2px, transparent 0),
+    radial-gradient(circle at 75px 75px, lightgray 2px, transparent 0);
+  background-size: 100px 100px;
+  background-position: 0 0, 50px 50px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  body {
+    font-size: 16px;
+  }
+
+  .parallax-hero {
+    background-attachment: scroll;
+  }
+}
+
+/* Interactive Storytelling */
+.adventure-choice {
+  @apply p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg cursor-pointer transition-all duration-300 hover:shadow-lg hover:translate-x-1;
+}
+
+/* Gamification Elements */
+.points-badge {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-500 text-white;
+}
+
+.progress-bar {
+  @apply w-full bg-gray-200 rounded-full h-2;
+}
+
+.progress-fill {
+  @apply h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500;
+}
+
+/* Map Fullscreen */
+.map-fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 1000 !important;
+}
+
+/* Welcome Page Animations */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}
+
+.delay-1000 {
+  animation-delay: 1s;
+}
+
+.delay-2000 {
+  animation-delay: 2s;
+}

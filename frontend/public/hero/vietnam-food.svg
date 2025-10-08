@@ -1,0 +1,19 @@
+<!-- Placeholder SVG image for Vietnam Food -->
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="foodGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4ECDC4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#foodGrad)"/>
+  <text x="400" y="250" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="white">
+    🍜 Ẩm Thực Việt Nam
+  </text>
+  <text x="400" y="320" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="white" opacity="0.9">
+    Khám phá hương vị đặc trưng
+  </text>
+  <text x="400" y="360" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="white" opacity="0.9">
+    của đất nước hình chữ S
+  </text>
+</svg>
