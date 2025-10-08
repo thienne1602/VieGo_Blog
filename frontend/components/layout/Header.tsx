@@ -249,7 +249,7 @@ const Header = () => {
                   </svg>
                 </motion.button>
               </Link>
-              
+
               {/* Notifications */}
               <motion.button
                 className="relative p-2 sm:p-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-full"

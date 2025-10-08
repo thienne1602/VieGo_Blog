@@ -41,7 +41,7 @@ export default function PostCard({ post }: PostCardProps) {
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
-    
+
     const token = localStorage.getItem("access_token");
     if (!token) {
       router.push("/login");
@@ -70,7 +70,7 @@ export default function PostCard({ post }: PostCardProps) {
 
   const handleBookmark = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
-    
+
     const token = localStorage.getItem("access_token");
     if (!token) {
       router.push("/login");
@@ -149,7 +149,7 @@ export default function PostCard({ post }: PostCardProps) {
             </div>
           </div>
         </div>
-        <button 
+        <button
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
@@ -209,9 +209,12 @@ export default function PostCard({ post }: PostCardProps) {
           <span className="text-sm font-medium">Thích</span>
         </button>
 
-        <button 
+        <button
           className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors text-gray-600 flex-1 justify-center"
-          onClick={(e) => { e.stopPropagation(); handleCardClick(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCardClick();
+          }}
         >
           <MessageCircle className="w-5 h-5" />
           <span className="text-sm font-medium">Bình luận</span>
@@ -223,7 +226,9 @@ export default function PostCard({ post }: PostCardProps) {
             isBookmarked ? "text-teal-600" : "text-gray-600"
           }`}
         >
-          <Bookmark className={`w-5 h-5 ${isBookmarked ? "fill-current" : ""}`} />
+          <Bookmark
+            className={`w-5 h-5 ${isBookmarked ? "fill-current" : ""}`}
+          />
           <span className="text-sm font-medium">Lưu</span>
         </button>
       </div>
