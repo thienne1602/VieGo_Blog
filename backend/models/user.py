@@ -20,7 +20,7 @@ class User(db.Model):
     cover_image_url = db.Column(db.String(255))
     
     # Role and permissions
-    role = db.Column(db.Enum('user', 'moderator', 'admin', 'seller'), default='user')
+    role = db.Column(db.Enum('user', 'moderator', 'admin', 'seller', 'editor'), default='user')
     is_active = db.Column(db.Boolean, default=True)
     is_verified = db.Column(db.Boolean, default=False)
     email_verified = db.Column(db.Boolean, default=False)
@@ -50,7 +50,14 @@ class User(db.Model):
     
     # Relationships - using lazy='select' to avoid circular import issues
     posts = db.relationship('Post', backref='author', lazy='select', cascade='all, delete-orphan')
-    comments = db.relationship('Comment', backref='author', lazy='select', cascade='all, delete-orphan')
+    # Explicitly bind comments relationship to Comment.author_id to avoid ambiguity
+    comments = db.relationship(
+        'Comment',
+        backref='author',
+        lazy='select',
+        cascade='all, delete-orphan',
+        foreign_keys='Comment.author_id'
+    )
     nfts = db.relationship('NFT', backref='owner', lazy='select', cascade='all, delete-orphan')
     tours = db.relationship('Tour', backref='seller', lazy='select', cascade='all, delete-orphan')
     # preferences = db.relationship('UserPreferences', backref='user', uselist=False, cascade='all, delete-orphan')  # UserPreferences model chưa có
@@ -276,6 +283,10 @@ class User(db.Model):
             })
         
         return data
+    
+    def to_dict_public(self):
+        """Public version of to_dict (no sensitive info)"""
+        return self.to_dict(include_sensitive=False)
     
     def __repr__(self):
         return f'<User {self.username}>'

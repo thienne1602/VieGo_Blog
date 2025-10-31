@@ -24,6 +24,7 @@ interface PostFormData {
   category: string;
   tags: string[];
   featured_image: string;
+  images: string[]; // Add multiple images array
   video_url: string;
   location_name: string;
   location_address: string;
@@ -50,6 +51,7 @@ const CreatePostPage = () => {
     category: "travel",
     tags: [],
     featured_image: "",
+    images: [], // Initialize empty array
     video_url: "",
     location_name: "",
     location_address: "",
@@ -105,30 +107,42 @@ const CreatePostPage = () => {
     }));
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Upload multiple images
+  const handleMultipleImagesUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     try {
       setUploadingImage(true);
-      const formDataUpload = new FormData();
-      formDataUpload.append("file", file);
+      const uploadedUrls: string[] = [];
 
-      const token = localStorage.getItem("access_token");
-      const response = await fetch("http://localhost:5000/api/upload/image", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formDataUpload,
-      });
+      // Upload each file
+      for (let i = 0; i < files.length; i++) {
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", files[i]);
 
-      if (!response.ok) throw new Error("Upload failed");
+        const token = localStorage.getItem("access_token");
+        const response = await fetch("http://localhost:5000/api/upload/image", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+          body: formDataUpload,
+        });
 
-      const data = await response.json();
+        if (response.ok) {
+          const data = await response.json();
+          uploadedUrls.push(`http://localhost:5000${data.url}`);
+        }
+      }
+
+      // Add to images array
       setFormData((prev) => ({
         ...prev,
-        featured_image: `http://localhost:5000${data.url}`,
+        images: [...prev.images, ...uploadedUrls],
       }));
     } catch (err) {
       setError("Lỗi upload ảnh");
@@ -136,6 +150,14 @@ const CreatePostPage = () => {
     } finally {
       setUploadingImage(false);
     }
+  };
+
+  // Remove image from gallery
+  const handleRemoveImage = (indexToRemove: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, index) => index !== indexToRemove),
+    }));
   };
 
   const handleSubmit = async (status: "draft" | "published") => {
@@ -149,12 +171,13 @@ const CreatePostPage = () => {
       }
 
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://localhost:5000/api/posts/", {
+      const response = await fetch("http://localhost:5000/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({ ...formData, status }),
       });
 
@@ -268,41 +291,58 @@ const CreatePostPage = () => {
             />
           </div>
 
-          {/* Featured Image */}
+          {/* Image Gallery - Multiple Images */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Ảnh đại diện
+              Hình ảnh bài viết
             </label>
-            {formData.featured_image ? (
-              <div className="relative">
-                <img
-                  src={formData.featured_image}
-                  alt="Featured"
-                  className="w-full h-64 object-cover rounded-lg"
-                />
-                <button
-                  onClick={() =>
-                    setFormData((prev) => ({ ...prev, featured_image: "" }))
-                  }
-                  className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
-                >
-                  ✕
-                </button>
+
+            {/* Upload Button */}
+            <label className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600 transition mb-4">
+              <ImageIcon className="w-5 h-5 mr-2" />
+              <span>Thêm ảnh</span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleMultipleImagesUpload}
+                className="hidden"
+                disabled={uploadingImage}
+              />
+            </label>
+
+            {uploadingImage && (
+              <p className="text-sm text-gray-500 mb-4">Đang upload...</p>
+            )}
+
+            {/* Image Grid */}
+            {formData.images.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {formData.images.map((imageUrl, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={imageUrl}
+                      alt={`Gallery ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-lg"
+                    />
+                    <button
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                    >
+                      ✕
+                    </button>
+                    <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                      {index + 1}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ) : (
-              <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition">
-                <ImageIcon className="w-12 h-12 text-gray-400 mb-2" />
-                <span className="text-sm text-gray-500">
-                  {uploadingImage ? "Đang upload..." : "Click để upload ảnh"}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  disabled={uploadingImage}
-                />
-              </label>
+            )}
+
+            {formData.images.length === 0 && (
+              <p className="text-sm text-gray-500 text-center py-8">
+                Chưa có ảnh nào. Nhấn "Thêm ảnh" để upload.
+              </p>
             )}
           </div>
 

@@ -21,17 +21,25 @@ def create_comment():
     """Create new comment or reply"""
     try:
         user_id = get_jwt_identity()
+        # tokens store identity as string in some places; normalize to int when possible
+        try:
+            if isinstance(user_id, str) and user_id.isdigit():
+                user_id = int(user_id)
+        except Exception:
+            pass
+
         user = User.query.get(user_id)
         
         if not user:
             return jsonify({'error': 'Không tìm thấy người dùng'}), 404
         
-        data = request.get_json()
-        
+        # Be defensive if client sends no JSON
+        data = request.get_json() or {}
+
         # Validate required fields
-        content = data.get('content', '').strip()
+        content = (data.get('content') or '').strip()
         post_id = data.get('post_id')
-        
+
         if not all([content, post_id]):
             return jsonify({'error': 'Thiếu nội dung hoặc post_id'}), 400
         
@@ -57,13 +65,16 @@ def create_comment():
             level = parent_comment.level + 1
         
         # Create comment
+        # For now create comments as 'approved' so they appear immediately on reload
         comment = Comment(
             content=content,
             author_id=user_id,
+            user_id=user_id,
             post_id=post_id,
             parent_id=parent_id,
             level=level,
-            language=data.get('language', 'vi')
+            language=data.get('language', 'vi'),
+            status='approved'
         )
         
         db.session.add(comment)
@@ -117,7 +128,7 @@ def get_post_comments(post_id):
         query = Comment.query.filter_by(
             post_id=post_id,
             parent_id=None,
-            status='active'
+            status='approved'
         ).order_by(desc(Comment.created_at))
         
         comments_pagination = query.paginate(
@@ -168,7 +179,7 @@ def get_comment_replies(comment_id):
         # Get all direct replies
         replies = Comment.query.filter_by(
             parent_id=comment_id,
-            status='active'
+            status='approved'
         ).order_by(Comment.created_at).all()
         
         # Format response with author info
@@ -199,6 +210,12 @@ def update_comment(comment_id):
     """Update comment content"""
     try:
         user_id = get_jwt_identity()
+        try:
+            if isinstance(user_id, str) and user_id.isdigit():
+                user_id = int(user_id)
+        except Exception:
+            pass
+
         comment = Comment.query.get(comment_id)
         
         if not comment:
@@ -244,7 +261,7 @@ def delete_comment(comment_id):
             return jsonify({'error': 'Không có quyền xóa bình luận này'}), 403
         
         # Soft delete - change status instead of deleting
-        comment.status = 'deleted'
+        comment.status = 'rejected'
         
         # Update post comment count
         post = Post.query.get(comment.post_id)
@@ -272,6 +289,12 @@ def like_comment(comment_id):
     """Like a comment"""
     try:
         user_id = get_jwt_identity()
+        try:
+            if isinstance(user_id, str) and user_id.isdigit():
+                user_id = int(user_id)
+        except Exception:
+            pass
+
         comment = Comment.query.get(comment_id)
         
         if not comment:
@@ -298,6 +321,12 @@ def unlike_comment(comment_id):
     """Unlike a comment"""
     try:
         user_id = get_jwt_identity()
+        try:
+            if isinstance(user_id, str) and user_id.isdigit():
+                user_id = int(user_id)
+        except Exception:
+            pass
+
         comment = Comment.query.get(comment_id)
         
         if not comment:
@@ -324,6 +353,12 @@ def report_comment(comment_id):
     """Report a comment for moderation"""
     try:
         user_id = get_jwt_identity()
+        try:
+            if isinstance(user_id, str) and user_id.isdigit():
+                user_id = int(user_id)
+        except Exception:
+            pass
+
         comment = Comment.query.get(comment_id)
         
         if not comment:

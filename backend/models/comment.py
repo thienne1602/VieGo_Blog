@@ -16,8 +16,8 @@ class Comment(db.Model):
     likes_count = db.Column(db.Integer, default=0)
     replies_count = db.Column(db.Integer, default=0)
     
-    # Moderation
-    status = db.Column(db.Enum('active', 'hidden', 'deleted', 'pending'), default='active')
+    # Moderation - Match database ENUM values
+    status = db.Column(db.Enum('pending', 'approved', 'rejected', 'spam'), default='approved')
     flagged = db.Column(db.Boolean, default=False)
     flag_reason = db.Column(db.String(255))
     
@@ -31,7 +31,10 @@ class Comment(db.Model):
     
     # Foreign Keys
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False, index=True)
+    # Newer code uses `author_id`, some older DBs still have `user_id` column.
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    # Legacy compatibility: map old `user_id` column if present in DB so inserts include it
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
     
     # Self-referential relationship for replies
     parent = db.relationship('Comment', remote_side=[id], backref='replies')
@@ -76,6 +79,9 @@ class Comment(db.Model):
             'level': self.level,
             'likes_count': self.likes_count,
             'replies_count': self.replies_count,
+            # Legacy aliases for compatibility
+            'like_count': self.likes_count,
+            'reply_count': self.replies_count,
             'status': self.status,
             'language': self.language,
             'created_at': self.created_at.isoformat() if self.created_at else None,

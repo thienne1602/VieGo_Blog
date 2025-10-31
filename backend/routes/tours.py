@@ -12,6 +12,7 @@ import json
 from models import db
 from models.user import User
 from models.tour import Tour
+from models.booking import Booking
 
 tours_bp = Blueprint('tours', __name__, url_prefix='/api/tours')
 
@@ -317,23 +318,30 @@ def book_tour(tour_id):
         if tour.discount_percentage > 0:
             total_price = total_price * (1 - tour.discount_percentage / 100)
         
-        # Here you would create a booking record (not implemented yet)
-        # For now, just return booking info
-        
+        # Create booking record
+        booking = Booking(
+            tour_id = tour.id,
+            user_id = current_user_id,
+            date = data['date'],
+            participants = participants,
+            total_price = total_price,
+            currency = tour.currency or 'VND',
+            status = 'pending'
+        )
+
+        db.session.add(booking)
+
         # Add points to user for booking
         user.add_points(100)
+
+        # Increment tour bookings counter
+        tour.increment_bookings()
+
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Đặt tour thành công!',
-            'booking': {
-                'tour_id': tour.id,
-                'tour_title': tour.title,
-                'date': data['date'],
-                'participants': participants,
-                'total_price': total_price,
-                'currency': tour.currency
-            }
+            'booking': booking.to_dict()
         }), 201
         
     except Exception as e:
@@ -353,3 +361,26 @@ def get_categories():
             {'value': 'spiritual', 'label': 'Tâm linh'}
         ]
     }), 200
+
+
+@tours_bp.route('/mine', methods=['GET'])
+@jwt_required()
+def get_my_tours():
+    """Get tours created by the authenticated seller (or admin)"""
+    try:
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Admins can view all tours; sellers only their own
+        if user.role == 'admin':
+            tours = Tour.query.order_by(desc(Tour.created_at)).all()
+        else:
+            tours = Tour.query.filter_by(seller_id=current_user_id).order_by(desc(Tour.created_at)).all()
+
+        tours_data = [t.to_dict(include_sensitive=True) for t in tours]
+        return jsonify({'tours': tours_data}), 200
+    except Exception as e:
+        return jsonify({'error': f'Error fetching user tours: {str(e)}'}), 500

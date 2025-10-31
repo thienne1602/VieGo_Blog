@@ -15,8 +15,13 @@ import {
   User,
   ArrowLeft,
   Tag as TagIcon,
+  Edit,
+  Trash2,
+  MoreVertical,
 } from "lucide-react";
 import CommentSection from "@/components/blog/CommentSection";
+import ImageLightbox from "@/components/common/ImageLightbox";
+import { useAuth } from "@/lib/AuthContext";
 
 interface Post {
   id: number;
@@ -25,6 +30,7 @@ interface Post {
   content: string;
   excerpt: string;
   featured_image?: string;
+  images?: string[];
   published_at: string;
   views_count: number;
   likes_count: number;
@@ -47,6 +53,7 @@ interface Post {
 const PostDetailPage = () => {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const slug = params.slug as string;
 
   const [post, setPost] = useState<Post | null>(null);
@@ -54,25 +61,29 @@ const PostDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
-
-  useEffect(() => {
-    if (slug) {
-      fetchPost();
-      checkLikeStatus();
-      checkBookmarkStatus();
-    }
-  }, [slug]);
+  const [showMenu, setShowMenu] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const fetchPost = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/posts/${slug}`);
+      setError(null);
+      console.log("Fetching post with slug:", slug);
 
-      if (!response.ok) throw new Error("Failed to fetch post");
+      const response = await fetch(`http://localhost:5000/api/posts/${slug}`);
+      console.log("Post response status:", response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch post");
+      }
 
       const data = await response.json();
+      console.log("Post data:", data);
       setPost(data.post);
     } catch (err: any) {
+      console.error("Error fetching post:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -81,7 +92,7 @@ const PostDetailPage = () => {
 
   const checkLikeStatus = async () => {
     const token = localStorage.getItem("access_token");
-    if (!token) return;
+    if (!token || !slug) return;
 
     try {
       const response = await fetch(
@@ -101,7 +112,7 @@ const PostDetailPage = () => {
 
   const checkBookmarkStatus = async () => {
     const token = localStorage.getItem("access_token");
-    if (!token) return;
+    if (!token || !slug) return;
 
     try {
       const response = await fetch(
@@ -118,6 +129,14 @@ const PostDetailPage = () => {
       console.error("Error checking bookmark status:", err);
     }
   };
+
+  useEffect(() => {
+    if (slug) {
+      fetchPost();
+      checkLikeStatus();
+      checkBookmarkStatus();
+    }
+  }, [slug]);
 
   const handleLike = async () => {
     const token = localStorage.getItem("access_token");
@@ -199,6 +218,40 @@ const PostDetailPage = () => {
     }
   };
 
+  const handleEdit = () => {
+    router.push(`/posts/${slug}/edit`);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`http://localhost:5000/api/posts/${slug}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Không thể xóa bài viết");
+      }
+
+      alert("Xóa bài viết thành công!");
+      router.push("/profile/user?tab=posts");
+    } catch (err: any) {
+      console.error("Error deleting post:", err);
+      alert(err.message || "Có lỗi xảy ra khi xóa bài viết");
+    }
+  };
+
+  const isAuthor = user && post && user.id === post.author.id;
+
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleDateString("vi-VN", {
@@ -241,184 +294,355 @@ const PostDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Quay lại
-          </button>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* Sticky Header with Back Button */}
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
+            >
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+              <span className="font-medium">Quay lại</span>
+            </button>
+
+            {/* Quick Stats in Header */}
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-1">
+                <Eye className="w-4 h-4" />
+                <span>{post.views_count}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Heart className="w-4 h-4" />
+                <span>{post.likes_count}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <MessageCircle className="w-4 h-4" />
+                <span>{post.comments_count}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Hero Image */}
+      {/* Hero Section with Featured Image */}
       {post.featured_image && (
-        <div className="w-full h-[400px] bg-gray-900">
+        <div className="relative w-full h-[500px] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
           <img
             src={post.featured_image}
             alt={post.title}
-            className="w-full h-full object-cover opacity-90"
+            className="w-full h-full object-cover"
           />
+          {/* Title Overlay on Image */}
+          <div className="absolute bottom-0 left-0 right-0 z-20 p-8">
+            <div className="max-w-5xl mx-auto">
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-5xl font-bold text-white mb-4 drop-shadow-lg"
+              >
+                {post.title}
+              </motion.h1>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Content */}
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content Container */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-6"
+          transition={{ delay: 0.2 }}
         >
-          {/* Title */}
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {post.title}
-          </h1>
+          {/* Main Article Card */}
+          <article className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-8">
+            {/* If no featured image, show title here */}
+            {!post.featured_image && (
+              <div className="p-8 border-b border-gray-100">
+                <div className="flex items-start justify-between">
+                  <h1 className="text-5xl font-bold text-gray-900 flex-1">
+                    {post.title}
+                  </h1>
 
-          {/* Meta Info */}
-          <div className="flex items-center justify-between mb-6 pb-6 border-b border-gray-200">
-            <div className="flex items-center space-x-4">
-              {/* Author */}
-              <div className="flex items-center">
-                {post.author.avatar_url ? (
-                  <img
-                    src={post.author.avatar_url}
-                    alt={post.author.full_name}
-                    className="w-12 h-12 rounded-full mr-3"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold mr-3">
-                    {post.author.full_name?.[0] || "U"}
+                  {/* Edit/Delete Menu for Author */}
+                  {isAuthor && (
+                    <div className="relative ml-4">
+                      <button
+                        onClick={() => setShowMenu(!showMenu)}
+                        className="p-2 hover:bg-gray-100 rounded-full transition"
+                        title="Thêm tùy chọn"
+                      >
+                        <MoreVertical className="w-5 h-5 text-gray-600" />
+                      </button>
+
+                      {showMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-10"
+                        >
+                          <button
+                            onClick={() => {
+                              setShowMenu(false);
+                              handleEdit();
+                            }}
+                            className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-gray-700"
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Chỉnh sửa bài viết
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowMenu(false);
+                              handleDelete();
+                            }}
+                            className="w-full px-4 py-2 text-left hover:bg-red-50 flex items-center text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Xóa bài viết
+                          </button>
+                        </motion.div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Author Info Section */}
+            <div className="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  {/* Author Avatar */}
+                  {post.author.avatar_url ? (
+                    <img
+                      src={post.author.avatar_url}
+                      alt={post.author.full_name}
+                      className="w-14 h-14 rounded-full ring-2 ring-blue-100"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl ring-2 ring-blue-100">
+                      {post.author.full_name?.[0] || "U"}
+                    </div>
+                  )}
+
+                  <div>
+                    <Link
+                      href={`/profile/${post.author.id}`}
+                      className="font-semibold text-lg text-gray-900 hover:text-blue-600 transition"
+                    >
+                      {post.author.full_name}
+                    </Link>
+                    <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>{formatDate(post.published_at)}</span>
+                      </div>
+                      <span>•</span>
+                      <span>{post.read_time} phút đọc</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Edit Menu for Featured Image Posts */}
+                {post.featured_image && isAuthor && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowMenu(!showMenu)}
+                      className="p-2 hover:bg-gray-100 rounded-full transition"
+                      title="Thêm tùy chọn"
+                    >
+                      <MoreVertical className="w-5 h-5 text-gray-600" />
+                    </button>
+
+                    {showMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-10"
+                      >
+                        <button
+                          onClick={() => {
+                            setShowMenu(false);
+                            handleEdit();
+                          }}
+                          className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-gray-700"
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Chỉnh sửa bài viết
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowMenu(false);
+                            handleDelete();
+                          }}
+                          className="w-full px-4 py-2 text-left hover:bg-red-50 flex items-center text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Xóa bài viết
+                        </button>
+                      </motion.div>
+                    )}
                   </div>
                 )}
-                <div>
-                  <p className="font-semibold text-gray-900">
-                    {post.author.full_name}
-                  </p>
-                  <div className="flex items-center text-sm text-gray-500 space-x-2">
-                    <Calendar className="w-4 h-4" />
-                    <span>{formatDate(post.published_at)}</span>
-                    <span>•</span>
-                    <span>{post.read_time} phút đọc</span>
+              </div>
+            </div>
+
+            {/* Excerpt Highlight */}
+            {post.excerpt && (
+              <div className="mx-8 mt-6 mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                <p className="text-gray-700 text-lg italic leading-relaxed">
+                  {post.excerpt}
+                </p>
+              </div>
+            )}
+
+            {/* Location Info */}
+            {post.location_name && (
+              <div className="mx-8 mb-6 p-5 bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border border-green-200">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-6 h-6 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-gray-900 text-lg">
+                      {post.location_name}
+                    </p>
+                    {post.location_address && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        {post.location_address}
+                      </p>
+                    )}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Main Content */}
+            <div className="px-8 py-6">
+              <div className="prose prose-lg prose-gray max-w-none">
+                <div className="text-gray-800 leading-relaxed text-lg whitespace-pre-wrap">
+                  {post.content}
                 </div>
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="flex items-center space-x-4 text-gray-500">
-              <div className="flex items-center">
-                <Eye className="w-5 h-5 mr-1" />
-                <span className="text-sm">{post.views_count}</span>
+            {/* Image Gallery - All Images */}
+            {post.images && post.images.length > 0 && (
+              <div className="px-8 pb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  Hình ảnh ({post.images.length})
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {post.images.map((imageUrl, index) => (
+                    <div
+                      key={index}
+                      className="relative group cursor-pointer"
+                      onClick={() => {
+                        setLightboxIndex(index);
+                        setLightboxOpen(true);
+                      }}
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`Ảnh ${index + 1}`}
+                        className="w-full h-64 object-cover rounded-lg hover:opacity-90 transition"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition rounded-lg" />
+                      <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                        {index + 1}/{post.images?.length || 0}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex items-center">
-                <Heart className="w-5 h-5 mr-1" />
-                <span className="text-sm">{post.likes_count}</span>
+            )}
+
+            {/* Tags Section */}
+            {post.tags && post.tags.length > 0 && (
+              <div className="px-8 pb-6">
+                <div className="flex flex-wrap gap-2">
+                  {post.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 hover:from-blue-200 hover:to-purple-200 transition cursor-pointer"
+                    >
+                      <TagIcon className="w-3.5 h-3.5 mr-1.5" />
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="flex items-center">
-                <MessageCircle className="w-5 h-5 mr-1" />
-                <span className="text-sm">{post.comments_count}</span>
+            )}
+
+            {/* Action Buttons - Redesigned */}
+            <div className="px-8 py-6 border-t border-gray-100 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleLike}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
+                      isLiked
+                        ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg shadow-red-200 hover:shadow-xl"
+                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                    }`}
+                  >
+                    <Heart
+                      className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
+                    />
+                    <span>{isLiked ? "Đã thích" : "Thích"}</span>
+                    <span className="ml-1 text-sm font-bold">
+                      ({post.likes_count})
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={handleBookmark}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
+                      isBookmarked
+                        ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200 hover:shadow-xl"
+                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                    }`}
+                  >
+                    <Bookmark
+                      className={`w-5 h-5 ${
+                        isBookmarked ? "fill-current" : ""
+                      }`}
+                    />
+                    <span>{isBookmarked ? "Đã lưu" : "Lưu"}</span>
+                  </button>
+
+                  <button
+                    onClick={handleShare}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 transition-all"
+                  >
+                    <Share2 className="w-5 h-5" />
+                    Chia sẻ
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          </article>
 
-          {/* Excerpt */}
-          {post.excerpt && (
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-              <p className="text-gray-700 italic">{post.excerpt}</p>
-            </div>
-          )}
-
-          {/* Location */}
-          {post.location_name && (
-            <div className="flex items-start mb-6 p-4 bg-gray-50 rounded-lg">
-              <MapPin className="w-5 h-5 text-blue-500 mr-2 mt-0.5" />
-              <div>
-                <p className="font-semibold text-gray-900">
-                  {post.location_name}
-                </p>
-                {post.location_address && (
-                  <p className="text-sm text-gray-600">
-                    {post.location_address}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Content */}
-          <div className="prose prose-lg max-w-none mb-6">
-            <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-              {post.content}
-            </div>
-          </div>
-
-          {/* Tags */}
-          {post.tags && post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition cursor-pointer"
-                >
-                  <TagIcon className="w-3 h-3 mr-1" />
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={handleLike}
-                className={`flex items-center px-4 py-2 rounded-lg transition ${
-                  isLiked
-                    ? "bg-red-100 text-red-600"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                <Heart
-                  className={`w-5 h-5 mr-2 ${isLiked ? "fill-current" : ""}`}
-                />
-                <span>{isLiked ? "Đã thích" : "Thích"}</span>
-                <span className="ml-2 text-sm">({post.likes_count})</span>
-              </button>
-
-              <button
-                onClick={handleBookmark}
-                className={`flex items-center px-4 py-2 rounded-lg transition ${
-                  isBookmarked
-                    ? "bg-blue-100 text-blue-600"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                <Bookmark
-                  className={`w-5 h-5 mr-2 ${
-                    isBookmarked ? "fill-current" : ""
-                  }`}
-                />
-                <span>{isBookmarked ? "Đã lưu" : "Lưu"}</span>
-              </button>
-
-              <button
-                onClick={handleShare}
-                className="flex items-center px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
-              >
-                <Share2 className="w-5 h-5 mr-2" />
-                Chia sẻ
-              </button>
-            </div>
+          {/* Comments Section */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+            <CommentSection postId={post.id} />
           </div>
         </motion.div>
+      </div>
 
-        {/* Comments Section */}
-        <CommentSection postId={post.id} />
-      </article>
+      {/* Bottom Spacing */}
+      <div className="h-16"></div>
+
+      {/* Image Lightbox */}
+      {lightboxOpen && post.images && (
+        <ImageLightbox
+          images={post.images}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </div>
   );
 };

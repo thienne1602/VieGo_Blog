@@ -313,6 +313,70 @@ def check_like(post_identifier):
         return jsonify({'error': f'Lỗi: {str(e)}'}), 500
 
 
+@social_bp.route('/liked-posts', methods=['GET'])
+@jwt_required()
+def get_liked_posts():
+    """Get user's liked posts"""
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'error': 'Không tìm thấy người dùng'}), 404
+        
+        # Get liked post IDs from user
+        liked_ids = user.get_liked_posts()
+        
+        if not liked_ids:
+            return jsonify({
+                'liked_posts': [],
+                'total': 0
+            }), 200
+        
+        # Pagination
+        page = request.args.get('page', 1, type=int)
+        per_page = min(request.args.get('per_page', 12, type=int), 50)
+        
+        # Get liked posts
+        query = Post.query.filter(
+            Post.id.in_(liked_ids),
+            Post.status == 'published'
+        ).order_by(desc(Post.created_at))
+        
+        posts_pagination = query.paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        # Format response with author info
+        posts_data = []
+        for post in posts_pagination.items:
+            post_dict = post.to_dict(include_content=False)
+            
+            # Include author info
+            author = User.query.get(post.author_id)
+            post_dict['author'] = {
+                'id': author.id,
+                'username': author.username,
+                'full_name': author.full_name,
+                'avatar_url': author.avatar_url
+            } if author else None
+            
+            posts_data.append(post_dict)
+        
+        return jsonify({
+            'liked_posts': posts_data,
+            'pagination': {
+                'page': posts_pagination.page,
+                'pages': posts_pagination.pages,
+                'per_page': posts_pagination.per_page,
+                'total': posts_pagination.total
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Lỗi lấy liked posts: {str(e)}'}), 500
+
+
 # ====================
 # FOLLOW/UNFOLLOW
 # ====================

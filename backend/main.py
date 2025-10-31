@@ -1,5 +1,6 @@
 import os
-from flask import Flask, jsonify, request, session
+import sys
+from flask import Flask, jsonify, request, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 # from flask_socketio import SocketIO  # Disabled for now
@@ -7,6 +8,11 @@ from flask_cors import CORS
 from flask_babel import Babel
 from dotenv import load_dotenv
 import pymysql
+
+# Add backend directory to Python path
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
 
 # Install PyMySQL as MySQLdb
 pymysql.install_as_MySQLdb()
@@ -16,6 +22,9 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
+
+# Disable strict slashes to prevent 308 redirects
+app.url_map.strict_slashes = False
 
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'viego-default-secret')
@@ -50,7 +59,15 @@ jwt = JWTManager(app)
 # Disable SocketIO for now to avoid conflicts
 socketio = None
 print("ℹ️ SocketIO disabled - using standard Flask server")
-cors = CORS(app, origins=os.getenv('CORS_ORIGINS', '*').split(','))
+
+# Configure CORS with simple settings
+CORS(app, 
+     origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     supports_credentials=True,
+     max_age=3600)
+
 babel = Babel(app)
 
 # Import cache utilities
@@ -99,11 +116,16 @@ try:
     from routes.test import test_bp
     from routes.admin import admin_bp
     from routes.tours import tours_bp
+    from routes.seller import seller_bp
+    from routes.bookings import bookings_bp
     from routes.maps import maps_bp
     from routes.nfts import nfts_bp
     from routes.comments import comments_bp
     from routes.social import social_bp
     from routes.upload import upload_bp
+    from routes.locations import locations_bp
+    from routes.users import users_bp
+    from routes.stories import stories_bp
     
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -111,12 +133,17 @@ try:
     app.register_blueprint(test_bp, url_prefix='/api/test')
     app.register_blueprint(admin_bp)  # admin_bp already has /api/admin prefix
     app.register_blueprint(tours_bp)  # tours_bp already has /api/tours prefix
+    app.register_blueprint(seller_bp)  # seller_bp has /api/seller prefix
+    app.register_blueprint(bookings_bp)  # bookings_bp already has /api/bookings prefix
     app.register_blueprint(maps_bp)   # maps_bp already has /api/maps prefix
     app.register_blueprint(nfts_bp)   # nfts_bp already has /api/nfts prefix
     app.register_blueprint(comments_bp)  # comments_bp already has /api/comments prefix
     app.register_blueprint(social_bp)  # social_bp already has /api/social prefix
     app.register_blueprint(upload_bp)  # upload_bp already has /api/upload prefix
-    print("✅ Routes registered successfully (auth, posts, test, admin, tours, maps, nfts, comments, social, upload)")
+    app.register_blueprint(locations_bp)  # NEW: locations routes
+    app.register_blueprint(users_bp)      # NEW: users routes
+    app.register_blueprint(stories_bp)    # NEW: stories routes
+    print("✅ Routes registered successfully (auth, posts, test, admin, tours, maps, nfts, comments, social, upload, locations, users, stories)")
 except ImportError as e:
     print(f"⚠️  Some routes not found: {e}")
 
@@ -155,6 +182,13 @@ def invalid_token_callback(error):
 @jwt.unauthorized_loader
 def missing_token_callback(error):
     return jsonify({'error': 'Authorization token is required'}), 401
+
+# Serve uploaded files
+@app.route('/uploads/<path:filename>')
+def serve_uploads(filename):
+    """Serve uploaded files"""
+    upload_folder = app.config['UPLOAD_FOLDER']
+    return send_from_directory(upload_folder, filename)
 
 # Create tables
 def create_tables():

@@ -165,14 +165,14 @@ const LoginPage = () => {
                 </motion.div>
               )}
 
-              {/* Username for Login */}
+              {/* Email or Username for Login */}
               {isLogin && (
                 <div>
                   <label
                     htmlFor="username"
                     className="block text-sm font-medium text-neutral-700 mb-2"
                   >
-                    Username
+                    Tên đăng nhập hoặc Email
                   </label>
                   <input
                     type="text"
@@ -183,7 +183,7 @@ const LoginPage = () => {
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
                       errors.username ? "border-red-500" : "border-neutral-300"
                     }`}
-                    placeholder="admin, moderator, blogger_hanoi, demo_user..."
+                    placeholder="admin@viego.com hoặc admin"
                   />
                   {errors.username && (
                     <p className="mt-1 text-sm text-red-600">
@@ -191,8 +191,7 @@ const LoginPage = () => {
                     </p>
                   )}
                   <p className="mt-1 text-xs text-gray-500">
-                    💡 Role system: admin (1), moderator (1), users (6 tài khoản
-                    với chuyên môn khác nhau)
+                    💡 Nhập email hoặc username để đăng nhập
                   </p>
                 </div>
               )}

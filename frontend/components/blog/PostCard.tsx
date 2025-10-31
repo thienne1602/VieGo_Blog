@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Heart,
@@ -9,8 +9,11 @@ import {
   MoreHorizontal,
   MapPin,
   Bookmark,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/lib/AuthContext";
 
 interface Post {
   id: number;
@@ -18,12 +21,16 @@ interface Post {
   title: string;
   content: string;
   author_name: string;
+  author_id?: number;
   author_avatar?: string;
   location?: string;
   featured_image?: string;
+  images?: string[]; // Add images array
   published_at: string;
   like_count: number;
   comment_count: number;
+  views_count?: number;
+  shares_count?: number;
   is_liked?: boolean;
   is_bookmarked?: boolean;
   tags: string[];
@@ -31,13 +38,32 @@ interface Post {
 
 interface PostCardProps {
   post: Post;
+  onOpenModal?: (slug: string) => void;
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post, onOpenModal }: PostCardProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [isBookmarked, setIsBookmarked] = useState(post.is_bookmarked || false);
   const [likeCount, setLikeCount] = useState(post.like_count);
+  const [showMenu, setShowMenu] = useState(false);
+
+  const isAuthor = user && post.author_id && user.id === post.author_id;
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showMenu) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [showMenu]);
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
@@ -98,7 +124,51 @@ export default function PostCard({ post }: PostCardProps) {
 
   const handleCardClick = () => {
     if (post.slug) {
-      router.push(`/posts/${post.slug}`);
+      if (onOpenModal) {
+        onOpenModal(post.slug);
+      } else {
+        router.push(`/posts/${post.slug}`);
+      }
+    }
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowMenu(false);
+    if (post.slug) {
+      router.push(`/posts/${post.slug}/edit`);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowMenu(false);
+
+    if (!confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
+      return;
+    }
+
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/posts/${post.slug}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.ok) {
+        alert("Đã xóa bài viết thành công!");
+        window.location.reload(); // Reload to update the feed
+      } else {
+        alert("Không thể xóa bài viết");
+      }
+    } catch (err) {
+      console.error("Error deleting post:", err);
+      alert("Có lỗi xảy ra khi xóa bài viết");
     }
   };
 
@@ -149,12 +219,41 @@ export default function PostCard({ post }: PostCardProps) {
             </div>
           </div>
         </div>
-        <button
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <MoreHorizontal className="w-5 h-5 text-gray-500" />
-        </button>
+        {isAuthor && (
+          <div className="relative">
+            <button
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(!showMenu);
+              }}
+            >
+              <MoreHorizontal className="w-5 h-5 text-gray-500" />
+            </button>
+            {showMenu && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-10"
+              >
+                <button
+                  onClick={handleEdit}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                >
+                  <Edit className="w-4 h-4" />
+                  <span>Chỉnh sửa</span>
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Xóa bài viết</span>
+                </button>
+              </motion.div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Post Content */}
@@ -185,14 +284,51 @@ export default function PostCard({ post }: PostCardProps) {
         </div>
       )}
 
-      {/* Post Stats */}
+      {/* Image Gallery - Multiple Images */}
+      {post.images && post.images.length > 0 && (
+        <div className="px-4 pb-3">
+          <div className="grid grid-cols-2 gap-2">
+            {post.images.slice(0, 4).map((imageUrl, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={imageUrl}
+                  alt={`Gallery ${index + 1}`}
+                  className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Could add lightbox/modal here
+                  }}
+                />
+                {/* Show +X overlay on 4th image if there are more */}
+                {index === 3 && post.images && post.images.length > 4 && (
+                  <div className="absolute inset-0 bg-black bg-opacity-60 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-3xl font-bold">
+                      +{post.images.length - 4}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Post Stats - Always show counts */}
       <div className="px-4 py-2 border-t border-gray-100">
         <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center space-x-4">
-            {likeCount > 0 && <span>{likeCount} lượt thích</span>}
-            {post.comment_count > 0 && (
-              <span>{post.comment_count} bình luận</span>
-            )}
+            <span className="flex items-center space-x-1">
+              <Heart className="w-4 h-4" />
+              <span>{likeCount || 0}</span>
+            </span>
+            <span className="flex items-center space-x-1">
+              <MessageCircle className="w-4 h-4" />
+              <span>{post.comment_count || 0}</span>
+            </span>
+            <span className="flex items-center space-x-1">
+              <Bookmark className="w-4 h-4" />
+              <span>{post.views_count || 0} lượt xem</span>
+            </span>
           </div>
         </div>
       </div>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import PostCard from "@/components/blog/PostCard";
+import PostModal from "@/components/common/PostModal";
 
 const NewsFeed = () => {
   const [postText, setPostText] = useState("");
@@ -9,6 +11,76 @@ const NewsFeed = () => {
   const [postType, setPostType] = useState("normal");
   const [selectedMood, setSelectedMood] = useState("");
   const [likedPosts, setLikedPosts] = useState(new Set());
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [errorPosts, setErrorPosts] = useState<string | null>(null);
+  const [selectedPostSlug, setSelectedPostSlug] = useState<string | null>(null);
+
+  // Fetch posts from API
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      setLoadingPosts(true);
+      setErrorPosts(null);
+
+      console.log("NewsFeed: Fetching posts from API...");
+
+      const token = localStorage.getItem("access_token");
+      const headers: any = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+        console.log("NewsFeed: Using auth token");
+      }
+
+      const response = await fetch("http://localhost:5000/api/posts", {
+        method: "GET",
+        headers,
+        credentials: "include",
+      });
+
+      console.log("NewsFeed: Response status:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch posts: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("NewsFeed: Received posts:", data.posts?.length);
+
+      // Transform API data to match our component format
+      const transformedPosts = data.posts.map((post: any) => ({
+        id: post.id,
+        slug: post.slug,
+        title: post.title,
+        content: post.excerpt || post.content.substring(0, 200),
+        author_name:
+          post.author?.full_name || post.author?.username || "Anonymous",
+        author_avatar: post.author?.avatar_url,
+        location: post.location_name,
+        featured_image: post.featured_image,
+        images: post.images || [],
+        published_at: post.published_at || post.created_at,
+        like_count: post.likes_count || 0,
+        comment_count: post.comments_count || 0,
+        views_count: post.views_count || 0,
+        shares_count: post.shares_count || 0,
+        tags: post.tags || [],
+        is_liked: post.is_liked || false,
+        is_bookmarked: post.is_bookmarked || false,
+      }));
+
+      console.log("NewsFeed: Transformed posts:", transformedPosts.length);
+      setPosts(transformedPosts);
+    } catch (error) {
+      console.error("NewsFeed: Error fetching posts:", error);
+      setErrorPosts("Không thể tải bài viết. Vui lòng thử lại.");
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
 
   useEffect(() => {
     const storyTimer = setInterval(() => {
@@ -103,62 +175,6 @@ const NewsFeed = () => {
       location: "Phú Quốc Island",
       background: "from-purple-400 to-indigo-400",
       viewers: "198",
-    },
-  ];
-
-  const posts = [
-    {
-      id: 1,
-      author: "VieGo Travel Vietnam",
-      avatar: "🌏",
-      verified: true,
-      time: "2 giờ",
-      location: "Vịnh Hà Long, Quảng Ninh",
-      content:
-        "Khám phá vẻ đẹp huyền diệu của Vịnh Hà Long! 🚢 Một trong những kỳ quan thiên nhiên thế giới không thể bỏ lỡ khi đến Việt Nam. Những hang động kỳ bí, nước biển xanh ngọc bích và cảnh hoàng hôn tuyệt đẹp! ✨",
-      image: null,
-      imageType: "360",
-      likes: 2247,
-      comments: 189,
-      shares: 356,
-      reactions: ["👍", "❤️", "😍", "👏", "😮"],
-      mood: "excited",
-      postType: "travel",
-      tags: ["#HaLongBay", "#UNESCO", "#Vietnam", "#Travel"],
-    },
-    {
-      id: 2,
-      author: "Nguyễn Minh Tuấn",
-      avatar: "👨‍💼",
-      time: "4 giờ",
-      location: "Hội An Ancient Town",
-      content:
-        "Hội An về đêm thật là lãng mạn! 🌙 Những chiếc đèn lồng rực rỡ soi sáng cả con phố cổ. Cảm giác như lạc vào một thế giới cổ tích. Ai cũng nên đến đây ít nhất một lần trong đời! ✨🏮",
-      image: null,
-      likes: 1892,
-      comments: 167,
-      shares: 89,
-      reactions: ["👍", "❤️", "😍"],
-      mood: "love",
-      postType: "check-in",
-    },
-    {
-      id: 3,
-      author: "Vietnam Food Adventure",
-      avatar: "🍜",
-      verified: true,
-      time: "6 giờ",
-      location: "Hà Nội Old Quarter",
-      content:
-        "PHỞ BÒ HÀ NỘI CHÍNH HIỆU! 🍜 Món ăn quốc hồn quốc túy của người Việt Nam. Hương vị đậm đà từ nước dùng được niêu trong 12 tiếng, thịt bò tươi ngon và bánh phở dai ngon khó cưỡng! 🤤",
-      image: null,
-      likes: 3156,
-      comments: 234,
-      shares: 467,
-      reactions: ["👍", "❤️", "😍", "🤤"],
-      mood: "happy",
-      postType: "food",
-      tags: ["#Pho", "#HanoiFood", "#VietnameseFood"],
     },
   ];
 
@@ -374,231 +390,44 @@ const NewsFeed = () => {
 
       {/* Enhanced Posts Feed */}
       <div className="space-y-6">
-        {posts.map((post, index) => (
-          <motion.div
-            key={post.id}
-            className="bg-gradient-to-br from-white via-gray-50/50 to-blue-50/30 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: index * 0.1 }}
-            whileHover={{
-              y: -5,
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)",
-            }}
-          >
-            {/* Post Header */}
-            <div className="p-6 pb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <motion.div
-                    className="w-14 h-14 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg relative"
-                    whileHover={{ scale: 1.1 }}
-                  >
-                    <span className="text-2xl">{post.avatar}</span>
-                    {post.verified && (
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
-                        <svg
-                          className="w-3 h-3 text-white"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                    )}
-                  </motion.div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-bold text-gray-900">{post.author}</h3>
-                      {post.mood && (
-                        <div className="flex items-center space-x-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-2 py-1 rounded-full text-xs">
-                          <span>
-                            {
-                              moods.find(
-                                (m) => m.name.toLowerCase() === post.mood
-                              )?.emoji
-                            }
-                          </span>
-                          <span>feeling {post.mood}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-                      <span>{post.time}</span>
-                      <span>·</span>
-                      <div className="flex items-center space-x-1">
-                        <span>📍</span>
-                        <span>{post.location}</span>
-                      </div>
-                      {post.postType && (
-                        <>
-                          <span>·</span>
-                          <span className="capitalize bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-xs">
-                            {post.postType}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <motion.button
-                  className="w-10 h-10 hover:bg-gray-100 rounded-full flex items-center justify-center transition-colors"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <svg
-                    className="w-5 h-5 text-gray-500"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                  </svg>
-                </motion.button>
-              </div>
-
-              {/* Post Content */}
-              <div className="mt-4">
-                <p className="text-gray-800 leading-relaxed">{post.content}</p>
-                {post.tags && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {post.tags.map((tag, tagIndex) => (
-                      <span
-                        key={tagIndex}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium cursor-pointer"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Post Image Placeholder */}
-            <div className="relative mx-6 mb-4">
-              <motion.div
-                className={`w-full h-80 bg-gradient-to-br ${
-                  post.postType === "travel"
-                    ? "from-blue-400 to-cyan-500"
-                    : post.postType === "food"
-                    ? "from-orange-400 to-red-500"
-                    : post.postType === "check-in"
-                    ? "from-green-400 to-emerald-500"
-                    : "from-purple-400 to-pink-500"
-                } rounded-2xl flex items-center justify-center shadow-lg overflow-hidden`}
-                whileHover={{ scale: 1.02 }}
-                layoutId={`post-image-${post.id}`}
-              >
-                <motion.div
-                  animate={{
-                    rotate: [0, 5, -5, 0],
-                    scale: [1, 1.1, 0.9, 1],
-                  }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                >
-                  <span className="text-white text-8xl drop-shadow-lg">
-                    {post.postType === "travel"
-                      ? "🏞️"
-                      : post.postType === "food"
-                      ? "🍜"
-                      : post.postType === "check-in"
-                      ? "📍"
-                      : "📸"}
-                  </span>
-                </motion.div>
-                {post.imageType === "360" && (
-                  <div className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium">
-                    360° Photo
-                  </div>
-                )}
-              </motion.div>
-            </div>
-
-            {/* Post Stats */}
-            <div className="px-6 py-3">
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <div className="flex items-center space-x-2">
-                  <div className="flex -space-x-1">
-                    {post.reactions
-                      .slice(0, 3)
-                      .map((reaction, reactionIndex) => (
-                        <motion.div
-                          key={reactionIndex}
-                          className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-md"
-                          whileHover={{ scale: 1.2, zIndex: 10 }}
-                        >
-                          <span className="text-xs">{reaction}</span>
-                        </motion.div>
-                      ))}
-                  </div>
-                  <span className="font-medium">
-                    {post.likes.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex space-x-6">
-                  <span className="hover:text-gray-700 cursor-pointer">
-                    {post.comments} bình luận
-                  </span>
-                  <span className="hover:text-gray-700 cursor-pointer">
-                    {post.shares} chia sẻ
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Post Actions */}
-            <div className="border-t border-gray-200 px-6 py-3">
-              <div className="flex justify-between">
-                <motion.button
-                  className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-all duration-300 flex-1 mx-1 ${
-                    likedPosts.has(post.id)
-                      ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg"
-                      : "hover:bg-gray-100 text-gray-600"
-                  }`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => toggleLike(post.id)}
-                >
-                  <motion.span
-                    className="text-lg"
-                    animate={{
-                      scale: likedPosts.has(post.id) ? [1, 1.3, 1] : 1,
-                      rotate: likedPosts.has(post.id) ? [0, 15, -15, 0] : 0,
-                    }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {likedPosts.has(post.id) ? "❤️" : "👍"}
-                  </motion.span>
-                  <span className="font-medium">
-                    {likedPosts.has(post.id) ? "Liked" : "Like"}
-                  </span>
-                </motion.button>
-
-                <motion.button
-                  className="flex items-center space-x-2 px-6 py-3 hover:bg-gray-100 rounded-xl transition-all duration-300 flex-1 mx-1"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span className="text-lg">💬</span>
-                  <span className="font-medium text-gray-600">Comment</span>
-                </motion.button>
-
-                <motion.button
-                  className="flex items-center space-x-2 px-6 py-3 hover:bg-gray-100 rounded-xl transition-all duration-300 flex-1 mx-1"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span className="text-lg">📤</span>
-                  <span className="font-medium text-gray-600">Share</span>
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+        {loadingPosts ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-200 border-t-teal-600"></div>
+          </div>
+        ) : errorPosts ? (
+          <div className="text-center py-12">
+            <p className="text-red-600 mb-4">{errorPosts}</p>
+            <button
+              onClick={fetchPosts}
+              className="px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
+            >
+              Thử lại
+            </button>
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 mb-4">Chưa có bài viết nào</p>
+            <Link href="/posts/create">
+              <button className="px-6 py-2 bg-gradient-to-r from-teal-500 to-blue-500 text-white rounded-lg hover:from-teal-600 hover:to-blue-600">
+                Tạo bài viết đầu tiên
+              </button>
+            </Link>
+          </div>
+        ) : (
+          posts.map((post, index) => (
+            <motion.div
+              key={post.id}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+            >
+              <PostCard
+                post={post}
+                onOpenModal={(slug) => setSelectedPostSlug(slug)}
+              />
+            </motion.div>
+          ))
+        )}
       </div>
 
       {/* Load More */}
@@ -616,6 +445,14 @@ const NewsFeed = () => {
           🔄 Khám phá thêm về Việt Nam
         </motion.button>
       </motion.div>
+
+      {/* Post Modal */}
+      {selectedPostSlug && (
+        <PostModal
+          slug={selectedPostSlug}
+          onClose={() => setSelectedPostSlug(null)}
+        />
+      )}
     </div>
   );
 };

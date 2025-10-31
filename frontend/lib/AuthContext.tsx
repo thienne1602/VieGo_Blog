@@ -7,14 +7,21 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import api from "./api";
 
 interface User {
   id: number;
   username: string;
   email: string;
   full_name: string;
-  role: "admin" | "moderator" | "user";
+  role: "admin" | "moderator" | "user" | "seller";
   status: string;
+  avatar_url?: string;
+  bio?: string;
+  location?: string;
+  level?: number;
+  points?: number;
+  created_at?: string;
 }
 
 interface AuthContextType {
@@ -86,6 +93,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       token ? "Yes (length: " + token.length + ")" : "No"
     );
     if (token) {
+      // Ensure api client knows the token
+      try {
+        api.setToken(token as any);
+      } catch (e) {
+        // ignore
+      }
       // Try to get user info from localStorage first
       const cachedUser = localStorage.getItem("user");
       if (cachedUser) {
@@ -136,6 +149,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(data.user);
             // Update cached user data
             localStorage.setItem("user", JSON.stringify(data.user));
+            // Make sure api client uses token for subsequent requests
+            try {
+              api.setToken(token as any);
+            } catch (e) {}
           }
         } else {
           console.warn("⚠️ Token invalid (data.valid=false), removing...");
@@ -207,6 +224,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Set user immediately
         setUser(data.user);
 
+        // Inform API client about token
+        try {
+          api.setToken(data.access_token);
+        } catch (e) {}
+
         console.log("✅ Login successful:", data.user);
         console.log("✅ Token stored:", data.access_token);
 
@@ -226,6 +248,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("user");
     deleteCookie("access_token");
     setUser(null);
+    // Clear api client auth
+    try {
+      api.clearAuth();
+    } catch (e) {}
+    // Redirect to tours page after logout
+    window.location.href = "/tours";
   };
 
   const value = {

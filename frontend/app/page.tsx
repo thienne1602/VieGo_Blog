@@ -12,12 +12,8 @@ export default function HomePage() {
   const router = useRouter();
 
   // Redirect to welcome if not authenticated (after loading is done)
-  useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      console.log("❌ Not authenticated, redirecting to /welcome");
-      router.push("/welcome");
-    }
-  }, [loading, isAuthenticated, router]);
+  // NOTE: routing for unauthenticated users is handled by AuthGuard.
+  // Do not perform client-side redirect here to avoid conflicting navigation.
 
   // Show loading while auth is being checked
   if (loading) {
@@ -31,16 +27,10 @@ export default function HomePage() {
     );
   }
 
-  // If not authenticated, show loading (will redirect via useEffect)
+  // If not authenticated after loading, AuthGuard should have redirected to /tours.
+  // Render a fallback empty container to avoid flashing content.
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-100 pt-20 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-teal-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang chuyển hướng...</p>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen pt-20" />;
   }
 
   return (

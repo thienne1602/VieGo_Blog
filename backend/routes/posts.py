@@ -22,11 +22,15 @@ def get_posts():
         search = request.args.get('search')
         language = request.args.get('language', 'vi')
         featured = request.args.get('featured', type=bool)
+        author_id = request.args.get('author_id', type=int)  # Add author filter
         
         # Base query
         query = Post.query.filter_by(status='published')
         
         # Apply filters
+        if author_id:
+            query = query.filter_by(author_id=author_id)
+        
         if category:
             query = query.filter_by(category=category)
         
@@ -55,10 +59,25 @@ def get_posts():
             page=page, per_page=per_page, error_out=False
         )
         
+        # Get current user if authenticated
+        current_user_id = None
+        try:
+            from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
+            verify_jwt_in_request(optional=True)
+            current_user_id = get_jwt_identity()
+            if isinstance(current_user_id, str):
+                current_user_id = int(current_user_id)
+        except:
+            pass
+        
         # Format response
         posts_data = []
         for post in posts_pagination.items:
             post_dict = post.to_dict(include_content=False)
+            
+            # Include author ID for authorization checks
+            post_dict['author_id'] = post.author_id
+            
             # Include author info
             author = User.query.get(post.author_id)
             post_dict['author'] = {
@@ -67,6 +86,18 @@ def get_posts():
                 'full_name': author.full_name,
                 'avatar_url': author.avatar_url
             } if author else None
+            
+            # Check if current user liked/bookmarked this post
+            if current_user_id:
+                current_user = User.query.get(current_user_id)
+                if current_user:
+                    # Check if post ID is in user's liked/bookmarked lists
+                    liked_post_ids = current_user.get_liked_posts()
+                    bookmarked_post_ids = current_user.get_bookmarks()
+                    
+                    post_dict['is_liked'] = post.id in liked_post_ids
+                    post_dict['is_bookmarked'] = post.id in bookmarked_post_ids
+            
             posts_data.append(post_dict)
         
         return jsonify({
@@ -419,3 +450,167 @@ def get_popular_tags():
         
     except Exception as e:
         return jsonify({'error': f'Lỗi lấy tags phổ biến: {str(e)}'}), 500
+
+
+# ============ SLUG-BASED ROUTES ============
+
+@posts_bp.route('/<slug>', methods=['GET'])
+def get_post_by_slug(slug):
+    """Get post by slug"""
+    try:
+        # Get optional user_id from JWT if available
+        user_id = None
+        try:
+            from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
+            verify_jwt_in_request(optional=True)
+            user_id = get_jwt_identity()
+            if isinstance(user_id, str):
+                user_id = int(user_id)
+        except:
+            pass
+
+        # Find post by slug
+        post = Post.query.filter_by(slug=slug).first_or_404()
+        
+        # Increment views only if not author viewing own post
+        if not user_id or user_id != post.author_id:
+            post.views_count = (post.views_count or 0) + 1
+            db.session.commit()
+        
+        # Get post data with author info
+        post_data = post.to_dict()
+        
+        # Add author information
+        if post.author:
+            post_data['author'] = {
+                'id': post.author.id,
+                'username': post.author.username,
+                'full_name': post.author.full_name,
+                'avatar_url': post.author.avatar_url,
+                'bio': post.author.bio
+            }
+        
+        # Add engagement stats (use numeric columns to avoid missing relationships)
+        try:
+            post_data['likes_count'] = int(post.likes_count or 0)
+        except Exception:
+            post_data['likes_count'] = 0
+
+        # Use stored comments_count if available, otherwise fallback to counting
+        try:
+            post_data['comments_count'] = int(post.comments_count or 0)
+        except Exception:
+            post_data['comments_count'] = Comment.query.filter_by(
+                post_id=post.id,
+                status='approved',
+                parent_id=None
+            ).count()
+        
+        # Check if current user liked/bookmarked
+        if user_id:
+            user = User.query.get(user_id)
+            if user:
+                post_data['is_liked'] = post in user.liked_posts
+                post_data['is_bookmarked'] = post in user.bookmarked_posts
+        
+        return jsonify({'post': post_data}), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Lỗi lấy bài viết: {str(e)}'}), 500
+
+
+@posts_bp.route('/<slug>', methods=['PUT'])
+@jwt_required()
+def update_post_by_slug(slug):
+    """Update existing post by slug"""
+    try:
+        user_id = get_jwt_identity()
+        # Convert to int if it's a string to match database ID type
+        if isinstance(user_id, str):
+            user_id = int(user_id)
+        
+        user = User.query.get(user_id)
+        post = Post.query.filter_by(slug=slug).first_or_404()
+        
+        # Check permissions (author only, or admin/moderator)
+        if post.author_id != user_id and not user.can_moderate():
+            return jsonify({'error': 'Không có quyền chỉnh sửa bài viết này'}), 403
+        
+        data = request.get_json()
+        
+        # Update fields
+        if 'title' in data:
+            post.title = data['title']
+            # Don't regenerate slug on edit to keep the same URL
+            # post.slug remains unchanged
+            
+        if 'content' in data:
+            post.content = data['content']
+            post.calculate_reading_time()  # Recalculate reading time
+            
+        if 'excerpt' in data:
+            post.excerpt = data['excerpt']
+            
+        if 'featured_image' in data:
+            post.featured_image = data['featured_image']
+            
+        if 'category' in data:
+            post.category = data['category']
+            
+        if 'tags' in data:
+            # Handle tags as comma-separated string or array
+            if isinstance(data['tags'], list):
+                tags_str = ','.join(data['tags']) if data['tags'] else None
+                post.tags = tags_str
+            else:
+                # If empty string, set to None to avoid JSON error
+                post.tags = data['tags'] if data['tags'] else None
+                
+        if 'location_data' in data:
+            post.location_data = json.dumps(data['location_data']) if isinstance(data['location_data'], dict) else data['location_data']
+            
+        if 'status' in data:
+            new_status = data['status']
+            if new_status in ['draft', 'published']:
+                post.status = new_status
+                if new_status == 'published' and not post.published_at:
+                    post.publish()
+        
+        post.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Cập nhật bài viết thành công!',
+            'post': post.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi cập nhật bài viết: {str(e)}'}), 500
+
+
+@posts_bp.route('/<slug>', methods=['DELETE'])
+@jwt_required()
+def delete_post_by_slug(slug):
+    """Delete post by slug"""
+    try:
+        user_id = get_jwt_identity()
+        # Convert to int if it's a string to match database ID type
+        if isinstance(user_id, str):
+            user_id = int(user_id)
+            
+        user = User.query.get(user_id)
+        post = Post.query.filter_by(slug=slug).first_or_404()
+        
+        # Check permissions (author only, or admin/moderator)
+        if post.author_id != user_id and not user.can_moderate():
+            return jsonify({'error': 'Không có quyền xóa bài viết này'}), 403
+        
+        db.session.delete(post)
+        db.session.commit()
+        
+        return jsonify({'message': 'Xóa bài viết thành công!'}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi xóa bài viết: {str(e)}'}), 500

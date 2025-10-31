@@ -33,7 +33,13 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
       label: "Trang chủ",
       href: "/",
       icon: Home,
-      roles: ["admin", "moderator", "user"],
+      roles: ["admin", "moderator", "user", "seller"],
+    },
+    {
+      label: "Dashboard Seller",
+      href: "/dashboard/seller",
+      icon: LayoutDashboard,
+      roles: ["seller"],
     },
     {
       label: "Dashboard Admin",
@@ -189,7 +195,11 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
                   <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-medium">
                     {user?.role === "admin"
                       ? "Quản trị viên"
-                      : "Kiểm duyệt viên"}
+                      : user?.role === "moderator"
+                      ? "Kiểm duyệt viên"
+                      : user?.role === "seller"
+                      ? "Người bán (Seller)"
+                      : "Nhân viên"}
                   </span>
                 )}
               </div>
@@ -246,6 +256,7 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
               {user?.role === "admin" && "👑"}
               {user?.role === "moderator" && "🛡️"}
               {user?.role === "user" && "👤"}
+              {user?.role === "seller" && "🏪"}
             </span>
             <span className="font-medium capitalize">{user?.role}</span>
           </div>

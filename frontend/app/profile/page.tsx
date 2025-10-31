@@ -6,6 +6,7 @@ import { useAuth } from "../../lib/AuthContext";
 import AdminDashboard from "../dashboard/admin/page";
 import ModeratorDashboard from "../dashboard/moderator/page";
 import UserProfile from "../profile/user/page";
+import SellerDashboard from "../dashboard/seller/page";
 
 export default function ProfileRouter() {
   const { user, loading } = useAuth();
@@ -27,6 +28,7 @@ export default function ProfileRouter() {
       admin: "/dashboard/admin",
       moderator: "/dashboard/moderator",
       user: "/profile/user",
+      seller: "/dashboard/seller",
     };
 
     const targetRoute = roleRoutes[user.role as keyof typeof roleRoutes];
@@ -60,6 +62,8 @@ export default function ProfileRouter() {
       return <ModeratorDashboard />;
     case "user":
       return <UserProfile />;
+    case "seller":
+      return <SellerDashboard />;
     default:
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">

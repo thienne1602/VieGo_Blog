@@ -230,6 +230,14 @@ class Post(db.Model):
                 'comments': self.comments_count,
                 'score': self.get_engagement_score()
             },
+            # Top-level counts for frontend compatibility
+            'views_count': self.views_count,
+            'likes_count': self.likes_count,
+            'comments_count': self.comments_count,
+            # Legacy aliases (some DB/schema variants use singular names)
+            'view_count': self.views_count,
+            'like_count': self.likes_count,
+            'comment_count': self.comments_count,
             'status': self.status,
             'published_at': self.published_at.isoformat() if self.published_at else None,
             'featured': self.featured,

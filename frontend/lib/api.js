@@ -265,6 +265,23 @@ class ApiClient {
     return this.get(`/tours/${slug}`);
   }
 
+  // Bookings methods
+  async getSellerBookings() {
+    return this.get("/bookings/mine");
+  }
+
+  async getSellerStats() {
+    return this.get("/seller/stats");
+  }
+
+  async updateBooking(bookingId, data) {
+    return this.request(`/bookings/${bookingId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+  }
+
   // Comments methods
   async getComments(postId) {
     return this.get(`/posts/${postId}/comments`);

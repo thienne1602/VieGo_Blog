@@ -1,19 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  MessageCircle,
-  Send,
-  Heart,
-  CornerDownRight,
-  MoreVertical,
-  Flag,
-  Trash2,
-  Edit,
-  User,
-} from "lucide-react";
+import { MessageCircle, Send, User } from "lucide-react";
+import CommentCard from "./CommentCard";
 
 interface Comment {
   id: number;
@@ -29,13 +20,18 @@ interface Comment {
   replies_count: number;
   level: number;
   parent_id?: number;
+  replies?: Comment[]; // Add replies array
 }
 
 interface CommentSectionProps {
   postId: number;
+  onNewComment?: (commentCount: number) => void;
 }
 
-const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
+const CommentSection: React.FC<CommentSectionProps> = ({
+  postId,
+  onNewComment,
+}) => {
   const router = useRouter();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,6 +91,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
       const data = await response.json();
       setComments([data.comment, ...comments]);
       setNewComment("");
+      // notify parent
+      if (onNewComment) onNewComment(comments.length + 1);
     } catch (err) {
       console.error("Error posting comment:", err);
       alert("Không thể đăng bình luận. Vui lòng thử lại.");
@@ -133,6 +131,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
 
       setReplyTo(null);
       setReplyContent("");
+      if (onNewComment) onNewComment(comments.length + 1);
     } catch (err) {
       console.error("Error posting reply:", err);
       alert("Không thể đăng phản hồi. Vui lòng thử lại.");
@@ -199,138 +198,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
     }
   };
 
-  const CommentCard: React.FC<{ comment: Comment; isReply?: boolean }> = ({
-    comment,
-    isReply = false,
-  }) => {
-    const [showReplies, setShowReplies] = useState(false);
-    const [replies, setReplies] = useState<Comment[]>([]);
-
-    const toggleReplies = async () => {
-      if (!showReplies && comment.replies_count > 0) {
-        await loadReplies(comment.id);
-      }
-      setShowReplies(!showReplies);
-    };
-
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`${isReply ? "ml-12" : ""}`}
-      >
-        <div className="flex space-x-3">
-          {/* Avatar */}
-          {comment.author.avatar_url ? (
-            <img
-              src={comment.author.avatar_url}
-              alt={comment.author.full_name}
-              className="w-10 h-10 rounded-full flex-shrink-0"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold flex-shrink-0">
-              {comment.author.full_name[0]}
-            </div>
-          )}
-
-          {/* Content */}
-          <div className="flex-1">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="font-semibold text-gray-900">
-                  {comment.author.full_name}
-                </h4>
-                <span className="text-xs text-gray-500">
-                  {new Date(comment.created_at).toLocaleDateString("vi-VN")}
-                </span>
-              </div>
-              <p className="text-gray-700 text-sm">{comment.content}</p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center space-x-4 mt-2 text-sm">
-              <button
-                onClick={() => handleLikeComment(comment.id)}
-                className="flex items-center text-gray-500 hover:text-red-500 transition"
-              >
-                <Heart className="w-4 h-4 mr-1" />
-                <span>{comment.likes_count > 0 && comment.likes_count}</span>
-              </button>
-
-              {!isReply && comment.level < 2 && (
-                <button
-                  onClick={() => setReplyTo(comment.id)}
-                  className="flex items-center text-gray-500 hover:text-blue-500 transition"
-                >
-                  <CornerDownRight className="w-4 h-4 mr-1" />
-                  Trả lời
-                </button>
-              )}
-
-              {comment.replies_count > 0 && (
-                <button
-                  onClick={toggleReplies}
-                  className="text-blue-600 hover:text-blue-700"
-                >
-                  {showReplies ? "Ẩn" : "Xem"} {comment.replies_count} phản hồi
-                </button>
-              )}
-            </div>
-
-            {/* Reply Input */}
-            {replyTo === comment.id && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mt-3"
-              >
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    placeholder="Viết phản hồi..."
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        handlePostReply(comment.id);
-                      }
-                    }}
-                  />
-                  <button
-                    onClick={() => handlePostReply(comment.id)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setReplyTo(null);
-                      setReplyContent("");
-                    }}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
-                  >
-                    Hủy
-                  </button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Nested Replies */}
-            {showReplies && (comment as any).replies && (
-              <div className="mt-3 space-y-3">
-                {(comment as any).replies.map((reply: Comment) => (
-                  <CommentCard key={reply.id} comment={reply} isReply={true} />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </motion.div>
-    );
-  };
-
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
@@ -382,7 +249,17 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
       ) : (
         <div className="space-y-6">
           {comments.map((comment) => (
-            <CommentCard key={comment.id} comment={comment} />
+            <CommentCard
+              key={comment.id}
+              comment={comment}
+              replyTo={replyTo}
+              replyContent={replyContent}
+              onSetReplyTo={setReplyTo}
+              onSetReplyContent={setReplyContent}
+              onPostReply={handlePostReply}
+              onLoadReplies={loadReplies}
+              onLikeComment={handleLikeComment}
+            />
           ))}
         </div>
       )}
