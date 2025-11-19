@@ -29,7 +29,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // If authenticated and trying to access welcome page, redirect to home
-  if (token && pathname === "/welcome") {
+  // BUT allow if there's a ?force=true query parameter (for logout/login flow)
+  const forceParam = request.nextUrl.searchParams.get("force");
+  if (token && pathname === "/welcome" && forceParam !== "true") {
     const homeUrl = new URL("/", request.url);
     return NextResponse.redirect(homeUrl);
   }
@@ -39,16 +41,18 @@ export async function middleware(request: NextRequest) {
 }
 
 // Configure which routes the middleware should run on
+// Optimized matcher to reduce middleware execution overhead
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
+     * Match only specific routes that need middleware:
+     * - Routes starting with /dashboard, /welcome, /login, /register
+     * Exclude:
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
+     * - favicon.ico and other static assets
      * - api routes
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.svg|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp).*)",
+    "/((?!_next/static|_next/image|favicon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot)).*)",
   ],
 };

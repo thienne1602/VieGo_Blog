@@ -1,10 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo, Suspense, useRef } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import PostCard from "@/components/blog/PostCard";
-import PostModal from "@/components/common/PostModal";
+import SkeletonLoader from "@/components/common/SkeletonLoader";
+import { useAuth } from "@/lib/AuthContext";
+import { X, Video, Image as ImageIcon, Send, Upload, ChevronLeft, ChevronRight, ArrowUp } from "lucide-react";
+
+// Lazy load PostModal (heavy component with images and comments)
+const PostModal = dynamic(() => import("@/components/common/PostModal"), {
+  loading: () => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-teal-600 mx-auto mb-4"></div>
+        <p className="text-center text-gray-600">Đang tải bài viết...</p>
+      </div>
+    </div>
+  ),
+  ssr: false,
+});
 
 const NewsFeed = () => {
+  const { user } = useAuth();
   const [postText, setPostText] = useState("");
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
   const [showCreatePost, setShowCreatePost] = useState(false);
@@ -15,79 +32,557 @@ const NewsFeed = () => {
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [errorPosts, setErrorPosts] = useState<string | null>(null);
   const [selectedPostSlug, setSelectedPostSlug] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  // Fetch posts from API
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+  // Story states
+  const [stories, setStories] = useState<any[]>([]);
+  const [loadingStories, setLoadingStories] = useState(false);
+  const [showStoryViewer, setShowStoryViewer] = useState(false);
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const [storyProgress, setStoryProgress] = useState(0);
+  const [userStoriesMap, setUserStoriesMap] = useState<Record<number, any[]>>({}); // Map user_id to all their stories
+  const [currentViewingUserStories, setCurrentViewingUserStories] = useState<any[]>([]); // Stories currently being viewed
+  const [currentViewingUser, setCurrentViewingUser] = useState<any>(null); // User whose stories are being viewed
 
-  const fetchPosts = async () => {
+  // Story creation states
+  const [showStoryModal, setShowStoryModal] = useState(false);
+  const [storyFile, setStoryFile] = useState<File | null>(null);
+  const [storyPreview, setStoryPreview] = useState<string | null>(null);
+  const [storyContent, setStoryContent] = useState("");
+  const [uploadingStory, setUploadingStory] = useState(false);
+  const storyFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Post creation states (expanded form)
+  const [showPostForm, setShowPostForm] = useState(false);
+  const [postFormData, setPostFormData] = useState({
+    title: "",
+    content: "",
+    category: "travel",
+    images: [] as string[],
+  });
+  const [uploadingPostImages, setUploadingPostImages] = useState(false);
+  const postImageInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper function to safely parse JSON
+  const safeParseJSON = (value: any, fallback: any = []): any => {
+    if (Array.isArray(value)) return value;
+    if (!value) return fallback;
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        console.warn('Failed to parse JSON:', value);
+        return fallback;
+      }
+    }
+    return value;
+  };
+
+  const fetchPosts = async (pageNum = 1, append = false) => {
     try {
-      setLoadingPosts(true);
+      if (append) {
+        setIsLoadingMore(true);
+      } else {
+        setLoadingPosts(true);
+      }
       setErrorPosts(null);
 
-      console.log("NewsFeed: Fetching posts from API...");
-
       const token = localStorage.getItem("access_token");
-      const headers: any = {};
+      const headers: any = { "Content-Type": "application/json" };
       if (token) {
         headers.Authorization = `Bearer ${token}`;
-        console.log("NewsFeed: Using auth token");
       }
 
-      const response = await fetch("http://localhost:5000/api/posts", {
-        method: "GET",
-        headers,
-        credentials: "include",
-      });
+      // Add timeout using AbortController
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      console.log("NewsFeed: Response status:", response.status);
+      const response = await fetch(
+        `http://localhost:5000/api/posts?page=${pageNum}&per_page=10`,
+        {
+          method: "GET",
+          headers,
+          credentials: "include",
+          signal: controller.signal,
+        }
+      );
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch posts: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("NewsFeed: Received posts:", data.posts?.length);
 
       // Transform API data to match our component format
       const transformedPosts = data.posts.map((post: any) => ({
         id: post.id,
         slug: post.slug,
-        title: post.title,
-        content: post.excerpt || post.content.substring(0, 200),
+        title: post.title || "",
+        content: post.excerpt || (post.content && typeof post.content === 'string' ? post.content.substring(0, 200) : ""),
         author_name:
           post.author?.full_name || post.author?.username || "Anonymous",
+        author_id: post.author_id,
         author_avatar: post.author?.avatar_url,
-        location: post.location_name,
-        featured_image: post.featured_image,
-        images: post.images || [],
-        published_at: post.published_at || post.created_at,
+        location: post.location_name || null,
+        featured_image: post.featured_image || null,
+        images: safeParseJSON(post.images, []),
+        published_at: post.published_at || post.created_at || new Date().toISOString(),
         like_count: post.likes_count || 0,
         comment_count: post.comments_count || 0,
         views_count: post.views_count || 0,
         shares_count: post.shares_count || 0,
-        tags: post.tags || [],
+        tags: safeParseJSON(post.tags, []),
         is_liked: post.is_liked || false,
         is_bookmarked: post.is_bookmarked || false,
       }));
 
-      console.log("NewsFeed: Transformed posts:", transformedPosts.length);
-      setPosts(transformedPosts);
-    } catch (error) {
+      if (append) {
+        setPosts((prev) => [...prev, ...transformedPosts]);
+      } else {
+        setPosts(transformedPosts);
+      }
+
+      // Check if there are more posts
+      if (data.pagination) {
+        setHasMore(pageNum < data.pagination.pages);
+      } else {
+        setHasMore(transformedPosts.length >= 10);
+      }
+    } catch (error: any) {
       console.error("NewsFeed: Error fetching posts:", error);
-      setErrorPosts("Không thể tải bài viết. Vui lòng thử lại.");
+      
+      // Handle timeout errors gracefully
+      if (error.name === 'AbortError' || error instanceof TypeError) {
+        setErrorPosts("Không thể kết nối với máy chủ. Vui lòng đảm bảo backend đang chạy.");
+      } else {
+        setErrorPosts("Không thể tải bài viết. Vui lòng thử lại.");
+      }
     } finally {
       setLoadingPosts(false);
+      setIsLoadingMore(false);
     }
   };
 
+  // Fetch stories from API
+  const fetchStories = async () => {
+    try {
+      setLoadingStories(true);
+      const token = localStorage.getItem("access_token");
+      const headers: any = { "Content-Type": "application/json" };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch('http://localhost:5000/api/stories', {
+        method: 'GET',
+        headers,
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Transform API stories to match component format
+        const transformedStories = [];
+        
+        // Add "Create Story" button first
+        transformedStories.push({
+          name: "Create Story",
+          avatar: "➕",
+          isAdd: true,
+          gradient: "from-blue-500 to-purple-500",
+        });
+
+        // Add stories from API if available
+        const newUserStoriesMap: Record<number, any[]> = {};
+        if (data.success && data.data && Array.isArray(data.data)) {
+          data.data.forEach((userStories: any) => {
+            const user = userStories.user;
+            const userStoriesList = userStories.stories || [];
+            
+            if (userStoriesList.length > 0) {
+              // Store all stories for this user
+              newUserStoriesMap[user.id] = userStoriesList.map((story: any) => ({
+                storyId: story.id,
+                mediaUrl: `http://localhost:5000${story.media_url}`,
+                mediaType: story.media_type,
+                content: story.content || "",
+                viewCount: story.view_count || 0,
+              }));
+              
+              // Get the latest story for display in the story circle
+              const latestStory = userStoriesList[0];
+              transformedStories.push({
+                name: user.full_name || user.username || "User",
+                avatar: user.avatar_url || "👤",
+                hasNew: true,
+                location: latestStory.content || "",
+                background: latestStory.media_type === 'video' 
+                  ? "from-purple-400 to-pink-400" 
+                  : "from-blue-400 to-cyan-400",
+                viewers: latestStory.view_count || "0",
+                storyId: latestStory.id,
+                mediaUrl: `http://localhost:5000${latestStory.media_url}`,
+                mediaType: latestStory.media_type,
+                userId: user.id, // Add userId to track which user's stories to load
+              });
+            }
+          });
+        }
+        
+        // Update user stories map
+        setUserStoriesMap(newUserStoriesMap);
+
+        setStories(transformedStories);
+      } else {
+        // Set default "Create Story" button on API error
+        setStories([{
+          name: "Create Story",
+          avatar: "➕",
+          isAdd: true,
+          gradient: "from-blue-500 to-purple-500",
+        }]);
+      }
+    } catch (error) {
+      console.error('Error fetching stories:', error);
+      // Set default "Create Story" button on error
+      setStories([{
+        name: "Create Story",
+        avatar: "➕",
+        isAdd: true,
+        gradient: "from-blue-500 to-purple-500",
+      }]);
+    } finally {
+      setLoadingStories(false);
+    }
+  };
+
+  // Load more posts
+  const loadMore = () => {
+    if (!isLoadingMore && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchPosts(nextPage, true);
+    }
+  };
+
+  // Infinite scroll
   useEffect(() => {
-    const storyTimer = setInterval(() => {
-      setActiveStoryIndex((prev) => (prev + 1) % stories.length);
-    }, 3000);
-    return () => clearInterval(storyTimer);
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 1000
+      ) {
+        loadMore();
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, hasMore, isLoadingMore]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchPosts(1, false);
+    fetchStories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Check for posts update flag and refetch
+  useEffect(() => {
+    const checkPostsUpdate = () => {
+      const postsUpdated = localStorage.getItem('posts_updated');
+      if (postsUpdated) {
+        localStorage.removeItem('posts_updated');
+        // Refetch posts to get the new one
+        fetchPosts(1, false);
+      }
+    };
+
+    // Check immediately
+    checkPostsUpdate();
+
+    // Also check periodically (every 1 second) when component is mounted
+    // This helps catch the flag even if redirect happens quickly
+    const intervalId = setInterval(checkPostsUpdate, 1000);
+
+    // Also listen for storage events (in case of multiple tabs)
+    window.addEventListener('storage', checkPostsUpdate);
+    
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('storage', checkPostsUpdate);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (stories.length > 0) {
+      const storyTimer = setInterval(() => {
+        setActiveStoryIndex((prev) => (prev + 1) % stories.length);
+      }, 3000);
+      return () => clearInterval(storyTimer);
+    }
+  }, [stories.length]);
+
+  // Handle story file selection
+  const handleStoryFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+    
+    if (!isVideo && !isImage) {
+      alert('Chỉ chấp nhận file ảnh hoặc video');
+      return;
+    }
+
+    // Validate file size (50MB for video, 10MB for image)
+    const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert(`File quá lớn. Tối đa ${isVideo ? '50MB' : '10MB'}`);
+      return;
+    }
+
+    setStoryFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setStoryPreview(reader.result as string);
+    };
+    if (isImage) {
+      reader.readAsDataURL(file);
+    } else {
+      // For video, create object URL
+      setStoryPreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Upload story
+  const handleUploadStory = async () => {
+    if (!storyFile) {
+      alert('Vui lòng chọn file ảnh hoặc video');
+      return;
+    }
+
+    try {
+      setUploadingStory(true);
+      const token = localStorage.getItem("access_token");
+      
+      if (!token) {
+        alert('Vui lòng đăng nhập để đăng story');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', storyFile);
+      if (storyContent.trim()) {
+        formData.append('content', storyContent);
+      }
+
+      const response = await fetch('http://localhost:5000/api/stories', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Đăng story thành công!');
+        setShowStoryModal(false);
+        setStoryFile(null);
+        setStoryPreview(null);
+        setStoryContent("");
+        if (storyFileInputRef.current) {
+          storyFileInputRef.current.value = '';
+        }
+        // Refresh stories list immediately
+        setTimeout(() => {
+          fetchStories();
+        }, 500);
+      } else {
+        alert(data.error || 'Có lỗi xảy ra khi đăng story');
+      }
+    } catch (error) {
+      console.error('Error uploading story:', error);
+      alert('Có lỗi xảy ra khi đăng story');
+    } finally {
+      setUploadingStory(false);
+    }
+  };
+
+  // Handle post image upload
+  const handlePostImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setUploadingPostImages(true);
+      const token = localStorage.getItem("access_token");
+      
+      if (!token) {
+        alert('Vui lòng đăng nhập');
+        return;
+      }
+
+      const uploadedUrls: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append('file', files[i]);
+
+        const response = await fetch('http://localhost:5000/api/upload/image', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          uploadedUrls.push(`http://localhost:5000${data.url}`);
+        }
+      }
+
+      setPostFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...uploadedUrls],
+      }));
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert('Có lỗi xảy ra khi upload ảnh');
+    } finally {
+      setUploadingPostImages(false);
+    }
+  };
+
+  // Create post
+  const handleCreatePost = async () => {
+    if (!postFormData.title.trim() || !postFormData.content.trim()) {
+      alert('Vui lòng nhập tiêu đề và nội dung');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("access_token");
+      
+      if (!token) {
+        alert('Vui lòng đăng nhập');
+        return;
+      }
+
+      const response = await fetch('http://localhost:5000/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: postFormData.title,
+          content: postFormData.content,
+          category: postFormData.category,
+          images: postFormData.images,
+          content_type: 'blog',
+          status: 'published',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.post) {
+        try {
+          // Transform new post to match component format
+          const postData = data.post;
+          const newPost = {
+            id: postData.id,
+            slug: postData.slug,
+            title: postData.title || postFormData.title || "",
+            content: postData.excerpt || 
+              (postData.content && typeof postData.content === 'string' ? postData.content.substring(0, 200) : 
+              (postFormData.content && typeof postFormData.content === 'string' ? postFormData.content.substring(0, 200) : "")),
+            author_name: postData.author?.full_name || postData.author?.username || user?.full_name || "Anonymous",
+            author_id: postData.author_id || postData.author?.id || user?.id,
+            author_avatar: postData.author?.avatar_url || user?.avatar_url,
+            location: postData.location_name || null,
+            featured_image: postData.featured_image || (postFormData.images && postFormData.images.length > 0 ? postFormData.images[0] : null),
+            images: postData.images ? safeParseJSON(postData.images, postFormData.images) : postFormData.images,
+            published_at: postData.published_at || postData.created_at || new Date().toISOString(),
+            like_count: postData.likes_count || 0,
+            comment_count: postData.comments_count || 0,
+            views_count: postData.views_count || 0,
+            shares_count: postData.shares_count || 0,
+            tags: safeParseJSON(postData.tags, []),
+            is_liked: postData.is_liked || false,
+            is_bookmarked: postData.is_bookmarked || false,
+          };
+
+          // Reset page to 1
+          setPage(1);
+          setHasMore(true);
+          
+          // Add new post to the top immediately for instant feedback
+          setPosts((prev) => {
+            // Check if already exists to avoid duplicates
+            const exists = prev.some(p => p.id === newPost.id);
+            if (!exists) {
+              return [newPost, ...prev];
+            }
+            return prev;
+          });
+          
+          alert('Đăng bài thành công!');
+          setShowPostForm(false);
+          setPostFormData({
+            title: "",
+            content: "",
+            category: "travel",
+            images: [],
+          });
+          setPostText("");
+          setShowCreatePost(false);
+          
+          // Refresh posts to ensure data is in sync (after a short delay to allow backend to process)
+          setTimeout(() => {
+            fetchPosts(1, false);
+          }, 1000);
+        } catch (error) {
+          console.error('Error processing post data:', error);
+          // If processing fails, just refresh the list
+          setPage(1);
+          setHasMore(true);
+          alert('Đăng bài thành công! Đang tải lại danh sách...');
+          setShowPostForm(false);
+          setPostFormData({
+            title: "",
+            content: "",
+            category: "travel",
+            images: [],
+          });
+          setPostText("");
+          setShowCreatePost(false);
+          setTimeout(() => {
+            fetchPosts(1, false);
+          }, 500);
+        }
+      } else {
+        alert(data.error || 'Có lỗi xảy ra khi đăng bài');
+      }
+    } catch (error) {
+      console.error('Error creating post:', error);
+      alert('Có lỗi xảy ra khi đăng bài');
+    }
+  };
 
   const moods = [
     { emoji: "😊", name: "Happy", color: "from-yellow-400 to-orange-400" },
@@ -129,52 +624,13 @@ const NewsFeed = () => {
     },
   ];
 
-  const stories = [
+  // Use stories from state, default to just "Create Story" button if empty
+  const displayStories = stories.length > 0 ? stories : [
     {
       name: "Create Story",
       avatar: "➕",
       isAdd: true,
       gradient: "from-blue-500 to-purple-500",
-    },
-    {
-      name: "Minh Tuấn",
-      avatar: "👨‍💼",
-      hasNew: true,
-      location: "Vịnh Hà Long",
-      background: "from-blue-400 to-cyan-400",
-      viewers: "234",
-    },
-    {
-      name: "Thu Hà",
-      avatar: "👩‍🎨",
-      hasNew: true,
-      location: "Hội An Ancient Town",
-      background: "from-yellow-400 to-orange-400",
-      viewers: "156",
-    },
-    {
-      name: "Quang Anh",
-      avatar: "🧑‍💻",
-      hasNew: false,
-      location: "Sapa Mountains",
-      background: "from-green-400 to-emerald-400",
-      viewers: "89",
-    },
-    {
-      name: "Linh Chi",
-      avatar: "👩‍🏫",
-      hasNew: true,
-      location: "Mekong Delta",
-      background: "from-pink-400 to-rose-400",
-      viewers: "312",
-    },
-    {
-      name: "Đức Thành",
-      avatar: "👨‍🚀",
-      hasNew: false,
-      location: "Phú Quốc Island",
-      background: "from-purple-400 to-indigo-400",
-      viewers: "198",
     },
   ];
 
@@ -188,6 +644,88 @@ const NewsFeed = () => {
       }
       return newSet;
     });
+  };
+
+  // Get actual stories (excluding "Create Story")
+  const actualStories = displayStories.filter(s => !s.isAdd);
+
+  // Handle story navigation - use currentViewingUserStories
+  const handleNextStory = () => {
+    if (currentStoryIndex < currentViewingUserStories.length - 1) {
+      setCurrentStoryIndex(currentStoryIndex + 1);
+      setStoryProgress(0);
+    } else {
+      setShowStoryViewer(false);
+      setCurrentViewingUserStories([]);
+      setCurrentViewingUser(null);
+    }
+  };
+
+  const handlePrevStory = () => {
+    if (currentStoryIndex > 0) {
+      setCurrentStoryIndex(currentStoryIndex - 1);
+      setStoryProgress(0);
+    }
+  };
+
+  // Track story view when story viewer opens
+  useEffect(() => {
+    if (showStoryViewer && currentViewingUserStories.length > 0 && currentViewingUserStories[currentStoryIndex]?.storyId) {
+      const storyId = currentViewingUserStories[currentStoryIndex].storyId;
+      const token = localStorage.getItem("access_token");
+      const headers: any = { "Content-Type": "application/json" };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      // Track view
+      fetch(`http://localhost:5000/api/stories/${storyId}/view`, {
+        method: 'POST',
+        headers,
+        credentials: "include",
+      }).catch(err => console.error('Error tracking story view:', err));
+    }
+  }, [showStoryViewer, currentStoryIndex, currentViewingUserStories]);
+
+  // Story progress auto-advance
+  useEffect(() => {
+    if (!showStoryViewer || currentViewingUserStories.length === 0) return;
+
+    const interval = setInterval(() => {
+      setStoryProgress((prev) => {
+        if (prev >= 100) {
+          // Move to next story
+          if (currentStoryIndex < currentViewingUserStories.length - 1) {
+            setCurrentStoryIndex(currentStoryIndex + 1);
+            return 0;
+          } else {
+            setShowStoryViewer(false);
+            setCurrentViewingUserStories([]);
+            setCurrentViewingUser(null);
+            return 0;
+          }
+        }
+        return prev + 0.5; // Progress every 50ms (5 seconds total)
+      });
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [showStoryViewer, currentStoryIndex, currentViewingUserStories.length]);
+
+  // Scroll to top state and handler
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -213,12 +751,51 @@ const NewsFeed = () => {
         </div>
 
         <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
-          {stories.map((story, index) => (
+          {displayStories.map((story, index) => (
             <motion.div
               key={index}
               className="flex-shrink-0 cursor-pointer group"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={async () => {
+                if (story.isAdd) {
+                  setShowStoryModal(true);
+                } else {
+                  // Load all stories for this user
+                  const userId = story.userId;
+                  if (userId && userStoriesMap[userId]) {
+                    // Use the stories from the map
+                    const userStories = userStoriesMap[userId];
+                    const clickedStoryIndex = userStories.findIndex((s: any) => s.storyId === story.storyId);
+                    
+                    // Set current viewing stories to this user's stories
+                    setCurrentViewingUserStories(userStories);
+                    setCurrentViewingUser(story); // Store user info from the story card
+                    setCurrentStoryIndex(clickedStoryIndex >= 0 ? clickedStoryIndex : 0);
+                    setShowStoryViewer(true);
+                    setStoryProgress(0);
+                  } else {
+                    // Fallback: filter out "Create Story" and find the index
+                    const actualStories = displayStories.filter(s => !s.isAdd);
+                    const storyIndex = actualStories.findIndex(s => s.storyId === story.storyId);
+                    if (storyIndex >= 0) {
+                      // Convert to story format
+                      const fallbackStories = actualStories.map((s: any) => ({
+                        storyId: s.storyId,
+                        mediaUrl: s.mediaUrl,
+                        mediaType: s.mediaType,
+                        content: s.location || "",
+                        viewCount: s.viewers || 0,
+                      }));
+                      setCurrentViewingUserStories(fallbackStories);
+                      setCurrentViewingUser(story); // Store user info
+                      setCurrentStoryIndex(storyIndex);
+                      setShowStoryViewer(true);
+                      setStoryProgress(0);
+                    }
+                  }
+                }
+              }}
             >
               <div
                 className={`relative w-24 h-40 rounded-2xl overflow-hidden shadow-lg ${
@@ -282,18 +859,6 @@ const NewsFeed = () => {
                       )}
                     </div>
 
-                    {/* Live indicator */}
-                    {story.hasNew && (
-                      <motion.div
-                        className="absolute top-3 right-3 px-2 py-1 bg-red-500 rounded-full"
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 1, repeat: Infinity }}
-                      >
-                        <span className="text-white text-xs font-bold">
-                          LIVE
-                        </span>
-                      </motion.div>
-                    )}
                   </>
                 )}
               </div>
@@ -315,7 +880,9 @@ const NewsFeed = () => {
             className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg"
             whileHover={{ scale: 1.1 }}
           >
-            <span className="text-white font-bold text-lg">U</span>
+            <span className="text-white font-bold text-lg">
+              {user?.full_name?.[0]?.toUpperCase() || "U"}
+            </span>
           </motion.div>
           <div className="flex-1">
             <input
@@ -324,14 +891,130 @@ const NewsFeed = () => {
               className="w-full bg-gradient-to-r from-gray-50 to-blue-50 rounded-full px-6 py-3 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-300"
               value={postText}
               onChange={(e) => setPostText(e.target.value)}
-              onFocus={() => setShowCreatePost(true)}
+              onFocus={() => {
+                setShowCreatePost(true);
+                setShowPostForm(true);
+              }}
             />
           </div>
         </div>
 
+        {/* Expanded Post Form */}
+        <AnimatePresence>
+          {showPostForm && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-4 mt-4"
+            >
+              <input
+                type="text"
+                placeholder="Tiêu đề bài viết..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={postFormData.title}
+                onChange={(e) =>
+                  setPostFormData({ ...postFormData, title: e.target.value })
+                }
+              />
+              <textarea
+                placeholder="Nội dung bài viết..."
+                rows={4}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                value={postFormData.content}
+                onChange={(e) =>
+                  setPostFormData({ ...postFormData, content: e.target.value })
+                }
+              />
+              <select
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={postFormData.category}
+                onChange={(e) =>
+                  setPostFormData({ ...postFormData, category: e.target.value })
+                }
+              >
+                <option value="travel">Du lịch</option>
+                <option value="food">Ẩm thực</option>
+                <option value="culture">Văn hóa</option>
+                <option value="adventure">Phiêu lưu</option>
+              </select>
+
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200">
+                  <ImageIcon className="w-5 h-5 text-gray-600" />
+                  <span className="text-sm text-gray-600">
+                    {uploadingPostImages ? "Đang upload..." : "Thêm ảnh"}
+                  </span>
+                  <input
+                    ref={postImageInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handlePostImageUpload}
+                    className="hidden"
+                    disabled={uploadingPostImages}
+                  />
+                </label>
+                {postFormData.images.length > 0 && (
+                  <div className="flex space-x-2 overflow-x-auto">
+                    {postFormData.images.map((img, idx) => (
+                      <div key={idx} className="relative flex-shrink-0">
+                        <img
+                          src={img}
+                          alt={`Preview ${idx + 1}`}
+                          className="w-20 h-20 object-cover rounded-lg"
+                        />
+                        <button
+                          onClick={() =>
+                            setPostFormData({
+                              ...postFormData,
+                              images: postFormData.images.filter((_, i) => i !== idx),
+                            })
+                          }
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end space-x-2">
+                <button
+                  onClick={() => {
+                    setShowPostForm(false);
+                    setShowCreatePost(false);
+                    setPostText("");
+                    setPostFormData({
+                      title: "",
+                      content: "",
+                      category: "travel",
+                      images: [],
+                    });
+                  }}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleCreatePost}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Đăng bài</span>
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Mood Selector */}
         <AnimatePresence>
-          {showCreatePost && (
+          {showCreatePost && !showPostForm && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
@@ -368,83 +1051,230 @@ const NewsFeed = () => {
         </AnimatePresence>
 
         {/* Post Type Templates */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {postTemplates.map((template) => (
-            <motion.button
-              key={template.type}
-              className={`flex items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-300 ${
-                postType === template.type
-                  ? `bg-gradient-to-r ${template.bg} text-white shadow-lg`
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-600"
-              }`}
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setPostType(template.type)}
-            >
-              <span className="text-lg">{template.icon}</span>
-              <span className="font-medium text-sm">{template.label}</span>
-            </motion.button>
-          ))}
-        </div>
+        {!showPostForm && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {postTemplates.map((template) => (
+              <motion.button
+                key={template.type}
+                className={`flex items-center space-x-2 px-4 py-3 rounded-xl transition-all duration-300 ${
+                  postType === template.type
+                    ? `bg-gradient-to-r ${template.bg} text-white shadow-lg`
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-600"
+                }`}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  setPostType(template.type);
+                  setShowPostForm(true);
+                }}
+              >
+                <span className="text-lg">{template.icon}</span>
+                <span className="font-medium text-sm">{template.label}</span>
+              </motion.button>
+            ))}
+          </div>
+        )}
       </motion.div>
+
+      {/* Story Creation Modal */}
+      <AnimatePresence>
+        {showStoryModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowStoryModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-gradient-to-br from-white/90 via-blue-50/70 to-purple-50/70 dark:from-gray-800/90 dark:via-gray-700/70 dark:to-gray-800/70 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/30 dark:border-gray-700/30 max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-gray-800">
+                  Tạo Story mới
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowStoryModal(false);
+                    setStoryFile(null);
+                    setStoryPreview(null);
+                    setStoryContent("");
+                    if (storyFileInputRef.current) {
+                      storyFileInputRef.current.value = '';
+                    }
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {!storyPreview ? (
+                <div className="space-y-4">
+                  <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Video className="w-12 h-12 text-gray-400 mb-4" />
+                      <p className="mb-2 text-sm text-gray-500">
+                        <span className="font-semibold">Chọn ảnh hoặc video</span>
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Video tối đa 50MB, Ảnh tối đa 10MB
+                      </p>
+                    </div>
+                    <input
+                      ref={storyFileInputRef}
+                      type="file"
+                      accept="image/*,video/*"
+                      onChange={handleStoryFileSelect}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    onClick={() => storyFileInputRef.current?.click()}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Chọn file
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="relative w-full h-64 rounded-xl overflow-hidden bg-black">
+                    {storyFile?.type.startsWith('video/') ? (
+                      <video
+                        src={storyPreview}
+                        controls
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <img
+                        src={storyPreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
+                  <textarea
+                    placeholder="Thêm mô tả (tùy chọn)..."
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    value={storyContent}
+                    onChange={(e) => setStoryContent(e.target.value)}
+                  />
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => {
+                        setStoryFile(null);
+                        setStoryPreview(null);
+                        if (storyFileInputRef.current) {
+                          storyFileInputRef.current.value = '';
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    >
+                      Chọn lại
+                    </button>
+                    <button
+                      onClick={handleUploadStory}
+                      disabled={uploadingStory}
+                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    >
+                      {uploadingStory ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                          <span>Đang đăng...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" />
+                          <span>Đăng Story</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Enhanced Posts Feed */}
       <div className="space-y-6">
         {loadingPosts ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-200 border-t-teal-600"></div>
-          </div>
+          <SkeletonLoader type="post" count={3} />
         ) : errorPosts ? (
           <div className="text-center py-12">
-            <p className="text-red-600 mb-4">{errorPosts}</p>
-            <button
-              onClick={fetchPosts}
-              className="px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-gradient-to-br from-white/80 via-red-50/50 to-red-50/50 backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl p-6 mb-4"
             >
-              Thử lại
-            </button>
+              <p className="text-red-600 mb-4">{errorPosts}</p>
+              <motion.button
+                onClick={() => fetchPosts(1, false)}
+                className="px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Thử lại
+              </motion.button>
+            </motion.div>
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 mb-4">Chưa có bài viết nào</p>
-            <Link href="/posts/create">
-              <button className="px-6 py-2 bg-gradient-to-r from-teal-500 to-blue-500 text-white rounded-lg hover:from-teal-600 hover:to-blue-600">
-                Tạo bài viết đầu tiên
-              </button>
-            </Link>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              <div className="text-6xl mb-4">📝</div>
+              <p className="text-gray-600 mb-4 text-lg">
+                Chưa có bài viết nào
+              </p>
+            </motion.div>
           </div>
         ) : (
-          posts.map((post, index) => (
-            <motion.div
-              key={post.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-            >
-              <PostCard
-                post={post}
-                onOpenModal={(slug) => setSelectedPostSlug(slug)}
-              />
-            </motion.div>
-          ))
+          <>
+            {posts.map((post, index) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+              >
+                <PostCard
+                  post={post}
+                  onOpenModal={(slug) => setSelectedPostSlug(slug)}
+                />
+              </motion.div>
+            ))}
+            {isLoadingMore && <SkeletonLoader type="post" count={2} />}
+          </>
         )}
       </div>
 
-      {/* Load More */}
-      <motion.div
-        className="text-center py-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-      >
-        <motion.button
-          className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.95 }}
+      {/* Load More Button */}
+      {hasMore && !loadingPosts && !isLoadingMore && (
+        <motion.div
+          className="text-center py-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
         >
-          🔄 Khám phá thêm về Việt Nam
-        </motion.button>
-      </motion.div>
+          <motion.button
+            onClick={loadMore}
+            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            🔄 Khám phá thêm về Việt Nam
+          </motion.button>
+        </motion.div>
+      )}
 
       {/* Post Modal */}
       {selectedPostSlug && (
@@ -453,6 +1283,157 @@ const NewsFeed = () => {
           onClose={() => setSelectedPostSlug(null)}
         />
       )}
+
+      {/* Story Viewer Modal */}
+      <AnimatePresence>
+        {showStoryViewer && currentViewingUserStories.length > 0 && currentViewingUserStories[currentStoryIndex] && (
+          <motion.div
+            className="fixed inset-0 z-[100] bg-black"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => {
+              setShowStoryViewer(false);
+              setCurrentViewingUserStories([]);
+              setCurrentViewingUser(null);
+            }}
+          >
+            {/* Progress Bar */}
+            <div className="absolute top-0 left-0 right-0 p-4 z-10">
+              <div className="flex gap-2">
+                {currentViewingUserStories.map((_, index) => (
+                  <div
+                    key={index}
+                    className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden"
+                  >
+                    <motion.div
+                      className="h-full bg-white rounded-full"
+                      initial={{ width: index < currentStoryIndex ? '100%' : '0%' }}
+                      animate={{
+                        width:
+                          index === currentStoryIndex
+                            ? `${storyProgress}%`
+                            : index < currentStoryIndex
+                            ? '100%'
+                            : '0%',
+                      }}
+                      transition={{ duration: 0.1 }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Story Content */}
+            <div className="relative w-full h-full flex items-center justify-center">
+              {/* Previous Button */}
+              {currentStoryIndex > 0 && (
+                <motion.button
+                  className="absolute left-4 z-20 w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrevStory();
+                  }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <ChevronLeft className="w-6 h-6 text-white" />
+                </motion.button>
+              )}
+
+              {/* Next Button */}
+              {currentStoryIndex < currentViewingUserStories.length - 1 && (
+                <motion.button
+                  className="absolute right-4 z-20 w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNextStory();
+                  }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <ChevronRight className="w-6 h-6 text-white" />
+                </motion.button>
+              )}
+
+              {/* Close Button */}
+              <motion.button
+                className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowStoryViewer(false);
+                  setCurrentViewingUserStories([]);
+                  setCurrentViewingUser(null);
+                }}
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <X className="w-5 h-5 text-white" />
+              </motion.button>
+
+              {/* Story Media */}
+              <div
+                className="relative w-full h-full flex items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {currentViewingUserStories[currentStoryIndex]?.mediaType === 'video' ? (
+                  <video
+                    src={currentViewingUserStories[currentStoryIndex].mediaUrl}
+                    className="max-w-full max-h-full object-contain"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={currentViewingUserStories[currentStoryIndex].mediaUrl}
+                    alt="Story"
+                    className="max-w-full max-h-full object-contain"
+                  />
+                )}
+              </div>
+
+              {/* Story Info */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/50 to-transparent">
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-lg font-bold">
+                    {currentViewingUser?.avatar || '👤'}
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold">
+                      {currentViewingUser?.name || 'User'}
+                    </div>
+                    {currentViewingUserStories[currentStoryIndex]?.content && (
+                      <div className="text-white/80 text-sm">
+                        📍 {currentViewingUserStories[currentStoryIndex].content}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Scroll to Top Button */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:shadow-blue-500/50 transition-all duration-300"
+            initial={{ opacity: 0, scale: 0, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0, y: 20 }}
+            whileHover={{ scale: 1.1, y: -5 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={scrollToTop}
+            aria-label="Scroll to top"
+          >
+            <ArrowUp className="w-6 h-6" />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

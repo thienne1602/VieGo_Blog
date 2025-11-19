@@ -2,7 +2,10 @@ from flask_socketio import emit, join_room, leave_room, disconnect
 from flask_jwt_extended import decode_token
 from models.user import User
 from models.chat import Chat, db
+from models.notification import Notification
+from routes.notifications import create_notification
 import json
+from datetime import datetime
 
 def register_socket_handlers(socketio):
     """Register Socket.IO event handlers"""
@@ -10,28 +13,63 @@ def register_socket_handlers(socketio):
     @socketio.on('connect')
     def on_connect(auth):
         """Handle client connection"""
+        from flask import request
+        
         try:
+            user_id = None
+            socket_id = request.sid
+            print(f'[Socket.IO] New connection attempt, socket_id={socket_id}')
+            
             # Verify JWT token
             if auth and 'token' in auth:
                 token = auth['token']
                 decoded = decode_token(token)
-                user_id = decoded['sub']
+                user_id_raw = decoded['sub']
+                
+                # Ensure user_id is integer for consistent room naming
+                try:
+                    user_id = int(user_id_raw) if user_id_raw is not None else None
+                except (ValueError, TypeError):
+                    print(f'[Socket.IO] ERROR: Invalid user_id from token: {user_id_raw}')
+                    disconnect()
+                    return
+                
+                if user_id is None:
+                    print(f'[Socket.IO] ERROR: user_id is None after conversion')
+                    disconnect()
+                    return
                 
                 user = User.query.get(user_id)
                 if user and user.is_active:
+                    # IMPORTANT: Each user should ONLY join their own room
+                    # Room name format: user_{user_id}
+                    # This ensures notifications are sent only to the correct user
+                    room = f'user_{user_id}'
+                    
+                    # Join user's personal room for notifications and direct messages
+                    # Use consistent room naming: user_{user_id}
+                    join_room(room)
+                    
                     emit('connected', {
                         'message': f'Chào mừng {user.username}!',
-                        'user_id': user_id
+                        'user_id': user_id,
+                        'room': room
                     })
-                    print(f'User {user.username} connected')
+                    print(f'[Socket.IO] User {user.username} (ID: {user_id}) connected and joined room {room}, socket_id={socket_id}')
+                    print(f'[Socket.IO] IMPORTANT: This socket should ONLY receive notifications for user_id={user_id}')
+                    print(f'[Socket.IO] Room {room} should ONLY contain sockets for user_id={user_id}')
                 else:
+                    print(f'[Socket.IO] ERROR: User {user_id} not found or inactive')
                     disconnect()
             else:
-                # Allow anonymous connections for public features
-                emit('connected', {'message': 'Kết nối thành công'})
+                # Allow anonymous connections for public features (but they won't get notifications)
+                print(f'[Socket.IO] Anonymous connection, socket_id={socket_id}')
+                emit('connected', {'message': 'Kết nối thành công (không xác thực)'})
                 
         except Exception as e:
-            print(f'Connection error: {str(e)}')
+            print(f'[Socket.IO] Connection error: {str(e)}')
+            import traceback
+            print(traceback.format_exc())
             disconnect()
     
     @socketio.on('disconnect')
@@ -75,56 +113,21 @@ def register_socket_handlers(socketio):
     
     @socketio.on('send_message')
     def on_send_message(data):
-        """Handle real-time chat messages"""
-        try:
-            message = data.get('message', '').strip()
-            room = data.get('room')
-            sender_id = data.get('sender_id')
-            receiver_id = data.get('receiver_id')
-            message_type = data.get('message_type', 'text')
-            
-            if not message:
-                emit('error', {'message': 'Tin nhắn trống'})
-                return
-            
-            # Create chat message in database
-            chat = Chat(
-                message=message,
-                message_type=message_type,
-                sender_id=sender_id,
-                receiver_id=receiver_id,
-                room_id=room
-            )
-            
-            db.session.add(chat)
-            db.session.commit()
-            
-            # Get sender info
-            sender = User.query.get(sender_id) if sender_id else None
-            
-            # Emit to room or direct message
-            message_data = {
-                'id': chat.id,
-                'message': message,
-                'message_type': message_type,
-                'sender': {
-                    'id': sender.id,
-                    'username': sender.username,
-                    'full_name': sender.full_name,
-                    'avatar_url': sender.avatar_url
-                } if sender else None,
-                'timestamp': chat.created_at.isoformat(),
-                'room': room
-            }
-            
-            if room:
-                emit('new_message', message_data, room=room)
-            else:
-                emit('new_message', message_data)
-            
-        except Exception as e:
-            db.session.rollback()
-            emit('error', {'message': f'Lỗi gửi tin nhắn: {str(e)}'})
+        """
+        DEPRECATED: This handler is disabled to prevent duplicate messages.
+        Messages should be sent via API route /api/chat/messages which handles
+        both database storage and Socket.IO emission.
+        
+        This handler is kept for backward compatibility but will not create messages.
+        """
+        print('[Socket.IO] WARNING: send_message event received but handler is disabled. Use API route /api/chat/messages instead.')
+        emit('error', {
+            'message': 'Vui lòng sử dụng API để gửi tin nhắn. Socket handler này đã bị vô hiệu hóa để tránh trùng lặp tin nhắn.'
+        })
+        return
+        
+        # OLD CODE - DISABLED TO PREVENT DUPLICATE MESSAGES
+        # The API route /api/chat/messages already handles message creation and Socket.IO emission
     
     @socketio.on('typing')
     def on_typing(data):
@@ -200,5 +203,39 @@ def register_socket_handlers(socketio):
                 
         except Exception as e:
             emit('error', {'message': f'Lỗi chia sẻ vị trí: {str(e)}'})
+    
+    @socketio.on('join_conversation')
+    def on_join_conversation(data):
+        """Join a direct message conversation"""
+        try:
+            user_id = data.get('user_id')
+            other_user_id = data.get('other_user_id')
+            
+            if user_id and other_user_id:
+                # Create a unique room for this conversation
+                room = f'conversation_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}'
+                join_room(room)
+                emit('conversation_joined', {'room': room})
+                
+        except Exception as e:
+            emit('error', {'message': f'Lỗi tham gia cuộc trò chuyện: {str(e)}'})
+    
+    @socketio.on('typing_message')
+    def on_typing_message(data):
+        """Handle typing indicator in direct messages"""
+        try:
+            sender_id = data.get('sender_id')
+            receiver_id = data.get('receiver_id')
+            is_typing = data.get('is_typing', False)
+            
+            if sender_id and receiver_id:
+                # Send typing indicator to receiver
+                emit('user_typing', {
+                    'sender_id': sender_id,
+                    'is_typing': is_typing
+                }, room=f'user_{receiver_id}')
+                
+        except Exception as e:
+            emit('error', {'message': f'Lỗi typing indicator: {str(e)}'})
     
     return socketio

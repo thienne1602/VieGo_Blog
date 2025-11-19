@@ -1,88 +1,195 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { motion } from "framer-motion";
+import { MapPin, Clock, Users, Star } from "lucide-react";
 
 type Props = { tour: any };
 
 export default function TourCard({ tour }: Props) {
   const image =
     tour.featured_image ||
-    (tour.gallery_images && tour.gallery_images[0]) ||
-    "/images/tours/default.jpg";
+    (tour.gallery_images && tour.gallery_images.length > 0 && tour.gallery_images[0]) ||
+    "/images/tours/default.svg";
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: tour.currency || "VND",
+      maximumFractionDigits: 0,
     }).format(price);
   };
 
+  const originalPrice = tour.price_per_person || tour.price || 0;
+  const discountPrice = tour.discount_percentage
+    ? originalPrice * (1 - tour.discount_percentage / 100)
+    : originalPrice;
+
+  const getDifficultyColor = (difficulty: string) => {
+    const colors: any = {
+      easy: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700",
+      moderate: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-700",
+      hard: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700",
+    };
+    return colors[difficulty] || "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600";
+  };
+
+  const getDifficultyLabel = (difficulty: string) => {
+    const labels: any = {
+      easy: "Dễ",
+      moderate: "Trung Bình",
+      hard: "Khó",
+    };
+    return labels[difficulty] || difficulty;
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group">
+    <motion.div
+      className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 border-white/30 dark:border-gray-700/50"
+      whileHover={{ y: -4 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Link href={`/tours/${tour.id}`} className="block">
-        <div className="relative h-52 w-full bg-gray-100">
-          {/* Use Image if available */}
+        <div className="relative h-64 w-full bg-gray-100 overflow-hidden">
           {image ? (
-            // next/image requires width/height; using fill layout
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={image}
               alt={tour.title}
-              className="object-cover w-full h-52"
+              className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
             />
-          ) : null}
+          ) : (
+            <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+              <svg className="w-16 h-16 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          )}
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent z-10" />
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-          <div className="absolute top-3 left-3 z-20">
-            <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-              {tour.difficulty_level || tour.difficulty || "--"}
+          {/* Discount Badge */}
+          {tour.discount_percentage && tour.discount_percentage > 0 && (
+            <div className="absolute top-4 left-4 z-20">
+              <div className="bg-accent-500 dark:bg-accent-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                -{tour.discount_percentage}%
+              </div>
+            </div>
+          )}
+
+          {/* Difficulty Badge */}
+          <div className="absolute top-4 right-4 z-20">
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                getDifficultyColor(
+                  (tour.difficulty_level || tour.difficulty || "easy").toLowerCase()
+                )
+              } backdrop-blur-sm bg-white/90 dark:bg-gray-800/90`}
+            >
+              {getDifficultyLabel(
+                (tour.difficulty_level || tour.difficulty || "easy").toLowerCase()
+              )}
             </span>
           </div>
 
-          <div className="absolute top-3 right-3 z-20 bg-white/90 px-2 py-1 rounded-full text-sm font-medium">
-            ⭐ {tour.rating || "-"} ({tour.reviews_count || 0})
-          </div>
+          {/* Rating */}
+          {tour.rating && (
+            <div className="absolute bottom-4 right-4 z-20 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
+              <Star className="w-4 h-4 fill-yellow-400 dark:fill-yellow-500 text-yellow-400 dark:text-yellow-500" />
+              <span className="font-bold text-sm text-gray-900 dark:text-gray-100">{tour.rating.toFixed(1)}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">({tour.reviews_count || 0})</span>
+            </div>
+          )}
 
-          <div className="absolute bottom-3 left-3 z-20 bg-black/70 text-white px-2 py-1 rounded text-xs">
-            {tour.duration_days || tour.duration || "-"} ngày
+          {/* Duration */}
+          <div className="absolute bottom-4 left-4 z-20 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
+            <Clock className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+            <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">
+              {tour.duration_days || tour.duration || "-"} ngày
+            </span>
           </div>
         </div>
 
-        <div className="p-5">
-          <h3 className="font-bold text-lg mb-2 text-neutral-800 group-hover:text-primary transition-colors">
+        <div className="p-6">
+          {/* Category Tag */}
+          {tour.category && (
+            <div className="mb-3">
+              <span className="inline-block px-3 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded-full text-xs font-semibold">
+                {tour.category}
+              </span>
+            </div>
+          )}
+
+          {/* Title */}
+          <h3 className="font-bold text-xl mb-2 text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1">
             {tour.title}
           </h3>
 
-          <p className="text-neutral-600 mb-4 line-clamp-2 text-sm leading-relaxed">
+          {/* Description */}
+          <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 text-sm leading-relaxed min-h-[40px]">
             {tour.description}
           </p>
 
+          {/* Location */}
+          {tour.starting_location && (
+            <div className="flex items-center gap-2 mb-4 text-gray-500 dark:text-gray-400 text-sm">
+              <MapPin className="w-4 h-4" />
+              <span className="line-clamp-1">{tour.starting_location}</span>
+            </div>
+          )}
+
+          {/* Info Icons */}
+          <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
+            {tour.max_participants && (
+              <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-sm">
+                <Users className="w-4 h-4" />
+                <span>Tối đa {tour.max_participants} người</span>
+              </div>
+            )}
+          </div>
+
+          {/* Price and CTA */}
           <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xl font-bold text-primary">
-                {formatPrice(tour.price_per_person || tour.price)}
-              </div>
-              <div className="text-xs text-neutral-500">
-                /người · Tối đa {tour.max_participants || 10} người
-              </div>
+            <div className="flex-1">
+              {tour.discount_percentage && tour.discount_percentage > 0 ? (
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                      {formatPrice(discountPrice)}
+                    </div>
+                    <div className="text-sm text-gray-400 dark:text-gray-500 line-through">
+                      {formatPrice(originalPrice)}
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">/người</div>
+                </div>
+              ) : (
+                <div>
+                  <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                    {formatPrice(originalPrice)}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">/người</div>
+                </div>
+              )}
             </div>
 
-            <div className="flex flex-col items-end space-y-2">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               <Link
                 href={`/tours/${tour.id}`}
-                className="px-4 py-2 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-300 text-sm"
+                className="px-6 py-2.5 bg-primary-600 dark:bg-primary-500 text-white rounded-lg font-semibold text-sm hover:bg-primary-700 dark:hover:bg-primary-600 transition-all duration-300 shadow-md hover:shadow-lg whitespace-nowrap"
               >
-                Chi Tiết
+                Xem Chi Tiết
               </Link>
-              <button className="px-4 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg text-sm">
-                Đặt Ngay
-              </button>
-            </div>
+            </motion.div>
           </div>
         </div>
       </Link>
-    </div>
+    </motion.div>
   );
 }
+

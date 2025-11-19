@@ -8,7 +8,7 @@ class Chat(db.Model):
     message = db.Column(db.Text, nullable=False)
     
     # Message types
-    message_type = db.Column(db.Enum('text', 'image', 'file', 'location', 'system'), default='text')
+    message_type = db.Column(db.Enum('text', 'image', 'audio', 'file', 'location', 'system'), default='text')
     file_url = db.Column(db.String(255))  # For file/image messages
     file_type = db.Column(db.String(50))   # MIME type
     
@@ -38,6 +38,17 @@ class Chat(db.Model):
         self.status = 'read'
         self.read_at = datetime.utcnow()
     
+    def _format_datetime(self, dt):
+        """Format datetime to ISO format with UTC timezone indicator"""
+        if dt is None:
+            return None
+        # Ensure UTC timezone indicator for proper frontend parsing
+        iso_str = dt.isoformat()
+        if not iso_str.endswith('Z') and '+' not in iso_str[-6:]:
+            # Add 'Z' to indicate UTC if not already present
+            iso_str += 'Z'
+        return iso_str
+    
     def to_dict(self):
         """Convert chat message to dictionary"""
         return {
@@ -52,8 +63,9 @@ class Chat(db.Model):
             'language': self.language,
             'translated_message': self.translated_message,
             'auto_translated': self.auto_translated,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'read_at': self.read_at.isoformat() if self.read_at else None,
+            'created_at': self._format_datetime(self.created_at),
+            'updated_at': self._format_datetime(self.updated_at),
+            'read_at': self._format_datetime(self.read_at),
             'sender_id': self.sender_id,
             'receiver_id': self.receiver_id
         }

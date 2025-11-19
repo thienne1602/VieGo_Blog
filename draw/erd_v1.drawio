@@ -1,0 +1,91 @@
+<mxfile host="65bd71144e">
+    <diagram id="erd-v1" name="ERD v1">
+        <mxGraphModel dx="1166" dy="745" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="user" value="User\n- id (PK)\n- email (UK)\n- password_hash\n- status\n- created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="40" width="200" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="profile" value="Profile\n- id (PK)\n- user_id (FK)\n- full_name\n- avatar_url" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E2F0D9;strokeColor=#6AA84F;" parent="1" vertex="1">
+                    <mxGeometry x="260" y="40" width="200" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="role" value="Role\n- id (PK)\n- name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9E1F2;strokeColor=#6D9EEB;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="40" width="180" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="userrole" value="UserRole\n- user_id\n- role_id" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FCE5CD;strokeColor=#E69138;" parent="1" vertex="1">
+                    <mxGeometry x="190" y="460" width="180" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="post" value="Post\n- id (PK)\n- author_id (FK)\n- title\n- slug\n- status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F4CCCC;strokeColor=#CC0000;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="180" width="240" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="story" value="Story\n- id (PK)\n- post_id (FK)\n- province\n- location" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D0E0E3;strokeColor=#3D85C6;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="180" width="220" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="tag" value="Tag\n- id\n- name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAD1DC;strokeColor=#A64D79;" parent="1" vertex="1">
+                    <mxGeometry x="580" y="200" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="posttag" value="PostTag\n- post_id\n- tag_id" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;" parent="1" vertex="1">
+                    <mxGeometry x="580" y="270" width="140" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="comment" value="Comment\n- id (PK)\n- post_id (FK)\n- user_id (FK)\n- parent_comment_id\n- content" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F9CB9C;strokeColor=#B45F06;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="320" width="360" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="tour" value="Tour\n- id\n- seller_id (FK)\n- title\n- price" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9EAD3;strokeColor=#6AA84F;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="340" width="260" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="booking" value="Booking\n- id\n- tour_id (FK)\n- customer_id (FK)\n- quantity\n- status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAD1DC;strokeColor=#A64D79;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="440" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="notification" value="Notification\n- id\n- recipient_id (FK)\n- type\n- payload" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9E1F2;strokeColor=#6D9EEB;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="460" width="260" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="conversation" value="Conversation\n- id\n- subject" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;" parent="1" vertex="1">
+                    <mxGeometry x="740" y="40" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="message" value="Message\n- id\n- conversation_id (FK)\n- sender_id (FK)\n- body" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F4CCCC;strokeColor=#CC0000;" parent="1" vertex="1">
+                    <mxGeometry x="740" y="120" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="attachment" value="Attachment\n- id\n- message_id (FK)\n- url\n- mime_type" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D0E0E3;strokeColor=#3D85C6;" parent="1" vertex="1">
+                    <mxGeometry x="740" y="220" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;labelPosition=top;verticalLabelPosition=top;" parent="1" source="user" target="post" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;" parent="1" source="post" target="comment" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;" parent="1" source="comment" target="comment" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e4" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;" parent="1" source="post" target="posttag" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;" parent="1" source="tag" target="posttag" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e6" value="1 — 1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;" parent="1" source="user" target="profile" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e7" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;" parent="1" source="user" target="userrole" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e8" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;" parent="1" source="role" target="userrole" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e9" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;" parent="1" source="tour" target="booking" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e10" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;" parent="1" source="conversation" target="message" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e11" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;" parent="1" source="message" target="attachment" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e12" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;" parent="1" source="user" target="notification" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

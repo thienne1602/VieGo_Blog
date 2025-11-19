@@ -67,7 +67,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const handlePostComment = async () => {
     const token = localStorage.getItem("access_token");
     if (!token) {
-      router.push("/login");
+      router.push("/welcome");
       return;
     }
 
@@ -102,7 +102,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const handlePostReply = async (parentId: number) => {
     const token = localStorage.getItem("access_token");
     if (!token) {
-      router.push("/login");
+      router.push("/welcome");
       return;
     }
 
@@ -166,7 +166,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const handleLikeComment = async (commentId: number) => {
     const token = localStorage.getItem("access_token");
     if (!token) {
-      router.push("/login");
+      router.push("/welcome");
       return;
     }
 

@@ -11,6 +11,9 @@ import {
   Bell,
   Search,
   Home,
+  Crown,
+  Store,
+  Navigation,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -33,18 +36,18 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
       label: "Trang chủ",
       href: "/",
       icon: Home,
-      roles: ["admin", "moderator", "user", "seller"],
+      roles: ["admin", "moderator", "user", "seller", "tour_guide"],
     },
     {
       label: "Dashboard Seller",
       href: "/dashboard/seller",
-      icon: LayoutDashboard,
+      icon: Store,
       roles: ["seller"],
     },
     {
       label: "Dashboard Admin",
       href: "/dashboard/admin",
-      icon: LayoutDashboard,
+      icon: Crown,
       roles: ["admin"],
     },
     {
@@ -52,6 +55,12 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
       href: "/dashboard/moderator",
       icon: Shield,
       roles: ["moderator"],
+    },
+    {
+      label: "Dashboard HDV",
+      href: "/dashboard/tour-guide",
+      icon: Navigation,
+      roles: ["tour_guide"],
     },
     {
       label: "Hồ sơ cá nhân",
@@ -66,15 +75,15 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Profile-Specific Header */}
-      <header className="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 shadow-xl sticky top-0 z-40">
+      <header className="bg-primary-600 dark:bg-primary-700 shadow-xl sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo & Breadcrumb */}
             <div className="flex items-center space-x-6">
               <Link href="/" className="flex items-center space-x-3 group">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-white/30 transition-all duration-300">
+                <div className="w-10 h-10 bg-white/20 dark:bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/30 dark:group-hover:bg-white/20 transition-all duration-300">
                   <span className="text-2xl font-bold text-white">V</span>
                 </div>
                 <div className="text-white">
@@ -82,6 +91,8 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
                   <div className="text-xs text-blue-100 opacity-80">
                     {user?.role === "admin" && "Admin Panel"}
                     {user?.role === "moderator" && "Moderator Dashboard"}
+                    {user?.role === "seller" && "Seller Dashboard"}
+                    {user?.role === "tour_guide" && "Tour Guide Dashboard"}
                     {user?.role === "user" && "My Profile"}
                   </div>
                 </div>
@@ -99,8 +110,8 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
                       href={item.href}
                       className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                         isActive
-                          ? "bg-white/25 text-white shadow-lg backdrop-blur-sm"
-                          : "text-blue-100 hover:text-white hover:bg-white/15"
+                          ? "bg-white/25 dark:bg-white/20 text-white shadow-lg"
+                          : "text-blue-100 dark:text-blue-200 hover:text-white hover:bg-white/15 dark:hover:bg-white/10"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -120,23 +131,23 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
                   <input
                     type="text"
                     placeholder="Tìm kiếm trong hệ thống..."
-                    className="pl-12 pr-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white placeholder-white/60 w-80"
+                    className="pl-12 pr-4 py-3 bg-white/10 dark:bg-white/5 border border-white/20 dark:border-white/10 rounded-full focus:ring-2 focus:ring-white/50 focus:border-white/40 text-white placeholder-white/60 dark:placeholder-white/40 w-80"
                   />
                 </div>
               )}
 
               {/* Notifications with Badge */}
               <div className="relative">
-                <button className="relative p-3 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all duration-300 backdrop-blur-sm">
+                <button className="relative p-3 text-white/80 dark:text-white/70 hover:text-white hover:bg-white/10 dark:hover:bg-white/5 rounded-full transition-all duration-300">
                   <Bell className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 h-6 w-6 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-semibold shadow-lg">
+                  <span className="absolute -top-1 -right-1 h-6 w-6 bg-red-500 dark:bg-red-600 text-white text-xs rounded-full flex items-center justify-center font-semibold shadow-lg">
                     3
                   </span>
                 </button>
               </div>
 
               {/* Enhanced User Profile Card */}
-              <div className="flex items-center space-x-4 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/20">
+              <div className="flex items-center space-x-4 bg-white/10 dark:bg-white/5 rounded-2xl px-4 py-2 border border-white/20 dark:border-white/10">
                 <img
                   src={
                     user?.role === "admin"
@@ -153,10 +164,37 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
                     {user?.full_name}
                   </p>
                   <div className="flex items-center space-x-1">
-                    <span className="text-xs text-blue-100">
-                      {user?.role === "admin" && "👑 Admin"}
-                      {user?.role === "moderator" && "🛡️ Moderator"}
-                      {user?.role === "user" && "👤 User"}
+                    <span className="text-xs text-blue-100 dark:text-blue-200 flex items-center gap-1">
+                      {user?.role === "admin" && (
+                        <>
+                          <Crown className="w-3 h-3" />
+                          Admin
+                        </>
+                      )}
+                      {user?.role === "moderator" && (
+                        <>
+                          <Shield className="w-3 h-3" />
+                          Moderator
+                        </>
+                      )}
+                      {user?.role === "user" && (
+                        <>
+                          <User className="w-3 h-3" />
+                          User
+                        </>
+                      )}
+                      {user?.role === "seller" && (
+                        <>
+                          <Store className="w-3 h-3" />
+                          Seller
+                        </>
+                      )}
+                      {user?.role === "tour_guide" && (
+                        <>
+                          <Navigation className="w-3 h-3" />
+                          Tour Guide
+                        </>
+                      )}
                     </span>
                   </div>
                 </div>
@@ -180,9 +218,9 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
         </div>
 
         {/* Profile Stats Bar */}
-        <div className="border-t border-white/10 bg-white/5 backdrop-blur-sm">
+        <div className="border-t border-white/10 dark:border-white/5 bg-white/5 dark:bg-white/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between text-sm text-white/80">
+            <div className="flex items-center justify-between text-sm text-white/80 dark:text-white/70">
               <div className="flex items-center space-x-6">
                 <span>
                   Hoạt động gần đây: {new Date().toLocaleDateString("vi-VN")}
@@ -199,6 +237,8 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
                       ? "Kiểm duyệt viên"
                       : user?.role === "seller"
                       ? "Người bán (Seller)"
+                      : user?.role === "tour_guide"
+                      ? "Hướng dẫn viên"
                       : "Nhân viên"}
                   </span>
                 )}
@@ -209,7 +249,7 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
       </header>
 
       {/* Mobile Navigation - Enhanced Design */}
-      <div className="lg:hidden bg-gradient-to-r from-indigo-500 to-blue-500 border-t border-white/10">
+      <div className="lg:hidden bg-primary-600 dark:bg-primary-700 border-t border-white/10 dark:border-white/5">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex space-x-2 py-3 overflow-x-auto scrollbar-hide">
             {visibleItems.map((item) => {
@@ -222,8 +262,8 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
                   href={item.href}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
                     isActive
-                      ? "bg-white/30 text-white shadow-lg backdrop-blur-sm"
-                      : "text-blue-100 hover:text-white hover:bg-white/20"
+                      ? "bg-white/30 dark:bg-white/20 text-white shadow-lg"
+                      : "text-blue-100 dark:text-blue-200 hover:text-white hover:bg-white/20 dark:hover:bg-white/10"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -243,31 +283,29 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
       {/* Enhanced Floating Role Badge */}
       <div className="fixed bottom-6 left-6 z-30">
         <div
-          className={`inline-flex items-center px-4 py-3 rounded-2xl text-sm font-semibold shadow-2xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 ${
+          className={`inline-flex items-center px-4 py-3 rounded-2xl text-sm font-semibold shadow-2xl border transition-all duration-300 hover:scale-105 ${
             user?.role === "admin"
-              ? "bg-gradient-to-r from-red-500 to-pink-500 text-white border-red-300"
+              ? "bg-red-500 dark:bg-red-600 text-white border-red-300 dark:border-red-400"
               : user?.role === "moderator"
-              ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-yellow-300"
-              : "bg-gradient-to-r from-green-500 to-emerald-500 text-white border-green-300"
+              ? "bg-yellow-500 dark:bg-yellow-600 text-white border-yellow-300 dark:border-yellow-400"
+              : user?.role === "seller"
+              ? "bg-green-500 dark:bg-green-600 text-white border-green-300 dark:border-green-400"
+              : user?.role === "tour_guide"
+              ? "bg-purple-500 dark:bg-purple-600 text-white border-purple-300 dark:border-purple-400"
+              : "bg-blue-500 dark:bg-blue-600 text-white border-blue-300 dark:border-blue-400"
           }`}
         >
           <div className="flex items-center space-x-2">
-            <span className="text-lg">
-              {user?.role === "admin" && "👑"}
-              {user?.role === "moderator" && "🛡️"}
-              {user?.role === "user" && "👤"}
-              {user?.role === "seller" && "🏪"}
+            {user?.role === "admin" && <Crown className="w-4 h-4" />}
+            {user?.role === "moderator" && <Shield className="w-4 h-4" />}
+            {user?.role === "user" && <User className="w-4 h-4" />}
+            {user?.role === "seller" && <Store className="w-4 h-4" />}
+            {user?.role === "tour_guide" && <Navigation className="w-4 h-4" />}
+            <span className="font-medium capitalize">
+              {user?.role === "tour_guide" ? "Tour Guide" : user?.role}
             </span>
-            <span className="font-medium capitalize">{user?.role}</span>
           </div>
         </div>
-      </div>
-
-      {/* Background Decorative Elements */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-20 right-10 w-32 h-32 bg-blue-200/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-10 w-40 h-40 bg-indigo-200/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 right-1/3 w-24 h-24 bg-cyan-200/20 rounded-full blur-2xl"></div>
       </div>
     </div>
   );

@@ -108,6 +108,7 @@ class Location(db.Model):
         pass  # self.views_count = (self.views_count or 0) + 1
     
     def to_dict(self):
+        import json
         return {
             'id': self.id,
             'name': self.name,
@@ -129,10 +130,16 @@ class Location(db.Model):
                 'website': self.website,
                 'email': self.email
             },
+            'opening_hours': self.opening_hours,
             'price_range': self.price_range,
+            'images': self.get_gallery_images() if self.images else [],
             'featured_image': self.featured_image,
+            'tags': self.get_tags(),
+            'amenities': self.get_amenities(),
             'verified': self.verified,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
     
     def __repr__(self):

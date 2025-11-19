@@ -3,12 +3,27 @@
  * Handles token management and error handling
  */
 
+// Get current port from window.location
+function getCurrentPort(): string {
+  if (typeof window !== 'undefined') {
+    const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+    return port;
+  }
+  return '3000'; // Default fallback
+}
+
+// Get storage key with port suffix to ensure isolation between clients
+function getStorageKey(baseKey: string): string {
+  const port = getCurrentPort();
+  return `${baseKey}_${port}`;
+}
+
 export const authUtils = {
   /**
-   * Get access token from localStorage
+   * Get access token from localStorage (with port-specific key)
    */
   getToken(): string | null {
-    return localStorage.getItem("access_token");
+    return localStorage.getItem(getStorageKey("access_token"));
   },
 
   /**
@@ -47,11 +62,11 @@ export const authUtils = {
   },
 
   /**
-   * Get user data from localStorage
+   * Get user data from localStorage (with port-specific key)
    */
   getUser(): any | null {
     try {
-      const userStr = localStorage.getItem("user");
+      const userStr = localStorage.getItem(getStorageKey("user"));
       return userStr ? JSON.parse(userStr) : null;
     } catch {
       return null;
@@ -71,22 +86,22 @@ export const authUtils = {
    */
   migrateOldToken(): void {
     const oldToken = localStorage.getItem("viego_token");
-    const newToken = localStorage.getItem("access_token");
+    const newToken = this.getToken();
 
     if (oldToken && !newToken) {
       console.log("Migrating token from viego_token to access_token");
-      localStorage.setItem("access_token", oldToken);
+      localStorage.setItem(getStorageKey("access_token"), oldToken);
       localStorage.removeItem("viego_token");
     }
   },
 
   /**
-   * Clear all auth data
+   * Clear all auth data (with port-specific keys)
    */
   clearAuth(): void {
-    localStorage.removeItem("access_token");
+    localStorage.removeItem(getStorageKey("access_token"));
     localStorage.removeItem("viego_token"); // Remove old token too
-    localStorage.removeItem("user");
+    localStorage.removeItem(getStorageKey("user"));
     sessionStorage.clear();
   },
 

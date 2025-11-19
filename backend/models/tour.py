@@ -52,9 +52,6 @@ class Tour(db.Model):
     views_count = db.Column(db.Integer, default=0)
     bookings_count = db.Column(db.Integer, default=0)
     
-    # Publishing status
-    status = db.Column(db.Enum('draft', 'published', 'archived'), default='draft')
-    
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -145,57 +142,6 @@ class Tour(db.Model):
         """Increment bookings count"""
         self.bookings_count = (self.bookings_count or 0) + 1
     
-    def calculate_final_price(self, participants=1):
-        """Calculate final price with discount"""
-        price = self.price_per_person * participants
-        if self.discount_percentage > 0:
-            price = price * (1 - self.discount_percentage / 100)
-        return price
-    
-    def to_dict(self, include_sensitive=False):
-        """Convert tour to dictionary"""
-        data = {
-            'id': self.id,
-            'title': self.title,
-            'description': self.description,
-            'duration_days': self.duration_days,
-            'starting_location': self.starting_location,
-            'ending_location': self.ending_location,
-            'category': self.category,
-            'difficulty_level': self.difficulty_level,
-            'price_per_person': self.price_per_person,
-            'currency': self.currency,
-            'discount_percentage': self.discount_percentage,
-            'max_participants': self.max_participants,
-            'min_participants': self.min_participants,
-            'rating': self.rating,
-            'reviews_count': self.reviews_count,
-            'views_count': self.views_count,
-            'featured_image': self.featured_image,
-            'video_url': self.video_url,
-            'status': self.status,
-            'tags': self.get_tags(),
-            'gallery_images': self.get_gallery_images(),
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }
-        
-        if include_sensitive:
-            data.update({
-                'itinerary': self.get_itinerary(),
-                'inclusions': self.get_inclusions(),
-                'exclusions': self.get_exclusions(),
-                'available_dates': self.get_available_dates(),
-                'locations_covered': self.get_locations_covered(),
-                'booking_deadline_days': self.booking_deadline_days,
-                'cancellation_policy': self.cancellation_policy,
-                'bookings_count': self.bookings_count,
-                'seller_id': self.seller_id
-            })
-        
-        return data
-    
-    def __repr__(self):
-        return f'<Tour {self.title}>'
     # Status and visibility
     status = db.Column(db.Enum('active', 'inactive', 'draft', 'suspended'), default='draft')
     featured = db.Column(db.Boolean, default=False)
@@ -210,40 +156,12 @@ class Tour(db.Model):
     equipment_provided = db.Column(db.Text)  # JSON array
     equipment_required = db.Column(db.Text)  # JSON array
     
-    # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Foreign Keys
-    seller_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    
-    def get_itinerary(self):
-        """Get itinerary as dict"""
-        if self.itinerary:
-            return json.loads(self.itinerary)
-        return {}
-    
-    def set_itinerary(self, itinerary_dict):
-        """Set tour itinerary"""
-        self.itinerary = json.dumps(itinerary_dict)
-    
-    def get_inclusions(self):
-        """Get inclusions as list"""
-        if self.inclusions:
-            return json.loads(self.inclusions)
-        return []
-    
-    def get_exclusions(self):
-        """Get exclusions as list"""
-        if self.exclusions:
-            return json.loads(self.exclusions)
-        return []
-    
-    def get_available_dates(self):
-        """Get available dates as list"""
-        if self.available_dates:
-            return json.loads(self.available_dates)
-        return []
+    def calculate_final_price(self, participants=1):
+        """Calculate final price with discount"""
+        price = self.price_per_person * participants
+        if self.discount_percentage > 0:
+            price = price * (1 - self.discount_percentage / 100)
+        return price
     
     def get_discounted_price(self):
         """Calculate discounted price"""
@@ -261,7 +179,7 @@ class Tour(db.Model):
         """Calculate total price for given number of participants"""
         return self.get_discounted_price() * participants
     
-    def to_dict(self, include_detailed=False):
+    def to_dict(self, include_sensitive=False):
         """Convert tour to dictionary"""
         data = {
             'id': self.id,
@@ -279,9 +197,10 @@ class Tour(db.Model):
             'discount_percentage': self.discount_percentage,
             'featured_image': self.featured_image,
             'category': self.category,
-            'tags': json.loads(self.tags) if self.tags else [],
+            'tags': self.get_tags(),
             'rating': self.rating,
             'reviews_count': self.reviews_count,
+            'views_count': self.views_count,
             'status': self.status,
             'featured': self.featured,
             'age_requirement': self.age_requirement,
@@ -290,20 +209,21 @@ class Tour(db.Model):
             'seller_id': self.seller_id
         }
         
-        if include_detailed:
+        if include_sensitive:
             data.update({
                 'itinerary': self.get_itinerary(),
-                'locations_covered': json.loads(self.locations_covered) if self.locations_covered else [],
+                'locations_covered': self.get_locations_covered(),
                 'inclusions': self.get_inclusions(),
                 'exclusions': self.get_exclusions(),
-                'gallery_images': json.loads(self.gallery_images) if self.gallery_images else [],
+                'gallery_images': self.get_gallery_images(),
                 'video_url': self.video_url,
                 'available_dates': self.get_available_dates(),
                 'booking_deadline_days': self.booking_deadline_days,
                 'cancellation_policy': self.cancellation_policy,
                 'equipment_provided': json.loads(self.equipment_provided) if self.equipment_provided else [],
                 'equipment_required': json.loads(self.equipment_required) if self.equipment_required else [],
-                'affiliate_link': self.affiliate_link
+                'affiliate_link': self.affiliate_link,
+                'bookings_count': self.bookings_count
             })
         
         return data

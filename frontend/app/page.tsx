@@ -18,10 +18,22 @@ export default function HomePage() {
   // Show loading while auth is being checked
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 pt-20 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-teal-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải...</p>
+      <div className="relative min-h-screen pt-20 flex items-center justify-center transition-colors duration-300">
+        {/* Background Image */}
+        <div 
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat bg-fixed z-0"
+          style={{
+            backgroundImage: 'url(/images/backround.jpg)',
+          }}
+        >
+          {/* Overlay for better readability */}
+          <div className="absolute inset-0 bg-black/30 dark:bg-black/50"></div>
+        </div>
+
+        {/* Loading Content */}
+        <div className="relative z-10 text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-500 dark:border-primary-400 mx-auto mb-4"></div>
+          <p className="text-white dark:text-gray-200">Đang tải...</p>
         </div>
       </div>
     );
@@ -34,8 +46,20 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-20">
-      <div className="flex">
+    <div className="relative min-h-screen pt-20 transition-colors duration-300">
+      {/* Background Image */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat bg-fixed z-0"
+        style={{
+          backgroundImage: 'url(/images/backround.jpg)',
+        }}
+      >
+        {/* Overlay for better readability */}
+        <div className="absolute inset-0 bg-black/30 dark:bg-black/50"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex">
         {/* Left Sidebar */}
         <Sidebar />
 

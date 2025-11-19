@@ -33,6 +33,21 @@ def create_comment():
         if not user:
             return jsonify({'error': 'Không tìm thấy người dùng'}), 404
         
+        # Check if user can comment
+        if not user.can_comment():
+            if user.is_account_banned():
+                return jsonify({
+                    'error': 'Tài khoản của bạn đã bị khóa',
+                    'ban_type': 'account',
+                    'banned_until': user.account_banned_until.isoformat() if user.account_banned_until else None
+                }), 403
+            elif user.is_comment_banned():
+                return jsonify({
+                    'error': 'Bạn đã bị cấm bình luận',
+                    'ban_type': 'comment',
+                    'banned_until': user.comment_banned_until.isoformat() if user.comment_banned_until else None
+                }), 403
+        
         # Be defensive if client sends no JSON
         data = request.get_json() or {}
 
@@ -42,6 +57,64 @@ def create_comment():
 
         if not all([content, post_id]):
             return jsonify({'error': 'Thiếu nội dung hoặc post_id'}), 400
+        
+        # Check for banned keywords
+        from models.banned_keyword import BannedKeyword
+        banned_keywords = BannedKeyword.query.filter_by(is_active=True).all()
+        found_keywords = []
+        content_lower = content.lower()
+        
+        for keyword_obj in banned_keywords:
+            keyword = keyword_obj.keyword.lower()
+            if keyword in content_lower:
+                found_keywords.append({
+                    'keyword': keyword_obj.keyword,
+                    'severity': keyword_obj.severity,
+                    'description': keyword_obj.description
+                })
+        
+        if found_keywords:
+            # Increment violation count
+            if user.violation_count is None:
+                user.violation_count = 0
+            user.violation_count += 1
+            db.session.commit()
+            
+            # Send warning notification to user
+            from routes.notifications import create_notification
+            warning_message = f'Bình luận của bạn chứa từ khóa cấm và không thể đăng. '
+            warning_message += f'Từ khóa vi phạm: {", ".join([kw["keyword"] for kw in found_keywords])}'
+            warning_message += f'\n\nSố lần vi phạm: {user.violation_count}'
+            if user.violation_count >= 3:
+                warning_message += '\n⚠️ Bạn đã vi phạm quá nhiều lần. Tài khoản có thể bị khóa.'
+            
+            # Store banned keywords in metadata
+            severity_levels = {'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
+            max_severity = max([severity_levels.get(kw['severity'], 2) for kw in found_keywords])
+            metadata = {
+                'banned_keywords': found_keywords,
+                'content_type': 'comment',
+                'severity': max_severity,
+                'violation_count': user.violation_count
+            }
+            
+            create_notification(
+                user_id=user_id,
+                type='violation_warning',
+                message=warning_message,
+                title='⚠️ Cảnh báo: Bình luận chứa từ khóa cấm',
+                related_type='comment',
+                action_url=None,
+                metadata=metadata,
+                emit_realtime=True
+            )
+            
+            return jsonify({
+                'error': 'Bình luận chứa từ khóa cấm và không thể đăng',
+                'banned_keywords': found_keywords,
+                'message': warning_message,
+                'violation_count': user.violation_count
+            }), 400
         
         # Verify post exists
         post = Post.query.get(post_id)
@@ -92,7 +165,7 @@ def create_comment():
         user.add_points(10)
         db.session.commit()
         
-        # Return comment with author info
+        # Return comment with author info (prepare for socket emit)
         comment_dict = comment.to_dict(include_replies=False)
         comment_dict['author'] = {
             'id': user.id,
@@ -100,6 +173,57 @@ def create_comment():
             'full_name': user.full_name,
             'avatar_url': user.avatar_url
         }
+        
+        # Create notification for post author (if not self-comment)
+        if post.user_id != user_id:
+            from routes.notifications import create_notification
+            if parent_comment:
+                # Reply to comment - notify comment author
+                create_notification(
+                    user_id=parent_comment.author_id,
+                    type='comment',
+                    message=f'{user.full_name or user.username} đã trả lời bình luận của bạn',
+                    title='Có người trả lời bình luận',
+                    actor_id=user_id,
+                    related_type='comment',
+                    related_id=comment.id,
+                    action_url=f'/posts/{post.slug or post.id}',
+                    emit_realtime=True
+                )
+            else:
+                # New comment on post - notify post author
+                create_notification(
+                    user_id=post.user_id,
+                    type='comment',
+                    message=f'{user.full_name or user.username} đã bình luận bài viết của bạn',
+                    title='Có người bình luận',
+                    actor_id=user_id,
+                    related_type='post',
+                    related_id=post_id,
+                    action_url=f'/posts/{post.slug or post.id}',
+                    emit_realtime=True
+                )
+        
+        # Emit socket event for real-time update
+        from utils.socket_utils import emit_to_user, emit_to_room
+        # Emit to post author for real-time comment count update
+        if post.user_id != user_id:
+            emit_to_user(post.user_id, 'post_commented', {
+                'post_id': post_id,
+                'post_slug': post.slug,
+                'comments_count': post.comments_count,
+                'comment_id': comment.id,
+                'user_id': user_id,
+                'username': user.username,
+                'full_name': user.full_name
+            })
+        
+        # Emit to post room for real-time comment display (if anyone is viewing the post)
+        emit_to_room(f'post_{post_id}', 'new_comment', {
+            'post_id': post_id,
+            'comment': comment_dict,
+            'comments_count': post.comments_count
+        }, include_self=True)
         
         return jsonify({
             'message': 'Tạo bình luận thành công!',

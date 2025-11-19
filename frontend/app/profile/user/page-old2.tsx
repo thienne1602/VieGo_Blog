@@ -44,7 +44,7 @@ export default function UserProfileNew() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login");
+      router.push("/welcome");
     }
   }, [user, loading, router]);
 

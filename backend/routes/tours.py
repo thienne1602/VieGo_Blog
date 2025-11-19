@@ -29,8 +29,12 @@ def get_tours():
         min_price = request.args.get('min_price', type=float)
         max_price = request.args.get('max_price', type=float)
         
-        # Base query - only published tours
-        query = Tour.query.filter_by(status='published')
+        # Base query - only active tours
+        query = Tour.query.filter_by(status='active')
+        
+        # Debug: Log total active tours
+        total_active = query.count()
+        print(f'[API] Total active tours: {total_active}')
         
         # Apply filters
         if category:
@@ -75,6 +79,8 @@ def get_tours():
             } if seller else None
             tours_data.append(tour_dict)
         
+        print(f'[API] Returning {len(tours_data)} tours (page {page}, total: {tours_pagination.total})')
+        
         return jsonify({
             'tours': tours_data,
             'pagination': {
@@ -91,35 +97,62 @@ def get_tours():
         return jsonify({'error': f'Lỗi lấy danh sách tour: {str(e)}'}), 500
 
 @tours_bp.route('/<int:tour_id>', methods=['GET'])
+@jwt_required(optional=True)
 def get_tour(tour_id):
-    """Get single tour by ID"""
+    """Get single tour by ID with full details"""
     try:
         tour = Tour.query.get_or_404(tour_id)
         
-        if tour.status != 'published':
-            return jsonify({'error': 'Tour không tồn tại hoặc chưa được xuất bản'}), 404
+        # Check if user is authenticated and has permission
+        current_user_id = None
+        user = None
+        try:
+            current_user_id = get_jwt_identity()
+            if current_user_id:
+                user = User.query.get(current_user_id)
+        except:
+            pass
         
-        # Increment view count
-        tour.increment_views()
-        db.session.commit()
+        # Allow seller/admin to view their own tours regardless of status
+        is_owner = user and (user.role == 'admin' or tour.seller_id == current_user_id)
         
-        # Get tour data
-        tour_dict = tour.to_dict(include_sensitive=False)
+        # Public users can only view active tours
+        if not is_owner and tour.status != 'active':
+            return jsonify({'error': 'Tour không tồn tại hoặc chưa được kích hoạt'}), 404
         
-        # Include seller info
+        # Only increment view count for public users viewing active tours
+        if not is_owner and tour.status == 'active':
+            tour.increment_views()
+            db.session.commit()
+        
+        # Get tour data with sensitive information for detail view (if owner or active tour)
+        tour_dict = tour.to_dict(include_sensitive=is_owner or tour.status == 'active')
+        
+        # Include seller info with company information
         seller = User.query.get(tour.seller_id)
         tour_dict['seller'] = {
             'id': seller.id,
             'username': seller.username,
             'full_name': seller.full_name,
             'bio': seller.bio,
-            'avatar_url': seller.avatar_url
+            'avatar_url': seller.avatar_url,
+            'company_name': seller.company_name,
+            'company_address': seller.company_address,
+            'company_phone': seller.company_phone,
+            'company_email': seller.company_email,
+            'company_tax_id': seller.company_tax_id,
+            'bank_account_number': seller.bank_account_number,
+            'bank_name': seller.bank_name,
+            'bank_account_holder': seller.bank_account_holder
         } if seller else None
         
-        return jsonify(tour_dict), 200
+        return jsonify({
+            'success': True,
+            'data': tour_dict
+        }), 200
         
     except Exception as e:
-        return jsonify({'error': f'Lỗi lấy thông tin tour: {str(e)}'}), 500
+        return jsonify({'success': False, 'error': f'Lỗi lấy thông tin tour: {str(e)}'}), 500
 
 @tours_bp.route('/', methods=['POST'])
 @jwt_required()
@@ -142,18 +175,46 @@ def create_tour():
             if field not in data:
                 return jsonify({'error': f'Thiếu trường bắt buộc: {field}'}), 400
         
+        # Validate data types and values
+        if not isinstance(data['duration_days'], int) or data['duration_days'] < 1:
+            return jsonify({'error': 'Số ngày tour phải là số nguyên dương'}), 400
+        
+        if not isinstance(data['price_per_person'], (int, float)) or data['price_per_person'] <= 0:
+            return jsonify({'error': 'Giá tour phải là số dương'}), 400
+        
+        if data['category'] not in ['adventure', 'cultural', 'food', 'nature', 'urban', 'spiritual']:
+            return jsonify({'error': 'Danh mục tour không hợp lệ'}), 400
+        
+        # Validate optional numeric fields
+        if 'max_participants' in data:
+            if not isinstance(data['max_participants'], int) or data['max_participants'] < 1:
+                return jsonify({'error': 'Số người tối đa phải là số nguyên dương'}), 400
+        
+        if 'min_participants' in data:
+            if not isinstance(data['min_participants'], int) or data['min_participants'] < 1:
+                return jsonify({'error': 'Số người tối thiểu phải là số nguyên dương'}), 400
+        
+        # Validate min <= max participants
+        max_participants = data.get('max_participants', 10)
+        min_participants = data.get('min_participants', 2)
+        if min_participants > max_participants:
+            return jsonify({'error': 'Số người tối thiểu không được lớn hơn số người tối đa'}), 400
+        
         # Create new tour
         tour = Tour(
-            title=data['title'],
-            description=data['description'],
+            title=data['title'].strip(),
+            description=data['description'].strip(),
             seller_id=current_user_id
         )
         
         # Set required fields
         tour.duration_days = data['duration_days']
-        tour.starting_location = data['starting_location']
-        tour.price_per_person = data['price_per_person']
+        tour.starting_location = data['starting_location'].strip()
+        tour.price_per_person = float(data['price_per_person'])
         tour.category = data['category']
+        
+        # Set default status to 'draft' (seller needs to activate manually)
+        tour.status = data.get('status', 'draft')
         
         # Set optional fields
         optional_fields = [
@@ -206,24 +267,67 @@ def update_tour(tour_id):
     """Update tour (seller or admin only)"""
     try:
         current_user_id = get_jwt_identity()
+        # Convert to int if it's a string (JWT identity might be stored as string)
+        current_user_id = int(current_user_id) if isinstance(current_user_id, str) else current_user_id
         user = User.query.get(current_user_id)
+        if not user:
+            return jsonify({'error': 'Người dùng không tồn tại'}), 404
         tour = Tour.query.get_or_404(tour_id)
         
-        # Check permissions
-        if tour.seller_id != current_user_id and user.role != 'admin':
+        # Check permissions - ensure both IDs are integers for proper comparison
+        tour_seller_id = int(tour.seller_id) if tour.seller_id is not None else None
+        if tour_seller_id != current_user_id and user.role != 'admin':
             return jsonify({'error': 'Bạn không có quyền chỉnh sửa tour này'}), 403
         
         data = request.get_json()
         
-        # Update fields
-        updateable_fields = [
-            'title', 'description', 'duration_days', 'starting_location',
-            'ending_location', 'price_per_person', 'category', 'difficulty_level',
-            'max_participants', 'min_participants', 'featured_image', 'video_url',
-            'booking_deadline_days', 'cancellation_policy', 'currency', 'status'
-        ]
+        # Validate data types and values if provided
+        if 'duration_days' in data:
+            if not isinstance(data['duration_days'], int) or data['duration_days'] < 1:
+                return jsonify({'error': 'Số ngày tour phải là số nguyên dương'}), 400
+            tour.duration_days = data['duration_days']
         
-        for field in updateable_fields:
+        if 'price_per_person' in data:
+            if not isinstance(data['price_per_person'], (int, float)) or data['price_per_person'] <= 0:
+                return jsonify({'error': 'Giá tour phải là số dương'}), 400
+            tour.price_per_person = float(data['price_per_person'])
+        
+        if 'category' in data:
+            if data['category'] not in ['adventure', 'cultural', 'food', 'nature', 'urban', 'spiritual']:
+                return jsonify({'error': 'Danh mục tour không hợp lệ'}), 400
+            tour.category = data['category']
+        
+        if 'max_participants' in data:
+            if not isinstance(data['max_participants'], int) or data['max_participants'] < 1:
+                return jsonify({'error': 'Số người tối đa phải là số nguyên dương'}), 400
+            tour.max_participants = data['max_participants']
+        
+        if 'min_participants' in data:
+            if not isinstance(data['min_participants'], int) or data['min_participants'] < 1:
+                return jsonify({'error': 'Số người tối thiểu phải là số nguyên dương'}), 400
+            tour.min_participants = data['min_participants']
+        
+        # Validate min <= max participants
+        max_participants = tour.max_participants or data.get('max_participants', 10)
+        min_participants = tour.min_participants or data.get('min_participants', 2)
+        if min_participants > max_participants:
+            return jsonify({'error': 'Số người tối thiểu không được lớn hơn số người tối đa'}), 400
+        
+        # Update text fields (strip whitespace)
+        text_fields = ['title', 'description', 'starting_location', 'ending_location', 
+                      'cancellation_policy', 'currency', 'status']
+        for field in text_fields:
+            if field in data:
+                value = data[field]
+                if isinstance(value, str):
+                    setattr(tour, field, value.strip())
+                else:
+                    setattr(tour, field, value)
+        
+        # Update other fields
+        other_fields = ['difficulty_level', 'featured_image', 'video_url', 
+                       'booking_deadline_days']
+        for field in other_fields:
             if field in data:
                 setattr(tour, field, data[field])
         
@@ -285,54 +389,104 @@ def delete_tour(tour_id):
 @tours_bp.route('/<int:tour_id>/book', methods=['POST'])
 @jwt_required()
 def book_tour(tour_id):
-    """Book a tour"""
+    """Book a tour with detailed information"""
     try:
         current_user_id = get_jwt_identity()
         user = User.query.get(current_user_id)
         tour = Tour.query.get_or_404(tour_id)
         
-        if tour.status != 'published':
+        if tour.status != 'active':
             return jsonify({'error': 'Tour không khả dụng'}), 400
         
         data = request.get_json()
         
         # Validate booking data
-        required_fields = ['date', 'participants']
+        required_fields = ['date']
         for field in required_fields:
             if field not in data:
                 return jsonify({'error': f'Thiếu trường bắt buộc: {field}'}), 400
         
-        participants = data['participants']
+        # Get participant counts (default to adults if only participants is provided for backward compatibility)
+        adults = data.get('adults', data.get('participants', 1))
+        children = data.get('children', 0)
+        infants = data.get('infants', 0)
+        total_participants = adults + children + infants
         
-        # Check participant limits
-        if participants < tour.min_participants:
+        # Validate participant counts
+        if total_participants < tour.min_participants:
             return jsonify({'error': f'Số người tham gia tối thiểu là {tour.min_participants}'}), 400
         
-        if participants > tour.max_participants:
+        if total_participants > tour.max_participants:
             return jsonify({'error': f'Số người tham gia tối đa là {tour.max_participants}'}), 400
         
-        # Calculate total price
-        total_price = tour.price_per_person * participants
+        # Calculate prices
+        # Default pricing: adult = full price, child = 80%, infant = 50%
+        adult_price = tour.price_per_person
+        child_price = tour.price_per_person * 0.8  # 80% of adult price
+        infant_price = tour.price_per_person * 0.5  # 50% of adult price
         
-        # Apply discount if any
+        # If tour has specific pricing, use those (would need to add to tour model)
+        # For now, using defaults above
+        
+        base_price = (adult_price * adults) + (child_price * children) + (infant_price * infants)
+        
+        # Apply tour discount if any
         if tour.discount_percentage > 0:
-            total_price = total_price * (1 - tour.discount_percentage / 100)
+            base_price = base_price * (1 - tour.discount_percentage / 100)
+        
+        # Apply discount code if provided
+        discount_code = data.get('discount_code', '').strip().upper()
+        discount_amount = 0.0
+        if discount_code:
+            # Simple discount code logic - can be extended
+            discount_codes = {
+                'GIAM10': 0.1,  # 10% discount
+                'GIAM20': 0.2,  # 20% discount
+                'GIAM30': 0.3,  # 30% discount
+            }
+            if discount_code in discount_codes:
+                discount_amount = base_price * discount_codes[discount_code]
+                base_price = base_price - discount_amount
+        
+        total_price = base_price
+        
+        # Get customer information
+        full_name = data.get('full_name', user.full_name if user else '')
+        email = data.get('email', user.email if user else '')
+        phone = data.get('phone', '')
+        address = data.get('address', '')
+        payment_method = data.get('payment_method', 'office')
         
         # Create booking record
         booking = Booking(
-            tour_id = tour.id,
-            user_id = current_user_id,
-            date = data['date'],
-            participants = participants,
-            total_price = total_price,
-            currency = tour.currency or 'VND',
-            status = 'pending'
+            tour_id=tour.id,
+            user_id=current_user_id,
+            date=data['date'],
+            participants=total_participants,
+            adults=adults,
+            children=children,
+            infants=infants,
+            full_name=full_name,
+            email=email,
+            phone=phone,
+            address=address,
+            base_price=base_price + discount_amount,  # Store original before discount
+            adult_price=adult_price,
+            child_price=child_price,
+            infant_price=infant_price,
+            discount_code=discount_code if discount_code else None,
+            discount_amount=discount_amount,
+            total_price=total_price,
+            currency=tour.currency or 'VND',
+            payment_method=payment_method,
+            status='pending'
         )
 
         db.session.add(booking)
 
         # Add points to user for booking
-        user.add_points(100)
+        if user:
+            user.add_points(100)
 
         # Increment tour bookings counter
         tour.increment_bookings()
@@ -340,13 +494,14 @@ def book_tour(tour_id):
         db.session.commit()
 
         return jsonify({
+            'success': True,
             'message': 'Đặt tour thành công!',
             'booking': booking.to_dict()
         }), 201
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': f'Lỗi đặt tour: {str(e)}'}), 500
+        return jsonify({'success': False, 'error': f'Lỗi đặt tour: {str(e)}'}), 500
 
 @tours_bp.route('/categories', methods=['GET'])
 def get_categories():
@@ -384,3 +539,41 @@ def get_my_tours():
         return jsonify({'tours': tours_data}), 200
     except Exception as e:
         return jsonify({'error': f'Error fetching user tours: {str(e)}'}), 500
+
+
+@tours_bp.route('/seller/<int:seller_id>', methods=['GET'])
+@jwt_required(optional=True)
+def get_seller_tours(seller_id):
+    """Get active tours by seller ID (public endpoint)"""
+    try:
+        seller = User.query.get(seller_id)
+        if not seller:
+            return jsonify({'error': 'Seller not found'}), 404
+        
+        # Only get active tours for public viewing
+        tours = Tour.query.filter_by(
+            seller_id=seller_id,
+            status='active'
+        ).order_by(desc(Tour.created_at)).all()
+
+        tours_data = []
+        for tour in tours:
+            tour_dict = tour.to_dict(include_sensitive=False)
+            tours_data.append(tour_dict)
+
+        return jsonify({
+            'success': True,
+            'tours': tours_data,
+            'seller': {
+                'id': seller.id,
+                'username': seller.username,
+                'full_name': seller.full_name,
+                'avatar_url': seller.avatar_url,
+                'company_name': seller.company_name,
+                'company_address': seller.company_address,
+                'company_phone': seller.company_phone,
+                'company_email': seller.company_email,
+            }
+        }), 200
+    except Exception as e:
+        return jsonify({'error': f'Error fetching seller tours: {str(e)}'}), 500

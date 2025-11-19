@@ -1,0 +1,214 @@
+<mxfile host="65bd71144e">
+    <diagram name="VieGo Blog - Use Case Decomposition" id="viego-usecase-decomp">
+        <mxGraphModel dx="1678" dy="2442" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="actor_admin" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=14" parent="1" vertex="1">
+                    <mxGeometry x="120" y="200" width="60" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="actor_seller" value="Seller" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=14" parent="1" vertex="1">
+                    <mxGeometry x="1380" y="220" width="60" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="actor_user" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=14" parent="1" vertex="1">
+                    <mxGeometry x="1380" y="420" width="60" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="actor_guest" value="Guest" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=14" parent="1" vertex="1">
+                    <mxGeometry x="1380" y="620" width="60" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_core" value="Vận hành nền tảng VieGo Blog" style="ellipse;whiteSpace=wrap;html=1;fontSize=18;fontStyle=1;strokeColor=#4a6c9b;strokeWidth=2;fillColor=#dae8fc" parent="1" vertex="1">
+                    <mxGeometry x="580" y="-40" width="380" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_admin" value="Quản trị &amp; Kiểm duyệt" style="ellipse;whiteSpace=wrap;html=1;fontSize=15;fillColor=#b1ddf0;strokeColor=#10739e" parent="1" vertex="1">
+                    <mxGeometry x="380" y="260" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_users" value="Quản lý người dùng" style="ellipse;whiteSpace=wrap;html=1;fontSize=15;fillColor=#fff2cc;strokeColor=#d6b656" parent="1" vertex="1">
+                    <mxGeometry x="720" y="260" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_content" value="Quản lý nội dung &amp; blog" style="ellipse;whiteSpace=wrap;html=1;fontSize=15;fillColor=#d5e8d4;strokeColor=#82b366" parent="1" vertex="1">
+                    <mxGeometry x="1060" y="260" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_tours" value="Kinh doanh tour &amp; booking" style="ellipse;whiteSpace=wrap;html=1;fontSize=15;fillColor=#ecd8f6;strokeColor=#8f59af" parent="1" vertex="1">
+                    <mxGeometry x="560" y="420" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_social" value="Mạng xã hội &amp; tương tác" style="ellipse;whiteSpace=wrap;html=1;fontSize=15;fillColor=#f8cecc;strokeColor=#b85450" parent="1" vertex="1">
+                    <mxGeometry x="900" y="420" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_core_admin" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_core" target="uc_admin" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_core_users" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_core" target="uc_users" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_core_content" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_core" target="uc_content" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_core_tours" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_core" target="uc_tours" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_core_social" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_core" target="uc_social" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_admin_dashboard" value="Xem dashboard hệ thống" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#e3f2fb" parent="1" vertex="1">
+                    <mxGeometry x="200" y="380" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_admin_moderation" value="Kiểm duyệt bài &amp; bình luận" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#e3f2fb" parent="1" vertex="1">
+                    <mxGeometry x="400" y="380" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_admin_roles" value="Phân quyền &amp; ban tài khoản" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#e3f2fb" parent="1" vertex="1">
+                    <mxGeometry x="200" y="480" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_admin_support" value="Xử lý yêu cầu hỗ trợ" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#e3f2fb" parent="1" vertex="1">
+                    <mxGeometry x="400" y="480" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_admin_dashboard" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_admin" target="uc_admin_dashboard" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_admin_moderation" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_admin" target="uc_admin_moderation" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_admin_roles" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_admin" target="uc_admin_roles" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_admin_support" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_admin" target="uc_admin_support" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_users_auth" value="Đăng ký / Đăng nhập" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff8dc" parent="1" vertex="1">
+                    <mxGeometry x="700" y="380" width="200" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_users_profile" value="Quản lý hồ sơ cá nhân" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff8dc" parent="1" vertex="1">
+                    <mxGeometry x="900" y="380" width="200" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_users_points" value="Điểm thưởng &amp; badges" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff8dc" parent="1" vertex="1">
+                    <mxGeometry x="700" y="480" width="200" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_users_security" value="Bảo mật &amp; quyền truy cập" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff8dc" parent="1" vertex="1">
+                    <mxGeometry x="900" y="480" width="200" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_users_auth" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_users" target="uc_users_auth" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_users_profile" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_users" target="uc_users_profile" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_users_points" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_users" target="uc_users_points" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_users_security" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_users" target="uc_users_security" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_content_publish" value="Soạn và xuất bản bài viết" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#e7f4ea" parent="1" vertex="1">
+                    <mxGeometry x="1040" y="380" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_content_media" value="Quản lý media &amp; location" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#e7f4ea" parent="1" vertex="1">
+                    <mxGeometry x="1260" y="380" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_content_engage" value="Like / Comment / Bookmark" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#e7f4ea" parent="1" vertex="1">
+                    <mxGeometry x="1040" y="480" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_content_discover" value="Tìm kiếm &amp; gợi ý nội dung" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#e7f4ea" parent="1" vertex="1">
+                    <mxGeometry x="1260" y="480" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_content_publish" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_content" target="uc_content_publish" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_content_media" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_content" target="uc_content_media" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_content_engage" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_content" target="uc_content_engage" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_content_discover" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_content" target="uc_content_discover" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_tours_catalog" value="Xem danh mục &amp; lọc tour" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f2e8fb" parent="1" vertex="1">
+                    <mxGeometry x="540" y="540" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_tours_manage" value="Seller tạo &amp; quản lý tour" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f2e8fb" parent="1" vertex="1">
+                    <mxGeometry x="760" y="540" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_tours_booking" value="Quy trình đặt tour" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f2e8fb" parent="1" vertex="1">
+                    <mxGeometry x="540" y="640" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_tours_payment" value="Thanh toán &amp; email nhắc" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f2e8fb" parent="1" vertex="1">
+                    <mxGeometry x="760" y="640" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_tours_catalog" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_tours" target="uc_tours_catalog" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_tours_manage" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_tours" target="uc_tours_manage" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_tours_booking" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_tours" target="uc_tours_booking" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_tours_payment" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_tours" target="uc_tours_payment" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_social_follow" value="Follow &amp; kết bạn" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fde1df" parent="1" vertex="1">
+                    <mxGeometry x="900" y="560" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_social_stories" value="Stories 24h" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fde1df" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="560" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_social_chat" value="Chat realtime" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fde1df" parent="1" vertex="1">
+                    <mxGeometry x="900" y="660" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_social_notif" value="Thông báo tức thời" style="ellipse;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fde1df" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="660" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_social_follow" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_social" target="uc_social_follow" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_social_stories" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_social" target="uc_social_stories" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_social_chat" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_social" target="uc_social_chat" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_social_notif" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_social" target="uc_social_notif" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_admin_admin" value="" style="endArrow=none;html=1" parent="1" source="actor_admin" target="uc_admin" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_admin_users" value="" style="endArrow=none;html=1" parent="1" source="actor_admin" target="uc_users" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_seller_tours" value="" style="endArrow=none;html=1" parent="1" source="actor_seller" target="uc_tours" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_user_social" value="" style="endArrow=none;html=1" parent="1" source="actor_user" target="uc_social" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_user_content" value="" style="endArrow=none;html=1" parent="1" source="actor_user" target="uc_content" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_user_tours" value="" style="endArrow=none;html=1" parent="1" source="actor_user" target="uc_tours" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_guest_content" value="" style="endArrow=none;html=1" parent="1" source="actor_guest" target="uc_content" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_guest_tours" value="" style="endArrow=none;html=1" parent="1" source="actor_guest" target="uc_tours" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend" value="Hướng dẫn" style="swimlane;whiteSpace=wrap;html=1;fontSize=13;fontStyle=1;fillColor=#f5f5f5;strokeColor=#666666" parent="1" vertex="1">
+                    <mxGeometry x="120" y="40" width="320" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_item1" value="Oval: Use case" style="text;html=1;align=left;verticalAlign=middle;fontSize=11" parent="legend" vertex="1">
+                    <mxGeometry x="10" y="30" width="300" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_item2" value="Đường đứt: Phân rã chức năng" style="text;html=1;align=left;verticalAlign=middle;fontSize=11" parent="legend" vertex="1">
+                    <mxGeometry x="10" y="55" width="300" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_item3" value="Đường liền: Actor tham gia" style="text;html=1;align=left;verticalAlign=middle;fontSize=11" parent="legend" vertex="1">
+                    <mxGeometry x="10" y="80" width="300" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_item4" value="Màu sắc: module chính" style="text;html=1;align=left;verticalAlign=middle;fontSize=11" parent="legend" vertex="1">
+                    <mxGeometry x="10" y="105" width="300" height="20" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

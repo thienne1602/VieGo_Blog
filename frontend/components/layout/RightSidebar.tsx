@@ -1,569 +1,444 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { useChat } from "@/hooks/useChat";
+import { useAuth } from "@/lib/AuthContext";
+import { useRouter } from "next/navigation";
+import { Flame, Award, MessageCircle } from "lucide-react";
 
 const RightSidebar = () => {
-  const [aiChatOpen, setAiChatOpen] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [weatherData, setWeatherData] = useState({
-    location: "Hà Nội",
-    temp: 28,
-    condition: "sunny",
-    forecast: [
-      { day: "Hôm nay", temp: "28°", condition: "☀️", desc: "Nắng đẹp" },
-      { day: "Mai", temp: "26°", condition: "🌤️", desc: "Ít mây" },
-      { day: "T3", temp: "24°", condition: "🌧️", desc: "Mưa nhỏ" },
-    ],
-  });
-  const [aiMessages, setAiMessages] = useState([
-    {
-      type: "bot",
-      message:
-        "Chào bạn! Tôi là AI Travel Assistant của VieGo. Bạn muốn khám phá điều gì về Việt Nam hôm nay? 🇻🇳",
-    },
-  ]);
+  const { user } = useAuth();
+  const router = useRouter();
+  const { conversations, fetchConversations, loading: chatLoading } = useChat();
+  const [hotTours, setHotTours] = useState<any[]>([]);
+  const [topSellers, setTopSellers] = useState<any[]>([]);
+  const [loadingTours, setLoadingTours] = useState(true);
+  const [loadingSellers, setLoadingSellers] = useState(true);
 
+  // 获取热门旅游
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    const fetchHotTours = async () => {
+      try {
+        const API_BASE_URL =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const response = await fetch(
+          `${API_BASE_URL}/tours?featured=true&limit=5&order_by=rating&order=desc`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setHotTours(data.tours || []);
+        }
+      } catch (error) {
+        console.error("Error fetching hot tours:", error);
+      } finally {
+        setLoadingTours(false);
+      }
+    };
+    fetchHotTours();
   }, []);
 
-  const travelBuddies = [
-    {
-      name: "Minh Tuấn",
-      avatar: "👨‍💼",
-      status: "online",
-      location: "Hà Nội",
-      trip: "Đang ở Hội An",
-      mutual: 12,
-      verified: true,
-    },
-    {
-      name: "Thu Hà",
-      avatar: "👩‍🎨",
-      status: "online",
-      location: "TP.HCM",
-      trip: "Planning Sapa trip",
-      mutual: 8,
-      verified: false,
-    },
-    {
-      name: "Quang Đức",
-      avatar: "🧑‍💻",
-      status: "away",
-      location: "Đà Nẵng",
-      trip: "Phú Quốc next week",
-      mutual: 15,
-      verified: true,
-    },
-    {
-      name: "Linh Chi",
-      avatar: "👩‍🏫",
-      status: "online",
-      location: "Huế",
-      trip: "Mekong Delta tour",
-      mutual: 6,
-      verified: false,
-    },
-  ];
+  // 获取顶级可信卖家
+  useEffect(() => {
+    const fetchTopSellers = async () => {
+      try {
+        const API_BASE_URL =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const token = localStorage.getItem("access_token");
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+        };
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
 
-  const localEvents = [
-    {
-      title: "Lễ hội Áo Dài Sài Gòn",
-      date: "15-17 Mar",
-      location: "TP. Hồ Chí Minh",
-      attendees: "50K+",
-      type: "culture",
-      distance: "2.5km",
-      price: "Free",
-    },
-    {
-      title: "Vietnam Food Festival",
-      date: "22-24 Mar",
-      location: "Hà Nội",
-      attendees: "30K+",
-      type: "food",
-      distance: "1.2km",
-      price: "200K VNĐ",
-    },
-    {
-      title: "Hội An Lantern Night",
-      date: "Hàng tháng",
-      location: "Hội An",
-      attendees: "20K+",
-      type: "tradition",
-      distance: "650km",
-      price: "Free",
-    },
-  ];
+        // 获取所有tours并计算卖家评分
+        const toursResponse = await fetch(`${API_BASE_URL}/tours?limit=100`, {
+          headers,
+        });
+        if (toursResponse.ok) {
+          const toursData = await toursResponse.json();
+          const tours = toursData.tours || [];
 
-  const nearbyAttractions = [
-    {
-      name: "Hoàng Thành Thăng Long",
-      rating: 4.8,
-      distance: "2.1km",
-      type: "Historical",
-      price: "30K VNĐ",
-      image: "🏛️",
-      reviews: "2.1K",
-      openNow: true,
-    },
-    {
-      name: "Chợ Đồng Xuân",
-      rating: 4.5,
-      distance: "1.8km",
-      type: "Shopping",
-      price: "Free",
-      image: "🏪",
-      reviews: "1.5K",
-      openNow: true,
-    },
-    {
-      name: "Hồ Hoàn Kiếm",
-      rating: 4.9,
-      distance: "0.8km",
-      type: "Nature",
-      price: "Free",
-      image: "🏞️",
-      reviews: "3.2K",
-      openNow: true,
-    },
-  ];
+          // 按卖家分组并计算平均评分
+          const sellerMap = new Map();
+          tours.forEach((tour: any) => {
+            if (tour.seller) {
+              const sellerId = tour.seller.id;
+              if (!sellerMap.has(sellerId)) {
+                sellerMap.set(sellerId, {
+                  ...tour.seller,
+                  totalTours: 0,
+                  totalRating: 0,
+                  totalReviews: 0,
+                  tours: [],
+                });
+              }
+              const seller = sellerMap.get(sellerId);
+              seller.totalTours += 1;
+              seller.totalRating += tour.rating || 0;
+              seller.totalReviews += tour.reviews_count || 0;
+              seller.tours.push(tour);
+            }
+          });
 
-  const aiSuggestions = [
-    {
-      icon: "🍜",
-      text: "Tìm phở ngon gần đây",
-      action: "findFood",
-      color: "from-orange-400 to-red-400",
-    },
-    {
-      icon: "📍",
-      text: "Lập kế hoạch 3 ngày ở Hà Nội",
-      action: "planTrip",
-      color: "from-blue-400 to-purple-400",
-    },
-    {
-      icon: "🏨",
-      text: "Khách sạn view đẹp Hạ Long",
-      action: "findHotel",
-      color: "from-green-400 to-teal-400",
-    },
-    {
-      icon: "🎭",
-      text: "Sự kiện văn hóa cuối tuần",
-      action: "findEvents",
-      color: "from-purple-400 to-pink-400",
-    },
-  ];
+          // 计算平均评分并排序
+          const sellers = Array.from(sellerMap.values())
+            .map((seller: any) => ({
+              ...seller,
+              avgRating:
+                seller.totalTours > 0
+                  ? seller.totalRating / seller.totalTours
+                  : 0,
+            }))
+            .filter((seller: any) => seller.avgRating >= 4.0)
+            .sort((a: any, b: any) => b.avgRating - a.avgRating)
+            .slice(0, 5);
+
+          setTopSellers(sellers);
+        }
+      } catch (error) {
+        console.error("Error fetching top sellers:", error);
+      } finally {
+        setLoadingSellers(false);
+      }
+    };
+    fetchTopSellers();
+  }, []);
+
+  // 获取聊天列表
+  useEffect(() => {
+    if (user) {
+      fetchConversations();
+    }
+  }, [user, fetchConversations]);
+
+  const formatTimeAgo = (dateString: string | null | undefined) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+      if (diffInSeconds < 60) return "Vừa xong";
+      if (diffInSeconds < 3600)
+        return `${Math.floor(diffInSeconds / 60)} phút`;
+      if (diffInSeconds < 86400)
+        return `${Math.floor(diffInSeconds / 3600)} giờ`;
+      if (diffInSeconds < 604800)
+        return `${Math.floor(diffInSeconds / 86400)} ngày`;
+
+      return date.toLocaleDateString("vi-VN", {
+        day: "numeric",
+        month: "short",
+      });
+    } catch (error) {
+      return "";
+    }
+  };
+
+  const handleConversationClick = (otherUserId: number) => {
+    router.push(`/messages/${otherUserId}`);
+  };
 
   return (
     <motion.div
-      className="hidden xl:block fixed right-0 top-14 h-full w-80 bg-gradient-to-br from-white via-purple-50/30 to-blue-50/30 backdrop-blur-md border-l border-white/20 overflow-y-auto scrollbar-hide"
+      className="hidden xl:block fixed right-0 top-14 h-[calc(100vh-3.5rem)] w-80 bg-gradient-to-br from-white/80 via-blue-50/50 to-purple-50/50 dark:from-gray-900/80 dark:via-gray-800/50 dark:to-gray-900/50 backdrop-blur-sm border-l border-white/20 dark:border-gray-700/30 overflow-y-auto scrollbar-hide transition-colors duration-300 pb-4"
       initial={{ x: 320 }}
       animate={{ x: 0 }}
-      transition={{ duration: 0.5, type: "spring" }}
+      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
     >
-      {/* AI Travel Assistant */}
-      <div className="p-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 relative overflow-hidden">
-        <motion.div
-          className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMiIgZmlsbD0iIzAwMCIgZmlsbC1vcGFjaXR5PSIwLjEiLz4KPC9zdmc+')] opacity-30"
-          animate={{ x: [0, 40, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-        />
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-3">
-              <motion.div
-                className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <span className="text-xl">🤖</span>
-              </motion.div>
-              <div>
-                <h3 className="text-white font-bold">AI Travel Companion</h3>
-                <div className="flex items-center space-x-1 text-white/80 text-xs">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span>Always ready to help</span>
-                </div>
-              </div>
-            </div>
-            <motion.button
-              className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
-              whileHover={{
-                scale: 1.1,
-                backgroundColor: "rgba(255,255,255,0.3)",
-              }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setAiChatOpen(!aiChatOpen)}
-            >
-              <svg
-                className="w-4 h-4 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d={
-                    aiChatOpen
-                      ? "M6 18L18 6M6 6l12 12"
-                      : "M8 12h.01M12 12h.01M16 12h.01"
-                  }
-                />
-              </svg>
-            </motion.button>
-          </div>
-
-          {/* Quick AI Suggestions */}
-          <div className="grid grid-cols-2 gap-2">
-            {aiSuggestions.map((suggestion, index) => (
-              <motion.button
-                key={index}
-                className="flex flex-col items-center p-3 bg-white/10 backdrop-blur-sm rounded-xl text-white text-center hover:bg-white/20 transition-all duration-200"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <span className="text-lg mb-1">{suggestion.icon}</span>
-                <span className="text-xs leading-tight">{suggestion.text}</span>
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* AI Chat Interface */}
-      <AnimatePresence>
-        {aiChatOpen && (
-          <motion.div
-            className="bg-gradient-to-br from-blue-50 to-purple-50 border-b border-white/20"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="p-4 max-h-60 overflow-y-auto">
-              {aiMessages.map((msg, index) => (
-                <motion.div
-                  key={index}
-                  className={`mb-3 flex ${
-                    msg.type === "user" ? "justify-end" : "justify-start"
-                  }`}
-                  initial={{ opacity: 0, x: msg.type === "user" ? 20 : -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <div
-                    className={`max-w-[80%] p-3 rounded-2xl text-sm ${
-                      msg.type === "user"
-                        ? "bg-blue-500 text-white"
-                        : "bg-white text-gray-800 shadow-md"
-                    }`}
-                  >
-                    {msg.message}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            <div className="p-4 border-t border-white/20">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  placeholder="Hỏi AI về du lịch Việt Nam..."
-                  className="flex-1 px-4 py-2 bg-white rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <motion.button
-                  className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <svg
-                    className="w-4 h-4 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                    />
-                  </svg>
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Advanced Weather Widget */}
-      <div className="p-4 border-b border-gray-200/50">
-        <motion.div
-          className="bg-gradient-to-br from-blue-400/20 to-cyan-400/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30"
-          whileHover={{ scale: 1.02 }}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-800">🌤️ Thời tiết</h3>
-            <span className="text-xs text-gray-500">
-              {currentTime.toLocaleTimeString("vi-VN", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="text-2xl font-bold text-blue-600">
-                {weatherData.temp}°C
-              </div>
-              <div className="text-sm text-gray-600">
-                {weatherData.location}
-              </div>
-            </div>
-            <motion.div
-              className="text-5xl"
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-            >
-              ☀️
-            </motion.div>
-          </div>
-
-          <div className="space-y-2">
-            {weatherData.forecast.map((day, index) => (
-              <motion.div
-                key={index}
-                className="flex items-center justify-between py-2 px-3 bg-white/50 rounded-lg"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg">{day.condition}</span>
-                  <div>
-                    <div className="text-sm font-medium">{day.day}</div>
-                    <div className="text-xs text-gray-500">{day.desc}</div>
-                  </div>
-                </div>
-                <span className="font-semibold text-blue-600">{day.temp}</span>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Travel Buddies Online */}
-      <div className="p-4 border-b border-gray-200/50">
+      {/* 热门旅游 */}
+      <div className="p-4 border-b border-white/20 dark:border-gray-700/30">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-gray-600 font-semibold text-sm">
-            Travel Buddies 🎒
+          <h3 className="text-gray-800 dark:text-gray-200 font-bold text-base flex items-center">
+            <Flame className="w-5 h-5 mr-2 text-accent-500" />
+            Tour đang hot
           </h3>
-          <span className="text-xs text-green-600 font-medium">
-            {travelBuddies.filter((b) => b.status === "online").length} online
-          </span>
+          <Link
+            href="/tours?hot=true"
+            className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+          >
+            Xem tất cả
+          </Link>
         </div>
-
-        <div className="space-y-3">
-          {travelBuddies.map((buddy, index) => (
-            <motion.div
-              key={index}
-              className="group flex items-center space-x-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-white hover:to-blue-50 cursor-pointer transition-all duration-200"
-              whileHover={{ scale: 1.02, x: 5 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-lg shadow-md">
-                  {buddy.avatar}
-                </div>
-                <div
-                  className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white ${
-                    buddy.status === "online"
-                      ? "bg-green-500"
-                      : buddy.status === "away"
-                      ? "bg-yellow-500"
-                      : "bg-gray-400"
-                  }`}
-                ></div>
-                {buddy.verified && (
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-2.5 h-2.5 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2">
-                  <h4 className="font-medium text-gray-900 truncate">
-                    {buddy.name}
-                  </h4>
-                  {buddy.mutual > 10 && (
-                    <span className="bg-blue-100 text-blue-600 text-xs px-2 py-0.5 rounded-full">
-                      {buddy.mutual} mutual
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm text-gray-500 truncate">
-                  {buddy.trip}
-                </div>
-                <div className="text-xs text-gray-400">📍 {buddy.location}</div>
-              </div>
-
-              <motion.button
-                className="opacity-0 group-hover:opacity-100 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center transition-opacity"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+        {loadingTours ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          </div>
+        ) : hotTours.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+            Chưa có tour nào
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {hotTours.slice(0, 3).map((tour, index) => (
+              <motion.div
+                key={tour.id}
+                className="group p-3 rounded-xl bg-gradient-to-br from-white/60 via-blue-50/40 to-purple-50/40 dark:from-gray-800/60 dark:via-gray-700/40 dark:to-gray-800/40 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                whileHover={{ scale: 1.01, x: -2 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05, duration: 0.3 }}
               >
-                <svg
-                  className="w-4 h-4 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 12h.01M12 12h.01M16 12h.01"
-                  />
-                </svg>
-              </motion.button>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Nearby Attractions */}
-      <div className="p-4 border-b border-gray-200/50">
-        <h3 className="text-gray-600 font-semibold text-sm mb-3 flex items-center">
-          <span className="mr-2">📍</span>
-          Gần bạn
-        </h3>
-
-        <div className="space-y-3">
-          {nearbyAttractions.map((place, index) => (
-            <motion.div
-              key={index}
-              className="group p-3 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 hover:from-blue-50 hover:to-purple-50 cursor-pointer transition-all duration-200 border border-gray-200/50"
-              whileHover={{ scale: 1.02 }}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <div className="flex items-start space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center text-2xl shadow-md">
-                  {place.image}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <h4 className="font-medium text-gray-800 text-sm">
-                      {place.name}
-                    </h4>
-                    {place.openNow && (
-                      <span className="bg-green-100 text-green-600 text-xs px-2 py-0.5 rounded-full">
-                        Mở cửa
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center space-x-2 text-xs text-gray-500 mb-2">
-                    <div className="flex items-center space-x-1">
-                      <span>⭐</span>
-                      <span>{place.rating}</span>
-                      <span>({place.reviews})</span>
+                <Link href={`/tours/${tour.id}`}>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      {tour.featured_image ? (
+                        <img
+                          src={tour.featured_image}
+                          alt={tour.title}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      ) : (
+                        <svg
+                          className="w-8 h-8 text-primary-600 dark:text-primary-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 002 2h2.945M15 6a3 3 0 11-6 0 3 3 0 016 0zM17 21h4a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                          />
+                        </svg>
+                      )}
                     </div>
-                    <span>•</span>
-                    <span>{place.distance}</span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm mb-1 line-clamp-2">
+                        {tour.title}
+                      </h4>
+                      <div className="flex items-center space-x-2 mb-1">
+                        <div className="flex items-center space-x-1">
+                          <svg
+                            className="w-3 h-3 text-yellow-500"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                            {tour.rating?.toFixed(1) || "0.0"}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          • {tour.reviews_count || 0} đánh giá
+                        </span>
+                      </div>
+                      <div className="text-sm font-bold text-primary-600 dark:text-primary-400">
+                        {tour.price_per_person
+                          ? `${tour.price_per_person.toLocaleString("vi-VN")}₫`
+                          : "Liên hệ"}
+                      </div>
+                    </div>
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
-                      {place.type}
-                    </span>
-                    <span className="text-sm font-semibold text-green-600">
-                      {place.price}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Local Events */}
+      {/* 顶级可信卖家 */}
+      <div className="p-4 border-b border-white/20 dark:border-gray-700/30">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-gray-800 dark:text-gray-200 font-bold text-base flex items-center">
+            <Award className="w-5 h-5 mr-2 text-yellow-500" />
+            Seller top uy tín
+          </h3>
+          <Link
+            href="/sellers"
+            className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+          >
+            Xem tất cả
+          </Link>
+        </div>
+        {loadingSellers ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          </div>
+        ) : topSellers.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+            Chưa có seller nào
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {topSellers.map((seller, index) => (
+              <motion.div
+                key={seller.id}
+                className="group p-3 rounded-xl bg-gradient-to-br from-white/60 via-blue-50/40 to-purple-50/40 dark:from-gray-800/60 dark:via-gray-700/40 dark:to-gray-800/40 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                whileHover={{ scale: 1.01, x: -2 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05, duration: 0.3 }}
+              >
+                <Link href={`/profile/user?id=${seller.id}`}>
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                        {seller.avatar_url ? (
+                          <img
+                            src={seller.avatar_url}
+                            alt={seller.full_name || seller.username}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          (seller.full_name || seller.username || "?")[0].toUpperCase()
+                        )}
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">
+                        <svg
+                          className="w-3 h-3 text-white"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">
+                          {seller.full_name || seller.username}
+                        </h4>
+                      </div>
+                      <div className="flex items-center space-x-2 mb-1">
+                        <div className="flex items-center space-x-1">
+                          <svg
+                            className="w-3 h-3 text-yellow-500"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                            {seller.avgRating?.toFixed(1) || "0.0"}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          • {seller.totalTours || 0} tours
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {seller.totalReviews || 0} đánh giá
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 聊天列表 */}
       <div className="p-4">
-        <h3 className="text-gray-600 font-semibold text-sm mb-3 flex items-center">
-          <span className="mr-2">🎪</span>
-          Sự kiện địa phương
-        </h3>
-
-        <div className="space-y-3">
-          {localEvents.map((event, index) => (
-            <motion.div
-              key={index}
-              className="p-4 rounded-2xl bg-gradient-to-br from-white to-purple-50 border border-purple-200/50 hover:shadow-lg transition-all duration-300 cursor-pointer"
-              whileHover={{ scale: 1.02, y: -2 }}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <div className="flex items-start space-x-3">
-                <div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
-                    event.type === "culture"
-                      ? "bg-gradient-to-br from-purple-400 to-pink-500"
-                      : event.type === "food"
-                      ? "bg-gradient-to-br from-orange-400 to-red-500"
-                      : "bg-gradient-to-br from-green-400 to-teal-500"
-                  }`}
-                >
-                  {event.type === "culture"
-                    ? "🎭"
-                    : event.type === "food"
-                    ? "🍜"
-                    : "🏮"}
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-800 text-sm mb-1">
-                    {event.title}
-                  </h4>
-                  <div className="text-xs text-gray-600 space-y-1">
-                    <div>📅 {event.date}</div>
-                    <div>
-                      📍 {event.location} • {event.distance}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>👥 {event.attendees}</span>
-                      <span className="font-semibold text-purple-600">
-                        {event.price}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-gray-800 dark:text-gray-200 font-bold text-base flex items-center">
+            <MessageCircle className="w-5 h-5 mr-2 text-primary-500" />
+            List trò chuyện
+          </h3>
+          <Link
+            href="/messages"
+            className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+          >
+            Xem tất cả
+          </Link>
         </div>
+        {!user ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+            Vui lòng đăng nhập để xem tin nhắn
+          </div>
+        ) : chatLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          </div>
+        ) : conversations.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+            Chưa có cuộc trò chuyện nào
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <AnimatePresence>
+              {conversations.slice(0, 5).map((conversation, index) => {
+                if (!conversation.other_user) {
+                  return null;
+                }
+                return (
+                  <motion.div
+                    key={conversation.id}
+                    className="group p-3 rounded-xl bg-gradient-to-br from-white/60 via-blue-50/40 to-purple-50/40 dark:from-gray-800/60 dark:via-gray-700/40 dark:to-gray-800/40 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 hover:shadow-lg transition-all duration-300 cursor-pointer relative"
+                    whileHover={{ scale: 1.01, x: -2 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ delay: index * 0.05, duration: 0.3 }}
+                    onClick={() => handleConversationClick(conversation.other_user.id)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="relative">
+                        <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 font-semibold">
+                          {conversation.other_user.avatar_url ? (
+                            <img
+                              src={conversation.other_user.avatar_url}
+                              alt={
+                                conversation.other_user.full_name ||
+                                conversation.other_user.username
+                              }
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            (conversation.other_user.full_name ||
+                              conversation.other_user.username ||
+                              "?")[0].toUpperCase()
+                          )}
+                        </div>
+                        {conversation.unread_count > 0 && (
+                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">
+                            <span className="text-xs font-bold text-white">
+                              {conversation.unread_count > 9
+                                ? "9+"
+                                : conversation.unread_count}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">
+                            {conversation.other_user.full_name ||
+                              conversation.other_user.username}
+                          </h4>
+                          {conversation.last_message && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2">
+                              {formatTimeAgo(conversation.last_message.created_at)}
+                            </span>
+                          )}
+                        </div>
+                        {conversation.last_message && (
+                          <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                            {conversation.last_message.message_type === "image"
+                              ? "📷 Đã gửi ảnh"
+                              : conversation.last_message.message_type === "file"
+                              ? "📎 Đã gửi file"
+                              : conversation.last_message.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     </motion.div>
   );

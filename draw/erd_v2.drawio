@@ -1,0 +1,324 @@
+<mxfile host="65bd71144e">
+    <diagram id="erd-v2" name="ERD v2">
+        <mxGraphModel dx="1882" dy="2045" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="t1" value="&lt;b&gt;activity_logs&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- user_id int&lt;br&gt;- action_type enum(&#39;user_register&#39;,&#39;user_login&#39;,&#39;user_logout&#39;,&#39;user_update&#39;,&#39;user_delete&#39;,&#39;user_ban&#39;,&#39;user_unban&#39;,&#39;post_create&#39;,&#39;post_update&#39;,&#39;post_delete&#39;,&#39;post_publish&#39;,&#39;comment_create&#39;,&#39;comment_update&#39;,&#39;comment_delete&#39;,&#39;report_create&#39;,&#39;report_resolve&#39;,&#39;admin_action&#39;,&#39;system_event&#39;,&#39;other&#39;) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- action_description varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- target_type varchar(50) COLLATE utf8mb4_unicode_ci&lt;br&gt;- target_id int&lt;br&gt;- meta_data text COLLATE utf8mb4_unicode_ci&lt;br&gt;- ip_address varchar(45) COLLATE utf8mb4_unicode_ci&lt;br&gt;- user_agent varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- severity enum(&#39;info&#39;,&#39;warning&#39;,&#39;error&#39;,&#39;critical&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- created_at datetime" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="170" y="-820" width="260" height="172" as="geometry"/>
+                </mxCell>
+                <mxCell id="t2" value="&lt;b&gt;banned_keywords&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- keyword varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- severity enum(&#39;low&#39;,&#39;medium&#39;,&#39;high&#39;,&#39;critical&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- description text COLLATE utf8mb4_unicode_ci&lt;br&gt;- created_by int NOT NULL&lt;br&gt;- created_at datetime&lt;br&gt;- updated_at datetime&lt;br&gt;- is_active tinyint(1)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="1111" y="1796" width="260" height="136" as="geometry"/>
+                </mxCell>
+                <mxCell id="t3" value="&lt;b&gt;bookings&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- tour_id int NOT NULL&lt;br&gt;- user_id int NOT NULL&lt;br&gt;- date varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- participants int NOT NULL&lt;br&gt;- adults int&lt;br&gt;- children int&lt;br&gt;- infants int&lt;br&gt;- full_name varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- email varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- phone varchar(50) COLLATE utf8mb4_unicode_ci&lt;br&gt;- address text COLLATE utf8mb4_unicode_ci&lt;br&gt;- base_price float&lt;br&gt;- adult_price float&lt;br&gt;- child_price float&lt;br&gt;- infant_price float&lt;br&gt;- discount_code varchar(50) COLLATE utf8mb4_unicode_ci&lt;br&gt;- discount_amount float&lt;br&gt;- total_price float NOT NULL&lt;br&gt;- currency varchar(10) COLLATE utf8mb4_unicode_ci&lt;br&gt;- payment_method enum(&#39;office&#39;,&#39;bank_transfer&#39;,&#39;online&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- payment_status enum(&#39;unpaid&#39;,&#39;partial&#39;,&#39;paid&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- status enum(&#39;pending&#39;,&#39;confirmed&#39;,&#39;cancelled&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- notes text COLLATE utf8mb4_unicode_ci&lt;br&gt;- created_at datetime&lt;br&gt;- updated_at datetime" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="-1060" width="260" height="352" as="geometry"/>
+                </mxCell>
+                <mxCell id="t4" value="&lt;b&gt;bookmarks&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- user_id int NOT NULL&lt;br&gt;- post_id int NOT NULL&lt;br&gt;- created_at timestamp NULL" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="-540" width="260" height="88" as="geometry"/>
+                </mxCell>
+                <mxCell id="t5" value="&lt;b&gt;chats&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- message text COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- message_type enum(&#39;text&#39;,&#39;image&#39;,&#39;audio&#39;,&#39;file&#39;,&#39;location&#39;,&#39;system&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- file_url varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- file_type varchar(50) COLLATE utf8mb4_unicode_ci&lt;br&gt;- room_id varchar(100) COLLATE utf8mb4_unicode_ci&lt;br&gt;- conversation_type enum(&#39;direct&#39;,&#39;group&#39;,&#39;public&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- status enum(&#39;sent&#39;,&#39;delivered&#39;,&#39;read&#39;,&#39;deleted&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- language varchar(10) COLLATE utf8mb4_unicode_ci&lt;br&gt;- translated_message text COLLATE utf8mb4_unicode_ci&lt;br&gt;- auto_translated tinyint(1)&lt;br&gt;- created_at datetime&lt;br&gt;- updated_at datetime&lt;br&gt;- read_at datetime&lt;br&gt;- sender_id int NOT NULL&lt;br&gt;- receiver_id int" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="-268" width="260" height="232" as="geometry"/>
+                </mxCell>
+                <mxCell id="t6" value="&lt;b&gt;comments&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- post_id int NOT NULL&lt;br&gt;- user_id int NOT NULL&lt;br&gt;- parent_id int&lt;br&gt;- content text COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- like_count int&lt;br&gt;- is_edited tinyint(1)&lt;br&gt;- created_at timestamp NULL&lt;br&gt;- updated_at timestamp NULL&lt;br&gt;- level int&lt;br&gt;- likes_count int&lt;br&gt;- replies_count int&lt;br&gt;- flagged tinyint(1)&lt;br&gt;- flag_reason varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- translated_content text COLLATE utf8mb4_unicode_ci&lt;br&gt;- language varchar(10) COLLATE utf8mb4_unicode_ci&lt;br&gt;- status enum(&#39;pending&#39;,&#39;approved&#39;,&#39;rejected&#39;,&#39;spam&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- author_id int" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="-244" width="260" height="256" as="geometry"/>
+                </mxCell>
+                <mxCell id="t7" value="&lt;b&gt;contacts&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- user_id int&lt;br&gt;- name varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- email varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- phone varchar(50) COLLATE utf8mb4_unicode_ci&lt;br&gt;- subject varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- message text COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- category enum(&#39;technical&#39;,&#39;account&#39;,&#39;content&#39;,&#39;payment&#39;,&#39;general&#39;,&#39;report&#39;,&#39;suggestion&#39;,&#39;other&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- status enum(&#39;pending&#39;,&#39;in_progress&#39;,&#39;resolved&#39;,&#39;closed&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- priority enum(&#39;low&#39;,&#39;medium&#39;,&#39;high&#39;,&#39;urgent&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- assigned_to int&lt;br&gt;- response text COLLATE utf8mb4_unicode_ci&lt;br&gt;- responded_at datetime&lt;br&gt;- responded_by int&lt;br&gt;- attachments text COLLATE utf8mb4_unicode_ci&lt;br&gt;- created_at datetime&lt;br&gt;- updated_at datetime&lt;br&gt;- resolved_at datetime" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="-244" width="260" height="256" as="geometry"/>
+                </mxCell>
+                <mxCell id="t8" value="&lt;b&gt;followers&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- follower_id int NOT NULL&lt;br&gt;- following_id int NOT NULL&lt;br&gt;- created_at timestamp NULL" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="-340" width="260" height="88" as="geometry"/>
+                </mxCell>
+                <mxCell id="t9" value="&lt;b&gt;follows&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- follower_id int NOT NULL&lt;br&gt;- following_id int NOT NULL&lt;br&gt;- created_at timestamp NULL" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="-140" width="260" height="88" as="geometry"/>
+                </mxCell>
+                <mxCell id="t10" value="&lt;b&gt;friend_requests&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- requester_id int NOT NULL&lt;br&gt;- receiver_id int NOT NULL&lt;br&gt;- status enum(&#39;pending&#39;,&#39;accepted&#39;,&#39;rejected&#39;,&#39;cancelled&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- created_at datetime&lt;br&gt;- updated_at datetime&lt;br&gt;- responded_at datetime" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="-140" width="260" height="124" as="geometry"/>
+                </mxCell>
+                <mxCell id="t11" value="&lt;b&gt;group_chats&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- room_id varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- name varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- description text COLLATE utf8mb4_unicode_ci&lt;br&gt;- avatar_url varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- created_by int NOT NULL&lt;br&gt;- created_at datetime&lt;br&gt;- updated_at datetime" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="-140" width="260" height="136" as="geometry"/>
+                </mxCell>
+                <mxCell id="t12" value="&lt;b&gt;group_members&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- group_id int NOT NULL&lt;br&gt;- user_id int NOT NULL&lt;br&gt;- role enum(&#39;admin&#39;,&#39;member&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- joined_at datetime" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="-140" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="t13" value="&lt;b&gt;likes&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- user_id int NOT NULL&lt;br&gt;- post_id int&lt;br&gt;- comment_id int&lt;br&gt;- created_at timestamp NULL" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="60" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="t14" value="&lt;b&gt;locations&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- name varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- slug varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- address text COLLATE utf8mb4_unicode_ci&lt;br&gt;- city varchar(100) COLLATE utf8mb4_unicode_ci&lt;br&gt;- province varchar(100) COLLATE utf8mb4_unicode_ci&lt;br&gt;- country varchar(100) COLLATE utf8mb4_unicode_ci&lt;br&gt;- category enum(&#39;restaurant&#39;,&#39;attraction&#39;,&#39;hotel&#39;,&#39;transport&#39;,&#39;shopping&#39;,&#39;entertainment&#39;) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- subcategory varchar(100) COLLATE utf8mb4_unicode_ci&lt;br&gt;- rating float&lt;br&gt;- reviews_count int&lt;br&gt;- phone varchar(20) COLLATE utf8mb4_unicode_ci&lt;br&gt;- website varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- email varchar(120) COLLATE utf8mb4_unicode_ci&lt;br&gt;- opening_hours text COLLATE utf8mb4_unicode_ci&lt;br&gt;- price_range enum(&#39;budget&#39;,&#39;mid-range&#39;,&#39;luxury&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- images text COLLATE utf8mb4_unicode_ci&lt;br&gt;- latitude decimal(10,8)&lt;br&gt;- longitude decimal(11,8)&lt;br&gt;- description text COLLATE utf8mb4_unicode_ci&lt;br&gt;- image_url varchar(500) COLLATE utf8mb4_unicode_ci&lt;br&gt;- featured_image varchar(500) COLLATE utf8mb4_unicode_ci&lt;br&gt;- tags text COLLATE utf8mb4_unicode_ci&lt;br&gt;- amenities text COLLATE utf8mb4_unicode_ci&lt;br&gt;- languages_spoken text COLLATE utf8mb4_unicode_ci&lt;br&gt;- verified tinyint(1)&lt;br&gt;- status enum(&#39;active&#39;,&#39;inactive&#39;,&#39;pending&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- created_at timestamp NULL&lt;br&gt;- updated_at timestamp NULL&lt;br&gt;- created_by int" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="780" width="260" height="400" as="geometry"/>
+                </mxCell>
+                <mxCell id="t15" value="&lt;b&gt;nfts&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- token_id varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- contract_address varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- name varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- description text COLLATE utf8mb4_unicode_ci&lt;br&gt;- badge_type enum(&#39;explorer&#39;,&#39;foodie&#39;,&#39;photographer&#39;,&#39;writer&#39;,&#39;adventurer&#39;,&#39;cultural&#39;,&#39;special&#39;) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- badge_level enum(&#39;bronze&#39;,&#39;silver&#39;,&#39;gold&#39;,&#39;platinum&#39;,&#39;legendary&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- rarity enum(&#39;common&#39;,&#39;uncommon&#39;,&#39;rare&#39;,&#39;epic&#39;,&#39;legendary&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- image_url varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- animation_url varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- metadata_url varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- achievement_criteria text COLLATE utf8mb4_unicode_ci&lt;br&gt;- points_required int&lt;br&gt;- locations_required text COLLATE utf8mb4_unicode_ci&lt;br&gt;- posts_required int&lt;br&gt;- transaction_hash varchar(100) COLLATE utf8mb4_unicode_ci&lt;br&gt;- block_number int&lt;br&gt;- gas_used int&lt;br&gt;- status enum(&#39;minted&#39;,&#39;pending&#39;,&#39;failed&#39;,&#39;burned&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- transferable tinyint(1)&lt;br&gt;- tradeable tinyint(1)&lt;br&gt;- unlocked tinyint(1)&lt;br&gt;- unlock_date datetime&lt;br&gt;- created_at datetime&lt;br&gt;- minted_at datetime&lt;br&gt;- owner_id int NOT NULL" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="636" width="260" height="352" as="geometry"/>
+                </mxCell>
+                <mxCell id="t16" value="&lt;b&gt;notifications&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- user_id int NOT NULL&lt;br&gt;- type varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- title varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- message text COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- related_type varchar(50) COLLATE utf8mb4_unicode_ci&lt;br&gt;- related_id int&lt;br&gt;- actor_id int&lt;br&gt;- action_url varchar(500) COLLATE utf8mb4_unicode_ci&lt;br&gt;- extra_data text COLLATE utf8mb4_unicode_ci&lt;br&gt;- read_at datetime&lt;br&gt;- seen_at datetime&lt;br&gt;- is_read tinyint(1)&lt;br&gt;- is_seen tinyint(1)&lt;br&gt;- metadata text COLLATE utf8mb4_unicode_ci&lt;br&gt;- created_at timestamp NULL" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="1380" y="-6" width="260" height="232" as="geometry"/>
+                </mxCell>
+                <mxCell id="t17" value="&lt;b&gt;posts&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- title varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- slug varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- content text COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- summary text COLLATE utf8mb4_unicode_ci&lt;br&gt;- excerpt text COLLATE utf8mb4_unicode_ci&lt;br&gt;- featured_image varchar(500) COLLATE utf8mb4_unicode_ci&lt;br&gt;- author_id int NOT NULL&lt;br&gt;- location_id int&lt;br&gt;- category varchar(50) COLLATE utf8mb4_unicode_ci&lt;br&gt;- tags json&lt;br&gt;- status varchar(20) COLLATE utf8mb4_unicode_ci&lt;br&gt;- view_count int&lt;br&gt;- like_count int&lt;br&gt;- comment_count int&lt;br&gt;- is_featured tinyint(1)&lt;br&gt;- published_at timestamp NULL&lt;br&gt;- created_at timestamp NULL&lt;br&gt;- updated_at timestamp NULL&lt;br&gt;- content_type enum(&#39;blog&#39;,&#39;video&#39;,&#39;photo&#39;,&#39;tour_guide&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- language varchar(10) COLLATE utf8mb4_unicode_ci&lt;br&gt;- reading_time int&lt;br&gt;- images text COLLATE utf8mb4_unicode_ci&lt;br&gt;- video_url varchar(500) COLLATE utf8mb4_unicode_ci&lt;br&gt;- video_embed text COLLATE utf8mb4_unicode_ci&lt;br&gt;- location_lat float&lt;br&gt;- location_lng float&lt;br&gt;- location_name varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- location_address varchar(500) COLLATE utf8mb4_unicode_ci&lt;br&gt;- difficulty_level enum(&#39;easy&#39;,&#39;moderate&#39;,&#39;hard&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- views_count int&lt;br&gt;- likes_count int&lt;br&gt;- shares_count int&lt;br&gt;- comments_count int&lt;br&gt;- featured tinyint(1)&lt;br&gt;- meta_title varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- meta_description text COLLATE utf8mb4_unicode_ci&lt;br&gt;- meta_keywords varchar(500) COLLATE utf8mb4_unicode_ci&lt;br&gt;- is_interactive tinyint(1)&lt;br&gt;- story_choices text COLLATE utf8mb4_unicode_ci&lt;br&gt;- collaborative tinyint(1)&lt;br&gt;- collaborators text COLLATE utf8mb4_unicode_ci" style="rounded=0;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;whiteSpace=wrap;" parent="1" vertex="1">
+                    <mxGeometry x="-390" y="1796" width="490" height="634" as="geometry"/>
+                </mxCell>
+                <mxCell id="t18" value="&lt;b&gt;post_images&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- post_id int NOT NULL&lt;br&gt;- image_url varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- caption text COLLATE utf8mb4_unicode_ci&lt;br&gt;- display_order int&lt;br&gt;- created_at timestamp NULL" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="260" width="260" height="112" as="geometry"/>
+                </mxCell>
+                <mxCell id="t19" value="&lt;b&gt;post_stats&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- post_id int NOT NULL&lt;br&gt;- view_count int&lt;br&gt;- like_count int&lt;br&gt;- comment_count int&lt;br&gt;- share_count int&lt;br&gt;- created_at timestamp NULL&lt;br&gt;- updated_at timestamp NULL" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="260" width="260" height="136" as="geometry"/>
+                </mxCell>
+                <mxCell id="t20" value="&lt;b&gt;reports&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- reporter_id int NOT NULL&lt;br&gt;- report_type enum(&#39;post&#39;,&#39;comment&#39;,&#39;user&#39;,&#39;other&#39;) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- target_id int NOT NULL&lt;br&gt;- reason enum(&#39;spam&#39;,&#39;harassment&#39;,&#39;hate_speech&#39;,&#39;inappropriate_content&#39;,&#39;violence&#39;,&#39;copyright&#39;,&#39;misinformation&#39;,&#39;other&#39;) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- description text COLLATE utf8mb4_unicode_ci&lt;br&gt;- status enum(&#39;pending&#39;,&#39;reviewing&#39;,&#39;resolved&#39;,&#39;dismissed&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- priority enum(&#39;low&#39;,&#39;medium&#39;,&#39;high&#39;,&#39;urgent&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- resolved_by int&lt;br&gt;- resolution_notes text COLLATE utf8mb4_unicode_ci&lt;br&gt;- action_taken enum(&#39;none&#39;,&#39;content_removed&#39;,&#39;user_warned&#39;,&#39;user_banned&#39;,&#39;edited&#39;,&#39;other&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- created_at datetime&lt;br&gt;- updated_at datetime&lt;br&gt;- resolved_at datetime" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="452" width="260" height="208" as="geometry"/>
+                </mxCell>
+                <mxCell id="t21" value="&lt;b&gt;stories&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- user_id int NOT NULL&lt;br&gt;- content text COLLATE utf8mb4_unicode_ci&lt;br&gt;- media_url varchar(500) COLLATE utf8mb4_unicode_ci&lt;br&gt;- media_type enum(&#39;image&#39;,&#39;video&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- view_count int&lt;br&gt;- created_at timestamp NULL&lt;br&gt;- expires_at timestamp NULL&lt;br&gt;- is_archived tinyint(1)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="460" width="260" height="148" as="geometry"/>
+                </mxCell>
+                <mxCell id="t22" value="&lt;b&gt;tours&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- title varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- description text COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- duration_days int NOT NULL&lt;br&gt;- max_participants int&lt;br&gt;- min_participants int&lt;br&gt;- difficulty_level enum(&#39;easy&#39;,&#39;moderate&#39;,&#39;hard&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- starting_location varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- ending_location varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- itinerary text COLLATE utf8mb4_unicode_ci&lt;br&gt;- locations_covered text COLLATE utf8mb4_unicode_ci&lt;br&gt;- price_per_person float NOT NULL&lt;br&gt;- currency varchar(3) COLLATE utf8mb4_unicode_ci&lt;br&gt;- discount_percentage float&lt;br&gt;- inclusions text COLLATE utf8mb4_unicode_ci&lt;br&gt;- exclusions text COLLATE utf8mb4_unicode_ci&lt;br&gt;- featured_image varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- gallery_images text COLLATE utf8mb4_unicode_ci&lt;br&gt;- video_url varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- available_dates text COLLATE utf8mb4_unicode_ci&lt;br&gt;- booking_deadline_days int&lt;br&gt;- cancellation_policy text COLLATE utf8mb4_unicode_ci&lt;br&gt;- category enum(&#39;adventure&#39;,&#39;cultural&#39;,&#39;food&#39;,&#39;nature&#39;,&#39;urban&#39;,&#39;spiritual&#39;) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- tags text COLLATE utf8mb4_unicode_ci&lt;br&gt;- rating float&lt;br&gt;- reviews_count int&lt;br&gt;- views_count int&lt;br&gt;- bookings_count int&lt;br&gt;- status enum(&#39;active&#39;,&#39;inactive&#39;,&#39;draft&#39;,&#39;suspended&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- created_at datetime&lt;br&gt;- updated_at datetime&lt;br&gt;- seller_id int NOT NULL&lt;br&gt;- featured tinyint(1)&lt;br&gt;- affiliate_link varchar(500) COLLATE utf8mb4_unicode_ci&lt;br&gt;- commission_rate float&lt;br&gt;- age_requirement varchar(50) COLLATE utf8mb4_unicode_ci&lt;br&gt;- fitness_requirement enum(&#39;low&#39;,&#39;moderate&#39;,&#39;high&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- equipment_provided text COLLATE utf8mb4_unicode_ci&lt;br&gt;- equipment_required text COLLATE utf8mb4_unicode_ci" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="2200" width="260" height="508" as="geometry"/>
+                </mxCell>
+                <mxCell id="t23" value="&lt;b&gt;users&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- username varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- email varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- password_hash varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL&lt;br&gt;- full_name varchar(200) COLLATE utf8mb4_unicode_ci&lt;br&gt;- bio text COLLATE utf8mb4_unicode_ci&lt;br&gt;- avatar_url varchar(500) COLLATE utf8mb4_unicode_ci&lt;br&gt;- cover_image_url varchar(500) COLLATE utf8mb4_unicode_ci&lt;br&gt;- role enum(&#39;user&#39;,&#39;moderator&#39;,&#39;admin&#39;,&#39;seller&#39;,&#39;editor&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- is_active tinyint(1)&lt;br&gt;- email_verified tinyint(1)&lt;br&gt;- account_banned_until datetime&lt;br&gt;- post_banned_until datetime&lt;br&gt;- comment_banned_until datetime&lt;br&gt;- violation_count int&lt;br&gt;- created_at timestamp NULL&lt;br&gt;- updated_at timestamp NULL&lt;br&gt;- is_verified tinyint(1)&lt;br&gt;- points int NOT NULL&lt;br&gt;- level int NOT NULL&lt;br&gt;- badges text COLLATE utf8mb4_unicode_ci&lt;br&gt;- location varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- language varchar(10) COLLATE utf8mb4_unicode_ci&lt;br&gt;- timezone varchar(50) COLLATE utf8mb4_unicode_ci&lt;br&gt;- social_links text COLLATE utf8mb4_unicode_ci&lt;br&gt;- bookmarks text COLLATE utf8mb4_unicode_ci&lt;br&gt;- liked_posts text COLLATE utf8mb4_unicode_ci&lt;br&gt;- following text COLLATE utf8mb4_unicode_ci&lt;br&gt;- followers text COLLATE utf8mb4_unicode_ci&lt;br&gt;- seller_email varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- seller_email_password varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- company_name varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- company_address text COLLATE utf8mb4_unicode_ci&lt;br&gt;- company_phone varchar(50) COLLATE utf8mb4_unicode_ci&lt;br&gt;- company_tax_id varchar(50) COLLATE utf8mb4_unicode_ci&lt;br&gt;- company_email varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- bank_account_number varchar(100) COLLATE utf8mb4_unicode_ci&lt;br&gt;- bank_name varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- bank_account_holder varchar(255) COLLATE utf8mb4_unicode_ci&lt;br&gt;- friends text COLLATE utf8mb4_unicode_ci" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="1920" y="410" width="260" height="520" as="geometry"/>
+                </mxCell>
+                <mxCell id="t24" value="&lt;b&gt;user_preferences&lt;/b&gt;&lt;br&gt;- id int NOT NULL AUTO_INCREMENT&lt;br&gt;- user_id int NOT NULL&lt;br&gt;- travel_interests text COLLATE utf8mb4_unicode_ci&lt;br&gt;- budget_range enum(&#39;budget&#39;,&#39;mid-range&#39;,&#39;luxury&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- travel_style enum(&#39;backpacker&#39;,&#39;family&#39;,&#39;luxury&#39;,&#39;business&#39;,&#39;adventure&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- dietary_restrictions text COLLATE utf8mb4_unicode_ci&lt;br&gt;- cuisine_preferences text COLLATE utf8mb4_unicode_ci&lt;br&gt;- spice_tolerance enum(&#39;none&#39;,&#39;mild&#39;,&#39;medium&#39;,&#39;hot&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- preferred_activities text COLLATE utf8mb4_unicode_ci&lt;br&gt;- fitness_level enum(&#39;low&#39;,&#39;moderate&#39;,&#39;high&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- group_size_preference enum(&#39;solo&#39;,&#39;couple&#39;,&#39;small_group&#39;,&#39;large_group&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- preferred_regions text COLLATE utf8mb4_unicode_ci&lt;br&gt;- climate_preference enum(&#39;tropical&#39;,&#39;temperate&#39;,&#39;cold&#39;,&#39;any&#39;) COLLATE utf8mb4_unicode_ci&lt;br&gt;- email_notifications tinyint(1)&lt;br&gt;- push_notifications tinyint(1)&lt;br&gt;- newsletter_subscription tinyint(1)&lt;br&gt;- ai_recommendations tinyint(1)&lt;br&gt;- personalization_data text COLLATE utf8mb4_unicode_ci&lt;br&gt;- created_at datetime&lt;br&gt;- updated_at datetime" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B8E23;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="1060" width="260" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t1" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t2" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t3" target="t22" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e4" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t3" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t4" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e6" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t4" target="t17" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e7" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t5" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e8" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t5" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e9" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t6" target="t17" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e10" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t6" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e11" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t6" target="t6" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e12" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t7" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e13" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t7" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e14" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t7" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e15" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t8" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e16" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t8" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e17" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t9" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e18" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t9" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e19" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t10" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e20" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t10" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e21" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t11" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e22" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t12" target="t11" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e23" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t12" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e24" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t13" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e25" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t13" target="t17" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e26" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t13" target="t6" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e27" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t14" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e28" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t15" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e29" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t16" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e30" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t16" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e31" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t16" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e32" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t17" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e33" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t18" target="t17" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e34" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t19" target="t17" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e35" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t20" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e36" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t20" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e37" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t21" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e38" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t22" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e39" value="1 — N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;labelPosition=top;verticalLabelPosition=top;align=left;" parent="1" source="t24" target="t23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERzeroToMany;startArrow=ERone;endFill=1;startFill=0;" edge="1" parent="1" source="25" target="8">
+                    <mxGeometry width="100" height="100" relative="1" as="geometry">
+                        <mxPoint x="1400" y="3460" as="sourcePoint"/>
+                        <mxPoint x="1500" y="3360" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="3" value="" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERzeroToMany;startArrow=ERone;endFill=1;startFill=0;" edge="1" parent="1" source="5" target="18">
+                    <mxGeometry width="100" height="100" relative="1" as="geometry">
+                        <mxPoint x="1460" y="2920" as="sourcePoint"/>
+                        <mxPoint x="1520" y="2945" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="4" value="Orders" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;" vertex="1" parent="1">
+                    <mxGeometry x="1510" y="2860" width="250" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=1;" vertex="1" parent="4">
+                    <mxGeometry y="30" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="PK" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;fontStyle=1;" vertex="1" parent="5">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="7" value="order_id int NOT NULL " style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;fontStyle=5;" vertex="1" parent="5">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="8" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="4">
+                    <mxGeometry y="60" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="FK1" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;" vertex="1" parent="8">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="10" value="customer_id int NOT NULL" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;" vertex="1" parent="8">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="11" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="4">
+                    <mxGeometry y="90" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;" vertex="1" parent="11">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="13" value="order_date date NOT NULL" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;" vertex="1" parent="11">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="14" value="Shipments" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;" vertex="1" parent="1">
+                    <mxGeometry x="1510" y="3020" width="250" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=1;" vertex="1" parent="14">
+                    <mxGeometry y="30" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="PK" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;fontStyle=1;" vertex="1" parent="15">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="17" value="shipment_id int NOT NULL " style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;fontStyle=5;" vertex="1" parent="15">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="18" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="14">
+                    <mxGeometry y="60" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="FK1" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;" vertex="1" parent="18">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="20" value="order_id int NOT NULL" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;" vertex="1" parent="18">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="21" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="14">
+                    <mxGeometry y="90" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;" vertex="1" parent="21">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="23" value="shipment_date date NOT NULL" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;" vertex="1" parent="21">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="24" value="Customers" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;" vertex="1" parent="1">
+                    <mxGeometry x="1180" y="2860" width="250" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=1;" vertex="1" parent="24">
+                    <mxGeometry y="30" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="PK" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;fontStyle=1;" vertex="1" parent="25">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="27" value="customer_id int NOT NULL " style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;fontStyle=5;" vertex="1" parent="25">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="28" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="24">
+                    <mxGeometry y="60" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;" vertex="1" parent="28">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="30" value="customer_name char(50) NOT NULL" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;" vertex="1" parent="28">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -96,11 +96,11 @@ const HomePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 pt-16">
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pt-16">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-200 border-t-primary mx-auto mb-4"></div>
-            <p className="text-gray-600">Đang tải...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-200 dark:border-gray-700 border-t-primary-600 dark:border-t-primary-500 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
           </div>
         </div>
       </div>
@@ -108,7 +108,7 @@ const HomePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-16">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pt-16">
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex gap-6">
           {/* Left Sidebar */}
@@ -127,11 +127,11 @@ const HomePage = () => {
             {/* Posts Feed */}
             <div className="space-y-4">
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                  <p className="text-red-600 mb-2">⚠️ {error}</p>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-center">
+                  <p className="text-red-600 dark:text-red-400 mb-2">{error}</p>
                   <button
                     onClick={() => window.location.reload()}
-                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+                    className="bg-red-600 dark:bg-red-700 text-white px-4 py-2 rounded hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
                   >
                     Thử lại
                   </button>
@@ -144,7 +144,7 @@ const HomePage = () => {
 
               {/* Load More */}
               <div className="text-center py-6">
-                <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <button className="bg-primary-600 dark:bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors">
                   Xem thêm bài viết
                 </button>
               </div>

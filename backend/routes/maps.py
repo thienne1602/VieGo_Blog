@@ -65,8 +65,8 @@ def get_locations():
                 Location.longitude.between(sw_lng, ne_lng)
             )
         
-        # Order by rating
-        query = query.order_by(desc(Location.rating))
+        # Order by rating (handle NULL values - MySQL compatible)
+        query = query.order_by(desc(func.coalesce(Location.rating, 0)))
         
         # Paginate
         locations_pagination = query.paginate(
@@ -374,3 +374,302 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     c = 2 * atan2(sqrt(a), sqrt(1-a))
     
     return R * c
+
+@maps_bp.route('/routes', methods=['GET'])
+def get_routes():
+    """Get travel routes (public or user's routes)"""
+    try:
+        try:
+            current_user_id = get_jwt_identity()
+        except:
+            current_user_id = None
+        page = request.args.get('page', 1, type=int)
+        per_page = min(request.args.get('per_page', 20, type=int), 50)
+        user_id = request.args.get('user_id', type=int)
+        
+        # In a full implementation, you would have a TravelRoute model
+        # For now, return empty list or stored routes
+        return jsonify({
+            'routes': [],
+            'pagination': {
+                'page': page,
+                'pages': 0,
+                'per_page': per_page,
+                'total': 0
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Lỗi lấy lộ trình: {str(e)}'}), 500
+
+@maps_bp.route('/routes', methods=['POST'])
+@jwt_required()
+def create_route():
+    """Create a new travel route"""
+    try:
+        current_user_id = get_jwt_identity()
+        data = request.get_json()
+        
+        if not data.get('name') or not data.get('waypoints') or len(data.get('waypoints', [])) < 2:
+            return jsonify({'error': 'Lộ trình cần có ít nhất 2 điểm'}), 400
+        
+        # In a full implementation, save to database
+        route_data = {
+            'id': f"route_{datetime.now().timestamp()}",
+            'name': data['name'],
+            'waypoints': data['waypoints'],
+            'color': data.get('color', '#3b82f6'),
+            'description': data.get('description', ''),
+            'created_at': datetime.now().isoformat(),
+            'created_by': current_user_id
+        }
+        
+        return jsonify({
+            'message': 'Tạo lộ trình thành công!',
+            'route': route_data
+        }), 201
+        
+    except Exception as e:
+        return jsonify({'error': f'Lỗi tạo lộ trình: {str(e)}'}), 500
+
+@maps_bp.route('/weather', methods=['GET'])
+def get_weather():
+    """Get weather forecast for a location using Google Geocoding + WeatherAPI.com"""
+    try:
+        import os
+        import requests
+        
+        lat = request.args.get('lat', type=float)
+        lng = request.args.get('lng', type=float)
+        
+        if lat is None or lng is None:
+            return jsonify({'error': 'Thiếu tọa độ (lat, lng)'}), 400
+        
+        # Get Google Maps API key for geocoding
+        google_api_key = os.getenv('GOOGLE_MAPS_API_KEY', '')
+        weather_api_key = os.getenv('WEATHER_API_KEY', '')
+        
+        # Use Google Geocoding API to get location name
+        location_name = ''
+        if google_api_key:
+            try:
+                geocode_url = f"https://maps.googleapis.com/maps/api/geocode/json?latlng={lat},{lng}&key={google_api_key}&language=vi"
+                geocode_response = requests.get(geocode_url, timeout=5)
+                if geocode_response.status_code == 200:
+                    geocode_data = geocode_response.json()
+                    if geocode_data.get('results'):
+                        location_name = geocode_data['results'][0].get('formatted_address', '')
+            except:
+                pass
+        
+        if not weather_api_key:
+            # Return mock data if API key not configured
+            return jsonify({
+                'location': {'lat': lat, 'lng': lng, 'name': location_name or 'Chưa xác định'},
+                'current': {
+                    'temp': 28,
+                    'feels_like': 30,
+                    'humidity': 75,
+                    'pressure': 1013,
+                    'wind_speed': 5,
+                    'wind_deg': 180,
+                    'weather': [{
+                        'main': 'Clear',
+                        'description': 'trời quang',
+                        'icon': '01d'
+                    }],
+                    'visibility': 10,
+                    'clouds': 20,
+                    'uv_index': 7
+                },
+                'forecast': [],
+                'alerts': [],
+                'warning': 'WEATHER_API_KEY chưa được cấu hình. Đang hiển thị dữ liệu mẫu. Lấy key miễn phí tại: https://www.weatherapi.com/'
+            }), 200
+        
+        # Use WeatherAPI.com (free tier - 1 million calls/month)
+        # Get current weather and forecast
+        current_url = f"http://api.weatherapi.com/v1/current.json?key={weather_api_key}&q={lat},{lng}&lang=vi"
+        forecast_url = f"http://api.weatherapi.com/v1/forecast.json?key={weather_api_key}&q={lat},{lng}&days=1&lang=vi&hour=24"
+        
+        current_response = requests.get(current_url, timeout=5)
+        forecast_response = requests.get(forecast_url, timeout=5)
+        
+        if current_response.status_code != 200:
+            error_data = current_response.json() if current_response.content else {}
+            error_msg = error_data.get('error', {}).get('message', 'Không thể lấy dữ liệu thời tiết')
+            return jsonify({'error': error_msg}), 500
+        
+        current_data = current_response.json()
+        forecast_data = forecast_response.json() if forecast_response.status_code == 200 else None
+        
+        # Format response to match existing frontend format
+        current_weather = current_data.get('current', {})
+        location_info = current_data.get('location', {})
+        
+        weather_data = {
+            'location': {
+                'lat': lat,
+                'lng': lng,
+                'name': location_name or location_info.get('name', location_info.get('region', 'Chưa xác định'))
+            },
+            'current': {
+                'temp': round(current_weather.get('temp_c', 0), 1),
+                'feels_like': round(current_weather.get('feelslike_c', 0), 1),
+                'humidity': current_weather.get('humidity', 0),
+                'pressure': current_weather.get('pressure_mb', 0),
+                'wind_speed': round(current_weather.get('wind_kph', 0), 1),  # Already in km/h
+                'wind_deg': current_weather.get('wind_degree', 0),
+                'weather': [{
+                    'main': current_weather.get('condition', {}).get('text', ''),
+                    'description': current_weather.get('condition', {}).get('text', ''),
+                    'icon': current_weather.get('condition', {}).get('icon', '').replace('//cdn.weatherapi.com', 'https://cdn.weatherapi.com')
+                }],
+                'visibility': round(current_weather.get('vis_km', 0), 1),
+                'clouds': current_weather.get('cloud', 0),
+                'uv_index': current_weather.get('uv', 0)
+            },
+            'forecast': [],
+            'alerts': []
+        }
+        
+        # Parse forecast (24 hours)
+        if forecast_data and 'forecast' in forecast_data:
+            forecast_day = forecast_data['forecast'].get('forecastday', [])
+            if forecast_day and len(forecast_day) > 0:
+                hourly_forecast = forecast_day[0].get('hour', [])
+                for item in hourly_forecast[:24]:
+                    weather_data['forecast'].append({
+                        'dt': int(item.get('time_epoch', 0)),
+                        'temp': round(item.get('temp_c', 0), 1),
+                        'feels_like': round(item.get('feelslike_c', 0), 1),
+                        'humidity': item.get('humidity', 0),
+                        'pressure': item.get('pressure_mb', 0),
+                        'wind_speed': round(item.get('wind_kph', 0), 1),
+                        'weather': [{
+                            'main': item.get('condition', {}).get('text', ''),
+                            'description': item.get('condition', {}).get('text', ''),
+                            'icon': item.get('condition', {}).get('icon', '')
+                        }],
+                        'rain': item.get('precip_mm', 0),
+                        'clouds': item.get('cloud', 0)
+                    })
+        
+        # Generate weather alerts
+        alerts = []
+        condition_text = current_weather.get('condition', {}).get('text', '').lower()
+        
+        # Heavy rain alert
+        if 'mưa' in condition_text or 'rain' in condition_text or 'drizzle' in condition_text:
+            alerts.append({
+                'type': 'rain',
+                'severity': 'warning',
+                'title': 'Cảnh báo mưa',
+                'description': 'Có mưa tại khu vực này. Hãy chuẩn bị áo mưa hoặc dù.',
+                'icon': '🌧️'
+            })
+        
+        # Flood risk (if heavy rain forecasted)
+        if forecast_data:
+            heavy_rain_count = sum(1 for item in weather_data['forecast'][:8] 
+                                 if item.get('rain', 0) > 10)
+            if heavy_rain_count >= 3:
+                alerts.append({
+                    'type': 'flood',
+                    'severity': 'danger',
+                    'title': 'Cảnh báo nguy cơ lũ lụt',
+                    'description': 'Dự báo mưa lớn trong 24h tới. Tránh đi đến khu vực thấp trũng.',
+                    'icon': '⚠️'
+                })
+        
+        # High wind alert
+        if current_weather.get('wind_kph', 0) > 36:
+            alerts.append({
+                'type': 'wind',
+                'severity': 'warning',
+                'title': 'Cảnh báo gió mạnh',
+                'description': 'Gió mạnh tại khu vực này. Cẩn thận khi di chuyển.',
+                'icon': '💨'
+            })
+        
+        # Extreme heat
+        if current_weather.get('temp_c', 0) > 35:
+            alerts.append({
+                'type': 'heat',
+                'severity': 'warning',
+                'title': 'Cảnh báo nắng nóng',
+                'description': 'Nhiệt độ cao. Hãy uống nhiều nước và tránh hoạt động ngoài trời.',
+                'icon': '☀️'
+            })
+        
+        weather_data['alerts'] = alerts
+        
+        return jsonify(weather_data), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Lỗi lấy dữ liệu thời tiết: {str(e)}'}), 500
+
+@maps_bp.route('/directions', methods=['GET'])
+def get_directions():
+    """Get directions between two points (proxy for Google Directions API)"""
+    try:
+        import os
+        import requests
+        
+        origin = request.args.get('origin')  # "lat,lng" or address
+        destination = request.args.get('destination')  # "lat,lng" or address
+        mode = request.args.get('mode', 'driving')  # driving, walking, bicycling, transit
+        
+        if not origin or not destination:
+            return jsonify({'error': 'Thiếu điểm xuất phát hoặc điểm đích'}), 400
+        
+        api_key = os.getenv('GOOGLE_MAPS_API_KEY', '')
+        
+        if not api_key:
+            return jsonify({'error': 'Google Maps API Key chưa được cấu hình'}), 500
+        
+        # Call Google Directions API
+        url = f"https://maps.googleapis.com/maps/api/directions/json"
+        params = {
+            'origin': origin,
+            'destination': destination,
+            'mode': mode,
+            'key': api_key,
+            'language': 'vi',
+            'alternatives': 'true'
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        
+        if response.status_code != 200:
+            return jsonify({'error': 'Không thể lấy chỉ đường'}), 500
+        
+        data = response.json()
+        
+        if data.get('status') != 'OK':
+            return jsonify({'error': f"Lỗi từ Google Directions: {data.get('status')}"}), 400
+        
+        # Format response
+        routes = []
+        for route in data.get('routes', []):
+            leg = route['legs'][0]
+            routes.append({
+                'distance': leg['distance'],
+                'duration': leg['duration'],
+                'start_address': leg['start_address'],
+                'end_address': leg['end_address'],
+                'steps': [{
+                    'instruction': step['html_instructions'],
+                    'distance': step['distance'],
+                    'duration': step['duration'],
+                    'polyline': step['polyline']['points']
+                } for step in leg['steps']]
+            })
+        
+        return jsonify({
+            'routes': routes,
+            'status': 'OK'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Lỗi lấy chỉ đường: {str(e)}'}), 500

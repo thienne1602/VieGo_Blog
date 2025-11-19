@@ -1,0 +1,248 @@
+<mxfile host="app.diagrams.net" modified="2025-11-08T00:00:00.000Z" agent="drawio" version="22.1.0" etag="function-decomposition" type="device">
+  <diagram name="VieGo Blog - Function Decomposition" id="viego-function-dec">
+    <mxGraphModel dx="1185" dy="701" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Root Function -->
+        <mxCell id="root" value="VieGo Blog Platform" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="620" y="40" width="360" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- Level 1 Functions -->
+        <mxCell id="f_auth" value="1. Quản lý người dùng" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14" vertex="1" parent="1">
+          <mxGeometry x="200" y="200" width="260" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="f_content" value="2. Nội dung &amp; Blog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14" vertex="1" parent="1">
+          <mxGeometry x="520" y="200" width="260" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="f_tours" value="3. Tour &amp; Booking" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14" vertex="1" parent="1">
+          <mxGeometry x="840" y="200" width="260" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="f_social" value="4. Mạng xã hội &amp; Chat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14" vertex="1" parent="1">
+          <mxGeometry x="1160" y="200" width="260" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="f_admin" value="5. Quản trị &amp; Kiểm duyệt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=14" vertex="1" parent="1">
+          <mxGeometry x="40" y="200" width="260" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Level 1 Connector Lines -->
+        <mxCell id="root_auth" value="" style="endArrow=classic;html=1;strokeWidth=2" edge="1" parent="1" source="root" target="f_auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="root_content" value="" style="endArrow=classic;html=1;strokeWidth=2" edge="1" parent="1" source="root" target="f_content">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="root_tours" value="" style="endArrow=classic;html=1;strokeWidth=2" edge="1" parent="1" source="root" target="f_tours">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="root_social" value="" style="endArrow=classic;html=1;strokeWidth=2" edge="1" parent="1" source="root" target="f_social">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="root_admin" value="" style="endArrow=classic;html=1;strokeWidth=2" edge="1" parent="1" source="root" target="f_admin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Level 2: User Management Breakdown -->
+        <mxCell id="auth_register" value="1.1 Đăng ký &amp; Đăng nhập" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="200" y="320" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth_profile" value="1.2 Hồ sơ &amp; bảo mật" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="200" y="390" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth_roles" value="1.3 Role &amp; phân quyền" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="200" y="460" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth_points" value="1.4 Điểm thưởng &amp; badges" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="200" y="530" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth_conn1" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_auth" target="auth_register">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth_conn2" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_auth" target="auth_profile">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth_conn3" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_auth" target="auth_roles">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth_conn4" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_auth" target="auth_points">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Level 2: Content Breakdown -->
+        <mxCell id="content_create" value="2.1 Soạn &amp; xuất bản bài" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="520" y="320" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="content_media" value="2.2 Quản lý media &amp; gallery" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="520" y="390" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="content_interact" value="2.3 Tương tác (like/comment/share)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="520" y="460" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="content_discover" value="2.4 Khám phá &amp; tìm kiếm" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="520" y="530" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="content_conn1" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_content" target="content_create">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="content_conn2" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_content" target="content_media">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="content_conn3" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_content" target="content_interact">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="content_conn4" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_content" target="content_discover">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Level 2: Tours Breakdown -->
+        <mxCell id="tours_catalog" value="3.1 Danh mục &amp; tìm kiếm" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="840" y="320" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tours_manage" value="3.2 Seller quản lý tour" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="840" y="390" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tours_booking" value="3.3 Quy trình đặt tour" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="840" y="460" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tours_payment" value="3.4 Thanh toán &amp; nhắc nhở" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="840" y="530" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tours_conn1" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_tours" target="tours_catalog">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tours_conn2" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_tours" target="tours_manage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tours_conn3" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_tours" target="tours_booking">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tours_conn4" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_tours" target="tours_payment">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Level 2: Social Breakdown -->
+        <mxCell id="social_follow" value="4.1 Follow &amp; bạn bè" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="1160" y="320" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="social_stories" value="4.2 Stories 24h" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="1160" y="390" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="social_chat" value="4.3 Chat real-time" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="1160" y="460" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="social_notify" value="4.4 Notifications" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="1160" y="530" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="social_conn1" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_social" target="social_follow">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="social_conn2" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_social" target="social_stories">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="social_conn3" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_social" target="social_chat">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="social_conn4" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_social" target="social_notify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Level 2: Admin Breakdown -->
+        <mxCell id="admin_dashboard" value="5.1 Dashboard phân tích" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="40" y="320" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin_users" value="5.2 Quản lý người dùng" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="40" y="390" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin_moderation" value="5.3 Kiểm duyệt nội dung" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="40" y="460" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin_settings" value="5.4 Cấu hình hệ thống" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="40" y="530" width="260" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin_conn1" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_admin" target="admin_dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin_conn2" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_admin" target="admin_users">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin_conn3" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_admin" target="admin_moderation">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin_conn4" value="" style="endArrow=block;dashed=1;html=1" edge="1" parent="1" source="f_admin" target="admin_settings">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend" value="Ký hiệu" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="650" width="320" height="240" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend_text1" value="Khối công năng cấp 1" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=11;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="40" width="300" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend_text2" value="Khối công năng cấp 2" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=11;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="70" width="300" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend_text3" value="Mũi tên đặc: Phân rã trực tiếp" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=11;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="100" width="300" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend_text4" value="Mũi tên đứt nét: Thành phần chức năng" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=11;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="130" width="300" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend_text5" value="Màu sắc ứng với module chính" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=11;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="160" width="300" height="20" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

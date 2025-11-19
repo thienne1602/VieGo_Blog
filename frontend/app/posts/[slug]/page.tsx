@@ -22,6 +22,7 @@ import {
 import CommentSection from "@/components/blog/CommentSection";
 import ImageLightbox from "@/components/common/ImageLightbox";
 import { useAuth } from "@/lib/AuthContext";
+import { useSocket } from "@/lib/SocketContext";
 
 interface Post {
   id: number;
@@ -54,6 +55,7 @@ const PostDetailPage = () => {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { socket, isConnected } = useSocket();
   const slug = params.slug as string;
 
   const [post, setPost] = useState<Post | null>(null);
@@ -138,10 +140,57 @@ const PostDetailPage = () => {
     }
   }, [slug]);
 
+  // Listen for real-time updates via Socket.IO
+  useEffect(() => {
+    if (!socket || !isConnected || !post) return;
+
+    const handlePostLiked = (data: { post_id: number; post_slug: string; likes_count: number }) => {
+      if (post.id === data.post_id || post.slug === data.post_slug) {
+        console.log("[Post Detail] Post liked, updating count:", data.likes_count);
+        setPost((prev) => prev ? { ...prev, likes_count: data.likes_count } : null);
+      }
+    };
+
+    const handlePostUnliked = (data: { post_id: number; post_slug: string; likes_count: number }) => {
+      if (post.id === data.post_id || post.slug === data.post_slug) {
+        console.log("[Post Detail] Post unliked, updating count:", data.likes_count);
+        setPost((prev) => prev ? { ...prev, likes_count: data.likes_count } : null);
+      }
+    };
+
+    const handlePostCommented = (data: { post_id: number; post_slug: string; comments_count: number }) => {
+      if (post.id === data.post_id || post.slug === data.post_slug) {
+        console.log("[Post Detail] Post commented, updating count:", data.comments_count);
+        setPost((prev) => prev ? { ...prev, comments_count: data.comments_count } : null);
+      }
+    };
+
+    const handleNewComment = (data: { post_id: number; comments_count: number }) => {
+      if (post.id === data.post_id) {
+        console.log("[Post Detail] New comment received, updating count:", data.comments_count);
+        setPost((prev) => prev ? { ...prev, comments_count: data.comments_count } : null);
+        // Optionally refresh comments section
+        // You might want to add a refresh function to CommentSection
+      }
+    };
+
+    socket.on("post_liked", handlePostLiked);
+    socket.on("post_unliked", handlePostUnliked);
+    socket.on("post_commented", handlePostCommented);
+    socket.on("new_comment", handleNewComment);
+
+    return () => {
+      socket.off("post_liked", handlePostLiked);
+      socket.off("post_unliked", handlePostUnliked);
+      socket.off("post_commented", handlePostCommented);
+      socket.off("new_comment", handleNewComment);
+    };
+  }, [socket, isConnected, post]);
+
   const handleLike = async () => {
     const token = localStorage.getItem("access_token");
     if (!token) {
-      router.push("/login");
+      router.push("/welcome");
       return;
     }
 
@@ -172,7 +221,7 @@ const PostDetailPage = () => {
   const handleBookmark = async () => {
     const token = localStorage.getItem("access_token");
     if (!token) {
-      router.push("/login");
+      router.push("/welcome");
       return;
     }
 
@@ -294,9 +343,9 @@ const PostDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Sticky Header with Back Button */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <div className="sticky top-0 z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <button
@@ -329,7 +378,7 @@ const PostDetailPage = () => {
       {/* Hero Section with Featured Image */}
       {post.featured_image && (
         <div className="relative w-full h-[500px] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
+          <div className="absolute inset-0 bg-black/40 z-10" />
           <img
             src={post.featured_image}
             alt={post.title}
@@ -358,12 +407,12 @@ const PostDetailPage = () => {
           transition={{ delay: 0.2 }}
         >
           {/* Main Article Card */}
-          <article className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-8">
+          <article className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-8">
             {/* If no featured image, show title here */}
             {!post.featured_image && (
-              <div className="p-8 border-b border-gray-100">
+              <div className="p-8 border-b border-gray-100 dark:border-gray-700">
                 <div className="flex items-start justify-between">
-                  <h1 className="text-5xl font-bold text-gray-900 flex-1">
+                  <h1 className="text-5xl font-bold text-gray-900 dark:text-white flex-1">
                     {post.title}
                   </h1>
 
@@ -375,21 +424,21 @@ const PostDetailPage = () => {
                         className="p-2 hover:bg-gray-100 rounded-full transition"
                         title="Thêm tùy chọn"
                       >
-                        <MoreVertical className="w-5 h-5 text-gray-600" />
+                        <MoreVertical className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                       </button>
 
                       {showMenu && (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-10"
+                          className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-10"
                         >
                           <button
                             onClick={() => {
                               setShowMenu(false);
                               handleEdit();
                             }}
-                            className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-gray-700"
+                            className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center text-gray-700 dark:text-gray-300"
                           >
                             <Edit className="w-4 h-4 mr-2" />
                             Chỉnh sửa bài viết
@@ -399,7 +448,7 @@ const PostDetailPage = () => {
                               setShowMenu(false);
                               handleDelete();
                             }}
-                            className="w-full px-4 py-2 text-left hover:bg-red-50 flex items-center text-red-600"
+                            className="w-full px-4 py-2 text-left hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center text-red-600 dark:text-red-400"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Xóa bài viết
@@ -413,7 +462,7 @@ const PostDetailPage = () => {
             )}
 
             {/* Author Info Section */}
-            <div className="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+            <div className="px-8 py-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   {/* Author Avatar */}
@@ -424,7 +473,7 @@ const PostDetailPage = () => {
                       className="w-14 h-14 rounded-full ring-2 ring-blue-100"
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl ring-2 ring-blue-100">
+                    <div className="w-14 h-14 rounded-full bg-primary-500 dark:bg-primary-600 flex items-center justify-center text-white font-bold text-xl ring-2 ring-primary-100 dark:ring-primary-900/30">
                       {post.author.full_name?.[0] || "U"}
                     </div>
                   )}
@@ -493,8 +542,8 @@ const PostDetailPage = () => {
 
             {/* Excerpt Highlight */}
             {post.excerpt && (
-              <div className="mx-8 mt-6 mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
-                <p className="text-gray-700 text-lg italic leading-relaxed">
+              <div className="mx-8 mt-6 mb-6 bg-primary-50 dark:bg-primary-900/20 border-l-4 border-primary-500 dark:border-primary-400 p-6 rounded-r-lg">
+                <p className="text-gray-700 dark:text-gray-300 text-lg italic leading-relaxed">
                   {post.excerpt}
                 </p>
               </div>
@@ -502,7 +551,7 @@ const PostDetailPage = () => {
 
             {/* Location Info */}
             {post.location_name && (
-              <div className="mx-8 mb-6 p-5 bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border border-green-200">
+              <div className="mx-8 mb-6 p-5 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
                 <div className="flex items-start gap-3">
                   <MapPin className="w-6 h-6 text-green-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -548,6 +597,13 @@ const PostDetailPage = () => {
                         src={imageUrl}
                         alt={`Ảnh ${index + 1}`}
                         className="w-full h-64 object-cover rounded-lg hover:opacity-90 transition"
+                        onError={(e) => {
+                          // Fallback to placeholder if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          if (target.src && !target.src.includes('placeholder')) {
+                            target.src = `https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop`;
+                          }
+                        }}
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition rounded-lg" />
                       <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
@@ -566,7 +622,7 @@ const PostDetailPage = () => {
                   {post.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 hover:from-blue-200 hover:to-purple-200 transition cursor-pointer"
+                      className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-primary-900/40 transition cursor-pointer"
                     >
                       <TagIcon className="w-3.5 h-3.5 mr-1.5" />
                       {tag}
@@ -584,8 +640,8 @@ const PostDetailPage = () => {
                     onClick={handleLike}
                     className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
                       isLiked
-                        ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg shadow-red-200 hover:shadow-xl"
-                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                        ? "bg-red-500 dark:bg-red-600 text-white shadow-lg shadow-red-200 dark:shadow-red-900/50 hover:shadow-xl"
+                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
                     }`}
                   >
                     <Heart
@@ -601,8 +657,8 @@ const PostDetailPage = () => {
                     onClick={handleBookmark}
                     className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
                       isBookmarked
-                        ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200 hover:shadow-xl"
-                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                        ? "bg-primary-500 dark:bg-primary-600 text-white shadow-lg shadow-primary-200 dark:shadow-primary-900/50 hover:shadow-xl"
+                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
                     }`}
                   >
                     <Bookmark

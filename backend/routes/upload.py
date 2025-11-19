@@ -304,3 +304,68 @@ def upload_avatar():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'Lỗi upload avatar: {str(e)}'}), 500
+
+
+@upload_bp.route('/cover', methods=['POST'])
+@jwt_required()
+def upload_cover():
+    """Upload user cover image"""
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'error': 'Không tìm thấy người dùng'}), 404
+        
+        # Check if file is in request
+        if 'file' not in request.files:
+            return jsonify({'error': 'Không có file được upload'}), 400
+        
+        file = request.files['file']
+        
+        # Check if file is selected
+        if file.filename == '':
+            return jsonify({'error': 'Không có file được chọn'}), 400
+        
+        # Validate file type
+        if not allowed_file(file.filename, ALLOWED_IMAGE_EXTENSIONS):
+            return jsonify({
+                'error': f'Định dạng file không hợp lệ. Chỉ chấp nhận: {", ".join(ALLOWED_IMAGE_EXTENSIONS)}'
+            }), 400
+        
+        # Check file size (max 10MB for cover)
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)
+        
+        max_cover_size = 10 * 1024 * 1024  # 10MB
+        if file_size > max_cover_size:
+            return jsonify({'error': 'Ảnh bìa quá lớn. Kích thước tối đa: 10MB'}), 400
+        
+        # Generate unique filename
+        filename = secure_filename(file.filename)
+        unique_filename = generate_unique_filename(filename)
+        
+        # Create upload directory if not exists
+        upload_folder = current_app.config['UPLOAD_FOLDER']
+        covers_folder = os.path.join(upload_folder, 'covers')
+        os.makedirs(covers_folder, exist_ok=True)
+        
+        # Save file
+        file_path = os.path.join(covers_folder, unique_filename)
+        file.save(file_path)
+        
+        # Update user cover image URL
+        cover_url = f"/uploads/covers/{unique_filename}"
+        user.cover_image_url = cover_url
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Upload ảnh bìa thành công!',
+            'url': cover_url,
+            'filename': unique_filename
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi upload ảnh bìa: {str(e)}'}), 500

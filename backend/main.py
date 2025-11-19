@@ -3,9 +3,10 @@ import sys
 from flask import Flask, jsonify, request, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
-# from flask_socketio import SocketIO  # Disabled for now
+from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 from flask_babel import Babel
+from flask_compress import Compress
 from dotenv import load_dotenv
 import pymysql
 
@@ -56,26 +57,86 @@ app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_CONTENT_LENGTH', 16777216)
 import models
 db = models.init_db(app)
 jwt = JWTManager(app)
-# Disable SocketIO for now to avoid conflicts
-socketio = None
-print("ℹ️ SocketIO disabled - using standard Flask server")
 
-# Configure CORS with simple settings
+# Initialize email
+try:
+    from utils.email import init_email
+    init_email(app)
+    print("[OK] Email system initialized")
+except Exception as e:
+    print(f"[WARNING] Email system not available: {e}")
+# Initialize Socket.IO
+socketio = SocketIO(
+    app,
+    cors_allowed_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"],
+    async_mode='threading',
+    logger=True,
+    engineio_logger=False
+)
+print("[OK] Socket.IO initialized")
+
+# Initialize Socket.IO utilities for routes (must be after socketio initialization)
+from utils.socket_utils import init_socket_utils
+init_socket_utils(socketio)
+print("[OK] Socket.IO utilities initialized")
+
+# Configure CORS with comprehensive settings
 CORS(app, 
-     origins=["http://localhost:3000", "http://127.0.0.1:3000"],
-     allow_headers=["Content-Type", "Authorization"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"],
+     allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Cache-Control", "Pragma", "Expires"],
+     methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
      supports_credentials=True,
-     max_age=3600)
+     max_age=3600,
+     expose_headers=["Content-Type", "Authorization"],
+     vary_header=True)
 
 babel = Babel(app)
+
+# Initialize compression
+compress = Compress(app)
+compress.init_app(app)
+
+# Add performance headers middleware
+@app.after_request
+def add_performance_headers(response):
+    # Flask-CORS will handle CORS headers automatically, but we ensure origin is set correctly
+    # for cases where Flask-CORS might not have run (e.g., error responses)
+    origin = request.headers.get('Origin')
+    allowed_origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"]
+    
+    # Always ensure CORS headers are set correctly for allowed origins
+    if origin and origin in allowed_origins:
+        # Override if already set incorrectly, or set if not set
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        # Ensure Vary header is set for proper caching
+        if 'Vary' not in response.headers:
+            response.headers['Vary'] = 'Origin'
+        elif 'Origin' not in response.headers.get('Vary', ''):
+            response.headers['Vary'] = response.headers.get('Vary', '') + ', Origin'
+    
+    # Add cache headers for static resources
+    if request.path.startswith('/uploads/'):
+        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    elif request.path.startswith('/api/'):
+        # Cache API responses for GET requests (except auth endpoints)
+        if request.method == 'GET' and not request.path.startswith('/api/auth'):
+            response.headers['Cache-Control'] = 'public, max-age=300'  # 5 minutes
+        else:
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    
+    # Add performance hints
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    
+    return response
 
 # Import cache utilities
 try:
     from utils.cache import cache, cached_route
-    print("✅ Cache system initialized")
+    print("[OK] Cache system initialized")
 except ImportError:
-    print("⚠️  Cache system not available")
+    print("[WARNING] Cache system not available")
     cached_route = lambda ttl=300: lambda f: f
 
 # Language configuration
@@ -103,9 +164,9 @@ try:
     from models.post import Post
     from models.location import Location
     from models.comment import Comment
-    print("✅ Models imported successfully")
+    print("[OK] Models imported successfully")
 except ImportError as e:
-    print(f"⚠️  Some models not found: {e}")
+    print(f"[WARNING] Some models not found: {e}")
     # Create basic models if files don't exist
     pass
 
@@ -118,6 +179,10 @@ try:
     from routes.tours import tours_bp
     from routes.seller import seller_bp
     from routes.bookings import bookings_bp
+    from routes.booking_participants import booking_participants_bp
+    from routes.tour_assignments import tour_assignments_bp
+    from routes.tour_progress import tour_progress_bp
+    from routes.itinerary import itinerary_bp  # NEW: tour itinerary with check-ins
     from routes.maps import maps_bp
     from routes.nfts import nfts_bp
     from routes.comments import comments_bp
@@ -126,6 +191,10 @@ try:
     from routes.locations import locations_bp
     from routes.users import users_bp
     from routes.stories import stories_bp
+    from routes.notifications import notifications_bp
+    from routes.chat import chat_bp
+    from routes.moderator import moderator_bp
+    from routes.contact import contact_bp
     
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -135,6 +204,10 @@ try:
     app.register_blueprint(tours_bp)  # tours_bp already has /api/tours prefix
     app.register_blueprint(seller_bp)  # seller_bp has /api/seller prefix
     app.register_blueprint(bookings_bp)  # bookings_bp already has /api/bookings prefix
+    app.register_blueprint(booking_participants_bp)  # NEW: booking participants routes
+    app.register_blueprint(tour_assignments_bp)  # NEW: tour assignments routes
+    app.register_blueprint(tour_progress_bp)  # NEW: tour progress routes
+    app.register_blueprint(itinerary_bp)  # NEW: itinerary with check-ins
     app.register_blueprint(maps_bp)   # maps_bp already has /api/maps prefix
     app.register_blueprint(nfts_bp)   # nfts_bp already has /api/nfts prefix
     app.register_blueprint(comments_bp)  # comments_bp already has /api/comments prefix
@@ -143,14 +216,38 @@ try:
     app.register_blueprint(locations_bp)  # NEW: locations routes
     app.register_blueprint(users_bp)      # NEW: users routes
     app.register_blueprint(stories_bp)    # NEW: stories routes
-    print("✅ Routes registered successfully (auth, posts, test, admin, tours, maps, nfts, comments, social, upload, locations, users, stories)")
+    app.register_blueprint(notifications_bp)  # NEW: notifications routes
+    app.register_blueprint(chat_bp)       # NEW: chat routes
+    app.register_blueprint(moderator_bp)  # NEW: moderator routes
+    app.register_blueprint(contact_bp)    # NEW: contact routes
+    print("[OK] Routes registered successfully (including tour features: participants, assignments, progress, itinerary)")
 except ImportError as e:
-    print(f"⚠️  Some routes not found: {e}")
+    print(f"[WARNING] Some routes not found: {e}")
 
-# Socket.IO event handlers (only if socketio is available)
-if socketio:
-    from socket_handlers import register_socket_handlers
-    register_socket_handlers(socketio)
+# Socket.IO event handlers will be registered before running
+
+# Handle OPTIONS requests for CORS preflight
+# Note: Flask-CORS already handles this, but we keep this for explicit control
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        # Get origin from request
+        origin = request.headers.get('Origin')
+        # List of allowed origins
+        allowed_origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"]
+        
+        # Check if origin is allowed
+        if origin in allowed_origins:
+            response = jsonify({'status': 'ok'})
+            response.headers.add("Access-Control-Allow-Origin", origin)
+            response.headers.add('Access-Control-Allow-Headers', "Content-Type,Authorization,X-Requested-With,Accept,Cache-Control,Pragma,Expires")
+            response.headers.add('Access-Control-Allow-Methods', "GET,POST,PUT,DELETE,PATCH,OPTIONS")
+            response.headers.add('Access-Control-Allow-Credentials', "true")
+            response.headers.add('Access-Control-Max-Age', "3600")
+            return response, 200
+        else:
+            # Origin not allowed
+            return jsonify({'error': 'Origin not allowed'}), 403
 
 # Health check endpoint
 @app.route('/api/health')
@@ -186,18 +283,38 @@ def missing_token_callback(error):
 # Serve uploaded files
 @app.route('/uploads/<path:filename>')
 def serve_uploads(filename):
-    """Serve uploaded files"""
+    """Serve uploaded files from subdirectories (images/, avatars/, etc.)"""
+    import os
+    from flask import abort
+    
     upload_folder = app.config['UPLOAD_FOLDER']
-    return send_from_directory(upload_folder, filename)
+    # Construct full file path - filename already contains subdirectory (e.g., images/filename.jpg)
+    file_path = os.path.join(upload_folder, filename)
+    
+    # Security: ensure file is within upload folder (prevent directory traversal)
+    upload_folder_abs = os.path.abspath(upload_folder)
+    file_path_abs = os.path.abspath(file_path)
+    if not file_path_abs.startswith(upload_folder_abs):
+        abort(403)
+    
+    # Check if file exists
+    if not os.path.exists(file_path):
+        abort(404)
+    
+    # Determine directory and filename for send_from_directory
+    directory = os.path.dirname(file_path)
+    filename_only = os.path.basename(file_path)
+    
+    return send_from_directory(directory, filename_only)
 
 # Create tables
 def create_tables():
     """Create database tables if they don't exist"""
     try:
         db.create_all()
-        print("✅ Database tables created successfully!")
+        print("[OK] Database tables created successfully!")
     except Exception as e:
-        print(f"❌ Error creating tables: {str(e)}")
+        print(f"[ERROR] Error creating tables: {str(e)}")
 
 if __name__ == '__main__':
     # Create upload directory if it doesn't exist
@@ -208,20 +325,18 @@ if __name__ == '__main__':
         create_tables()
     
     # Run the application
-    print("🚀 Starting VieGo Blog API...")
-    print(f"📊 Environment: {os.getenv('FLASK_ENV', 'development')}")
-    print(f"🗄️  Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
+    print("[START] Starting VieGo Blog API...")
+    print(f"[INFO] Environment: {os.getenv('FLASK_ENV', 'development')}")
+    print(f"[DB] Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
     
-    if socketio:
-        socketio.run(
-            app,
-            debug=os.getenv('FLASK_DEBUG', 'True') == 'True',
-            host='0.0.0.0',
-            port=5000
-        )
-    else:
-        app.run(
-            debug=os.getenv('FLASK_DEBUG', 'True') == 'True',
-            host='0.0.0.0',
-            port=5000
-        )
+    # Socket.IO handlers (socket_utils already initialized above)
+    from socket_handlers import register_socket_handlers
+    register_socket_handlers(socketio)
+    
+    # Run the application with Socket.IO
+    socketio.run(
+        app,
+        debug=os.getenv('FLASK_DEBUG', 'True') == 'True',
+        host='0.0.0.0',
+        port=5000
+    )

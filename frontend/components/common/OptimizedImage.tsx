@@ -16,6 +16,13 @@ interface OptimizedImageProps {
   quality?: number;
 }
 
+// Helper function to get fallback avatar URL
+const getFallbackAvatar = (name: string) => {
+  // Use a reliable avatar service with proper encoding
+  const encodedName = encodeURIComponent(name || "User");
+  return `https://ui-avatars.com/api/?name=${encodedName}&size=200&background=0ea5e9&color=fff&bold=true`;
+};
+
 export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
   alt,
@@ -27,20 +34,34 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [fallbackSrc, setFallbackSrc] = useState<string | null>(null);
 
   const handleLoad = () => {
     setIsLoading(false);
   };
 
   const handleError = () => {
+    // Try fallback for avatar URLs
+    if (src?.includes("ui-avatars.com") && alt) {
+      const fallback = getFallbackAvatar(alt);
+      if (fallback !== src && !fallbackSrc) {
+        setFallbackSrc(fallback);
+        return; // Retry with fallback
+      }
+    }
+    // For other images or if fallback failed
     setError(true);
     setIsLoading(false);
   };
 
-  if (error) {
+  // Use fallback if available
+  const imageSrc = fallbackSrc || src;
+
+  if (error && !fallbackSrc) {
     return (
       <div
         className={`bg-gray-200 flex items-center justify-center ${className}`}
+        style={{ width, height }}
       >
         <span className="text-gray-500 text-sm">Image not available</span>
       </div>
@@ -53,7 +74,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         <div className="absolute inset-0 bg-gray-200 animate-pulse" />
       )}
       <Image
-        src={src}
+        src={imageSrc}
         alt={alt}
         width={width}
         height={height}
@@ -66,6 +87,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
           isLoading ? "opacity-0" : "opacity-100"
         }`}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        unoptimized={imageSrc?.startsWith("http://localhost:5000")}
       />
     </div>
   );

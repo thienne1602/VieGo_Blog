@@ -12,16 +12,22 @@ def get_users():
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         search = request.args.get('search', '')
+        role = request.args.get('role', '')
         
-        # Query users
-        users_query = User.query
+        # Query users - exclude admin users from search
+        users_query = User.query.filter(User.role != 'admin')
+        
+        # Role filter
+        if role:
+            users_query = users_query.filter(User.role == role)
         
         # Search filter
         if search:
             users_query = users_query.filter(
                 or_(
                     User.username.like(f'%{search}%'),
-                    User.full_name.like(f'%{search}%')
+                    User.full_name.like(f'%{search}%'),
+                    User.email.like(f'%{search}%')
                 )
             )
         

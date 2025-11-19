@@ -46,7 +46,7 @@ export default function StoriesSection() {
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700">
       <div className="flex space-x-3 overflow-x-auto pb-2">
         {stories.map((story) => (
           <div
@@ -54,11 +54,11 @@ export default function StoriesSection() {
             className="relative flex-shrink-0 w-28 h-44 rounded-xl overflow-hidden cursor-pointer group"
           >
             {story.isAddStory ? (
-              <div className="w-full h-full bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:bg-gray-200 transition-colors">
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mb-2">
+              <div className="w-full h-full bg-gray-100 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                <div className="w-10 h-10 bg-primary-600 dark:bg-primary-500 rounded-full flex items-center justify-center mb-2">
                   <Plus className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xs font-medium text-gray-700 text-center px-2">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center px-2">
                   Tạo tin
                 </span>
               </div>
@@ -69,7 +69,7 @@ export default function StoriesSection() {
                   alt={story.user}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                <div className="absolute inset-0 bg-black/40 dark:bg-black/50"></div>
                 <div className="absolute top-3 left-3">
                   <img
                     src={story.avatar}

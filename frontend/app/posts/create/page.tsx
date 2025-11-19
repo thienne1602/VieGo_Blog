@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import apiClient from "@/lib/api";
 import {
   ArrowLeft,
   Save,
@@ -187,7 +188,21 @@ const CreatePostPage = () => {
       }
 
       const data = await response.json();
-      router.push(`/posts/${data.post.slug}`);
+      
+      // If status is published, clear cache and redirect to home to trigger refetch
+      if (status === 'published') {
+        // Clear posts cache to force refetch
+        apiClient.clearCacheFor('/posts');
+        // Store a flag to trigger refetch in NewsFeed
+        localStorage.setItem('posts_updated', Date.now().toString());
+        // Show success message
+        alert("Bài viết đã được đăng thành công!");
+        // Redirect to home to see the new post (don't redirect to post detail immediately)
+        router.push('/');
+      } else {
+        // For drafts, just go to post detail
+        router.push(`/posts/${data.post.slug}`);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -196,9 +211,9 @@ const CreatePostPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <button
@@ -221,7 +236,7 @@ const CreatePostPage = () => {
               <button
                 onClick={() => handleSubmit("published")}
                 disabled={isSubmitting}
-                className="flex items-center px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition disabled:opacity-50"
+                className="flex items-center px-6 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition disabled:opacity-50"
               >
                 <Eye className="w-4 h-4 mr-2" />
                 Xuất bản
@@ -248,7 +263,7 @@ const CreatePostPage = () => {
           className="space-y-6"
         >
           {/* Content Type Selection */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">
               Loại nội dung
             </label>
@@ -280,7 +295,7 @@ const CreatePostPage = () => {
           </div>
 
           {/* Title */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <input
               type="text"
               name="title"
@@ -292,13 +307,13 @@ const CreatePostPage = () => {
           </div>
 
           {/* Image Gallery - Multiple Images */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">
               Hình ảnh bài viết
             </label>
 
             {/* Upload Button */}
-            <label className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600 transition mb-4">
+            <label className="inline-flex items-center px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg cursor-pointer hover:bg-primary-700 dark:hover:bg-primary-600 transition mb-4">
               <ImageIcon className="w-5 h-5 mr-2" />
               <span>Thêm ảnh</span>
               <input
@@ -347,7 +362,7 @@ const CreatePostPage = () => {
           </div>
 
           {/* Content Editor (Simple Textarea for now) */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">
               Nội dung
             </label>
@@ -362,7 +377,7 @@ const CreatePostPage = () => {
           </div>
 
           {/* Excerpt */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">
               Tóm tắt ngắn
             </label>

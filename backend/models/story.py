@@ -12,6 +12,7 @@ class Story(db.Model):
     view_count = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     expires_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(hours=24))
+    is_archived = db.Column(db.Boolean, default=False)
     
     # Relationship
     user = db.relationship('User', backref=db.backref('stories', lazy='dynamic'))
@@ -22,6 +23,7 @@ class Story(db.Model):
         self.media_url = media_url
         self.media_type = media_type
         self.expires_at = datetime.utcnow() + timedelta(hours=24)
+        self.is_archived = False
     
     def to_dict(self):
         """Convert story to dictionary"""
@@ -34,12 +36,17 @@ class Story(db.Model):
             'view_count': self.view_count,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'expires_at': self.expires_at.isoformat() if self.expires_at else None,
-            'is_expired': self.expires_at < datetime.utcnow() if self.expires_at else True
+            'is_expired': self.expires_at < datetime.utcnow() if self.expires_at else True,
+            'is_archived': self.is_archived
         }
     
     def is_active(self):
-        """Check if story is still active (not expired)"""
-        return self.expires_at > datetime.utcnow()
+        """Check if story is still active (not expired and not archived)"""
+        return self.expires_at > datetime.utcnow() and not self.is_archived
+    
+    def archive(self):
+        """Archive the story"""
+        self.is_archived = True
     
     def __repr__(self):
         return f'<Story {self.id} by User {self.user_id}>'

@@ -7,8 +7,8 @@ const RegisterPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to login page since we handle both login and register there
-    router.push("/login");
+    // Redirect to welcome page since we handle both login and register there
+    router.push("/welcome");
   }, [router]);
 
   return (

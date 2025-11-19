@@ -2,25 +2,41 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { 
+  Search, Filter, SlidersHorizontal, Sparkles, 
+  TrendingUp, Award, Star, Clock,
+  Flame, Crown,
+  Target, Users
+} from "lucide-react";
 import TourShowcase from "../../components/tours/TourShowcase";
+import FeaturedTours from "../../components/tours/FeaturedTours";
+import PromotionalBanner from "../../components/tours/PromotionalBanner";
+import ToursByCategory from "../../components/tours/ToursByCategory";
+import PopularDestinations from "../../components/tours/PopularDestinations";
+import { useTheme } from "@/lib/ThemeContext";
 
-const ToursPage = () => {
+export default function ToursPage() {
   const [loading, setLoading] = useState(true);
+  const [showMobileFilter, setShowMobileFilter] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
-    // Simulate loading
     setTimeout(() => {
       setLoading(false);
-    }, 1000);
+    }, 800);
   }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 pt-20">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-20 transition-colors">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-primary mx-auto mb-4"></div>
-            <p className="text-neutral-600">Đang tải tours...</p>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 border-t-teal-600 dark:border-t-teal-400 rounded-full mx-auto mb-4"
+            ></motion.div>
+            <p className="text-gray-600 dark:text-gray-300">Đang tải tours...</p>
           </div>
         </div>
       </div>
@@ -28,97 +44,227 @@ const ToursPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 pt-20">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1 className="text-4xl md:text-5xl font-bold text-neutral-800 mb-4">
-            Tours Du Lịch Việt Nam
-          </h1>
-          <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-            Khám phá Việt Nam cùng những tour du lịch chất lượng cao và trải
-            nghiệm độc đáo
-          </p>
-        </motion.div>
-
-        {/* Tour Showcase Component */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <TourShowcase />
-        </motion.div>
-
-        {/* Additional Information */}
-        <motion.div
-          className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-4xl mb-4">🎯</div>
-            <h3 className="text-xl font-semibold text-neutral-800 mb-2">
-              Tours Chất Lượng
-            </h3>
-            <p className="text-neutral-600">
-              Được thiết kế bởi các chuyên gia du lịch với kinh nghiệm nhiều năm
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-4xl mb-4">👥</div>
-            <h3 className="text-xl font-semibold text-neutral-800 mb-2">
-              Hướng Dẫn Viên
-            </h3>
-            <p className="text-neutral-600">
-              Đội ngũ hướng dẫn viên địa phương nhiệt tình và am hiểu văn hóa
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-4xl mb-4">💎</div>
-            <h3 className="text-xl font-semibold text-neutral-800 mb-2">
-              Trải Nghiệm Độc Đáo
-            </h3>
-            <p className="text-neutral-600">
-              Khám phá những góc nhìn mới về văn hóa và thiên nhiên Việt Nam
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Call to Action */}
-        <motion.div
-          className="mt-16 text-center bg-gradient-to-r from-primary-50 to-accent-50 rounded-xl p-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          <h2 className="text-3xl font-bold text-neutral-800 mb-4">
-            Sẵn sàng khởi hành?
-          </h2>
-          <p className="text-neutral-600 mb-6 max-w-2xl mx-auto">
-            Hãy liên hệ với chúng tôi để được tư vấn và đặt tour phù hợp nhất
-            cho chuyến đi của bạn.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <button className="btn-primary text-lg px-8 py-3">
-              Liên Hệ Tư Vấn
-            </button>
-            <button className="px-8 py-3 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-300">
-              Xem Thêm Tours
-            </button>
-          </div>
-        </motion.div>
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image with Blur Effect */}
+      <div className="fixed inset-0 z-0">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: 'url(/images/backround_tour.jpg)',
+          }}
+        />
+        {/* Blur Overlay */}
+        <div className="absolute inset-0 backdrop-blur-sm bg-black/20 dark:bg-black/40"></div>
+        {/* Dark Overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40"></div>
       </div>
+
+
+      {/* Promotional Banner Section */}
+      <div className="container mx-auto px-4 pt-8 relative z-10 mb-12">
+        <PromotionalBanner />
+      </div>
+
+      {/* Featured Tours Section with Blur Effect */}
+      <section className="container mx-auto px-4 mb-16 relative z-10">
+        <div className="backdrop-blur-md bg-white/85 dark:bg-gray-900/85 rounded-3xl p-6 md:p-8 border-2 border-white/40 dark:border-gray-700/50 shadow-2xl">
+          <FeaturedTours />
+        </div>
+      </section>
+
+      {/* Tours by Category with Blur Effect */}
+      <section className="container mx-auto px-4 mb-16 relative z-10">
+        <div className="backdrop-blur-md bg-white/85 dark:bg-gray-900/85 rounded-3xl p-6 md:p-8 border-2 border-white/40 dark:border-gray-700/50 shadow-2xl">
+          <ToursByCategory />
+        </div>
+      </section>
+
+      {/* Popular Destinations with Blur Effect */}
+      <section className="container mx-auto px-4 mb-16 relative z-10">
+        <div className="backdrop-blur-md bg-white/85 dark:bg-gray-900/85 rounded-3xl p-6 md:p-8 border-2 border-white/40 dark:border-gray-700/50 shadow-2xl">
+          <PopularDestinations />
+        </div>
+      </section>
+
+      {/* All Tours Section with Blur Effect */}
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        <div className="backdrop-blur-md bg-white/85 dark:bg-gray-900/85 rounded-3xl p-6 md:p-8 border-2 border-white/40 dark:border-gray-700/50 shadow-2xl">
+          {/* Mobile Filter Toggle */}
+          <div className="md:hidden mb-6">
+            <motion.button
+              onClick={() => setShowMobileFilter(!showMobileFilter)}
+              className="w-full flex items-center justify-center gap-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-white/30 dark:border-gray-700/50 px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <SlidersHorizontal className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <span className="font-semibold text-gray-700 dark:text-gray-200">Lọc Tours</span>
+            </motion.button>
+          </div>
+
+        {/* Mobile Filter Overlay */}
+        {showMobileFilter && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowMobileFilter(false)}
+          >
+            <motion.div
+              className="absolute right-0 top-0 h-full w-80 bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto border-l border-gray-200 dark:border-gray-700"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Filter content will be handled by TourShowcase component */}
+            </motion.div>
+          </motion.div>
+        )}
+
+          {/* Section Header */}
+          <motion.div
+            className="mb-8 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="inline-flex items-center gap-2 bg-primary-600/90 dark:bg-primary-700/90 backdrop-blur-md px-6 py-3 rounded-full border-2 border-primary-500/50 dark:border-primary-400/50 text-white shadow-lg mb-4">
+              <Crown className="w-6 h-6" />
+              <span className="font-bold">Tất Cả Tours</span>
+            </div>
+            <div className="relative inline-block">
+              <h2 className="relative z-10 text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 drop-shadow-lg">
+                <span className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md">
+                  Khám Phá Tất Cả Điểm Đến
+                </span>
+              </h2>
+            </div>
+            <div className="relative inline-block">
+              <p className="relative z-10 text-gray-700 dark:text-gray-200 max-w-2xl mx-auto drop-shadow-md font-medium">
+                <span className="bg-white/85 dark:bg-gray-900/85 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md">
+                  Tìm kiếm và lọc tours theo sở thích của bạn
+                </span>
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Tour Showcase Component */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <TourShowcase />
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Final CTA Section */}
+      <motion.section
+        className="container mx-auto px-4 my-20 relative z-10"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="relative bg-primary-600/80 dark:bg-primary-900/80 backdrop-blur-lg border-2 border-white/30 dark:border-gray-700/50 rounded-3xl p-12 md:p-16 text-center text-white shadow-2xl overflow-hidden">
+          {/* Animated Background */}
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+          <motion.div
+            className="absolute inset-0 opacity-20"
+            animate={{
+              backgroundPosition: ["0% 0%", "100% 100%"],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+            style={{
+              backgroundImage: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3), transparent 50%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.2), transparent 50%)`,
+              backgroundSize: "200% 200%",
+            }}
+          />
+          
+          <div className="relative z-10">
+            <motion.div
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="inline-block mb-6"
+            >
+              <Sparkles className="w-16 h-16" />
+            </motion.div>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6">
+              Chưa Tìm Thấy Tour Phù Hợp?
+            </h2>
+            <p className="text-xl md:text-2xl text-white/90 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Liên hệ với chúng tôi để được tư vấn miễn phí và tạo tour riêng theo nhu cầu của bạn
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <motion.button
+                className="px-8 py-4 bg-white/20 backdrop-blur-md border-2 border-white/30 text-white rounded-xl font-bold text-lg hover:bg-white/30 transition-all duration-300 shadow-lg"
+                whileHover={{ scale: 1.05, y: -3 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Liên Hệ Tư Vấn
+              </motion.button>
+              <motion.button
+                className="px-8 py-4 bg-white text-primary-600 dark:text-primary-700 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg"
+                whileHover={{ scale: 1.05, y: -3 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Tạo Tour Tùy Chỉnh
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Features Grid with Blur Effect */}
+      <motion.section
+        className="container mx-auto px-4 mb-16 relative z-10"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            { icon: <Target className="w-8 h-8" />, title: "Tours Chất Lượng", desc: "Được thiết kế bởi các chuyên gia du lịch với kinh nghiệm nhiều năm trong nghề" },
+            { icon: <Users className="w-8 h-8" />, title: "Hướng Dẫn Viên Chuyên Nghiệp", desc: "Đội ngũ hướng dẫn viên địa phương nhiệt tình và am hiểu sâu về văn hóa" },
+            { icon: <Award className="w-8 h-8" />, title: "Trải Nghiệm Độc Đáo", desc: "Khám phá những góc nhìn mới về văn hóa và thiên nhiên Việt Nam" },
+          ].map((feature, index) => (
+            <motion.div
+              key={index}
+              className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-3xl shadow-xl p-8 text-center border-2 border-white/30 dark:border-gray-700/50 hover:shadow-2xl transition-all duration-300 group"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              whileHover={{ y: -10, scale: 1.02 }}
+            >
+              <motion.div
+                className="text-primary-600 dark:text-primary-400 mb-6 inline-block flex justify-center"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 3, repeat: Infinity, delay: index * 0.5 }}
+              >
+                {feature.icon}
+              </motion.div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                {feature.title}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                {feature.desc}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.section>
     </div>
   );
-};
-
-export default ToursPage;
+}

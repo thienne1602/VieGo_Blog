@@ -192,6 +192,21 @@ def create_post():
         if not user:
             return jsonify({'error': 'Không tìm thấy người dùng'}), 404
         
+        # Check if user can post
+        if not user.can_post():
+            if user.is_account_banned():
+                return jsonify({
+                    'error': 'Tài khoản của bạn đã bị khóa',
+                    'ban_type': 'account',
+                    'banned_until': user.account_banned_until.isoformat() if user.account_banned_until else None
+                }), 403
+            elif user.is_post_banned():
+                return jsonify({
+                    'error': 'Bạn đã bị cấm đăng bài',
+                    'ban_type': 'post',
+                    'banned_until': user.post_banned_until.isoformat() if user.post_banned_until else None
+                }), 403
+        
         data = request.get_json()
         
         # Validate required fields
@@ -200,6 +215,66 @@ def create_post():
         
         if not all([title, content]):
             return jsonify({'error': 'Thiếu tiêu đề hoặc nội dung'}), 400
+        
+        # Check for banned keywords
+        from models.banned_keyword import BannedKeyword
+        text_to_check = f"{title} {content} {data.get('excerpt', '')}"
+        banned_keywords = BannedKeyword.query.filter_by(is_active=True).all()
+        found_keywords = []
+        text_lower = text_to_check.lower()
+        
+        for keyword_obj in banned_keywords:
+            keyword = keyword_obj.keyword.lower()
+            if keyword in text_lower:
+                found_keywords.append({
+                    'keyword': keyword_obj.keyword,
+                    'severity': keyword_obj.severity,
+                    'description': keyword_obj.description
+                })
+        
+        if found_keywords:
+            # Increment violation count
+            if user.violation_count is None:
+                user.violation_count = 0
+            user.violation_count += 1
+            db.session.commit()
+            
+            # Send warning notification to user
+            from routes.notifications import create_notification
+            severity_levels = {'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
+            max_severity = max([severity_levels.get(kw['severity'], 2) for kw in found_keywords])
+            
+            warning_message = f'Bài viết của bạn chứa từ khóa cấm và không thể đăng. '
+            warning_message += f'Từ khóa vi phạm: {", ".join([kw["keyword"] for kw in found_keywords])}'
+            warning_message += f'\n\nSố lần vi phạm: {user.violation_count}'
+            if user.violation_count >= 3:
+                warning_message += '\n⚠️ Bạn đã vi phạm quá nhiều lần. Tài khoản có thể bị khóa.'
+            
+            # Store banned keywords in metadata
+            metadata = {
+                'banned_keywords': found_keywords,
+                'content_type': 'post',
+                'severity': max_severity,
+                'violation_count': user.violation_count
+            }
+            
+            create_notification(
+                user_id=user_id,
+                type='violation_warning',
+                message=warning_message,
+                title='⚠️ Cảnh báo: Bài viết chứa từ khóa cấm',
+                related_type='post',
+                action_url=None,
+                metadata=metadata,
+                emit_realtime=True
+            )
+            
+            return jsonify({
+                'error': 'Bài viết chứa từ khóa cấm và không thể đăng',
+                'banned_keywords': found_keywords,
+                'message': warning_message,
+                'violation_count': user.violation_count
+            }), 400
         
         # Create new post
         post = Post(title=title, content=content, author_id=user_id)
@@ -244,6 +319,19 @@ def create_post():
         # Award points for creating content
         user.add_points(100)
         db.session.commit()
+        
+        # Send success notification
+        from routes.notifications import create_notification
+        create_notification(
+            user_id=user_id,
+            type='post_created',
+            message=f'Bài viết "{title[:50]}..." của bạn đã được đăng thành công!',
+            title='✅ Đăng bài thành công',
+            related_type='post',
+            related_id=post.id,
+            action_url=f'/posts/{post.slug}',
+            emit_realtime=True
+        )
         
         return jsonify({
             'message': 'Tạo bài viết thành công!',

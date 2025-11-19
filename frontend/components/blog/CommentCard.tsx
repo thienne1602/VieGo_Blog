@@ -68,30 +68,30 @@ const CommentCard: React.FC<CommentCardProps> = ({
             className="w-10 h-10 rounded-full object-cover flex-shrink-0"
           />
         ) : (
-          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-primary-500 dark:bg-primary-600 flex items-center justify-center text-white font-bold flex-shrink-0">
             <User className="w-5 h-5" />
           </div>
         )}
 
         {/* Comment Content */}
         <div className="flex-1">
-          <div className="bg-gray-50 rounded-lg px-4 py-3">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg px-4 py-3">
             <div className="flex items-center justify-between mb-1">
-              <h4 className="font-semibold text-gray-900">
+              <h4 className="font-semibold text-gray-900 dark:text-white">
                 {comment.author.full_name || comment.author.username}
               </h4>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 {new Date(comment.created_at).toLocaleDateString("vi-VN")}
               </span>
             </div>
-            <p className="text-gray-700 text-sm">{comment.content}</p>
+            <p className="text-gray-700 dark:text-gray-300 text-sm">{comment.content}</p>
           </div>
 
           {/* Actions */}
           <div className="flex items-center space-x-4 mt-2 text-sm">
             <button
               onClick={() => onLikeComment(comment.id)}
-              className="flex items-center text-gray-500 hover:text-red-500 transition"
+              className="flex items-center text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition"
             >
               <Heart className="w-4 h-4 mr-1" />
               <span>{comment.likes_count > 0 && comment.likes_count}</span>
@@ -100,7 +100,7 @@ const CommentCard: React.FC<CommentCardProps> = ({
             {!isReply && comment.level < 2 && (
               <button
                 onClick={() => onSetReplyTo(comment.id)}
-                className="flex items-center text-gray-500 hover:text-blue-500 transition"
+                className="flex items-center text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition"
               >
                 <CornerDownRight className="w-4 h-4 mr-1" />
                 Trả lời
@@ -110,7 +110,7 @@ const CommentCard: React.FC<CommentCardProps> = ({
             {comment.replies_count > 0 && (
               <button
                 onClick={toggleReplies}
-                className="text-blue-600 hover:text-blue-700 font-medium"
+                className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-500 font-medium"
               >
                 {showReplies ? "Ẩn" : "Xem"} {comment.replies_count} phản hồi
               </button>
@@ -131,7 +131,7 @@ const CommentCard: React.FC<CommentCardProps> = ({
                   value={replyContent}
                   onChange={(e) => onSetReplyContent(e.target.value)}
                   placeholder="Viết phản hồi..."
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent"
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
                       onPostReply(comment.id);
@@ -140,7 +140,7 @@ const CommentCard: React.FC<CommentCardProps> = ({
                 />
                 <button
                   onClick={() => onPostReply(comment.id)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                  className="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -149,7 +149,7 @@ const CommentCard: React.FC<CommentCardProps> = ({
                     onSetReplyTo(null);
                     onSetReplyContent("");
                   }}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
                 >
                   Hủy
                 </button>

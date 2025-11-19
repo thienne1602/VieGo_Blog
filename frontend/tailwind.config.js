@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,33 +10,49 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#008080", // Teal
-          50: "#f0fdfd",
-          100: "#ccfbf9",
-          500: "#008080",
-          600: "#006666",
-          700: "#004d4d",
+          DEFAULT: "#5b9a8b", // Soft Teal
+          50: "#f0f7f5",
+          100: "#d9ebe6",
+          200: "#b8d9cf",
+          300: "#91c2b3",
+          400: "#7fb8aa",
+          500: "#5b9a8b",
+          600: "#4a8275",
+          700: "#3d6a60",
+          800: "#345650",
+          900: "#2d4943",
         },
         accent: {
-          DEFAULT: "#FF7F50", // Coral
-          50: "#fff4f2",
-          100: "#ffe6e1",
-          500: "#FF7F50",
-          600: "#e55a2b",
-          700: "#cc4a1c",
+          DEFAULT: "#d4a5a0", // Soft Coral
+          50: "#faf6f5",
+          100: "#f2e8e6",
+          200: "#e8c4c0",
+          300: "#d4a5a0",
+          400: "#c18982",
+          500: "#b3736b",
+          600: "#a35f57",
+          700: "#8b4f49",
+          800: "#744540",
+          900: "#5f3a35",
         },
         neutral: {
-          DEFAULT: "#F5F5F5",
-          50: "#ffffff",
-          100: "#F5F5F5",
-          200: "#e5e5e5",
-          800: "#404040",
-          900: "#262626",
+          DEFAULT: "#f8f9fa",
+          50: "#fcfcfd",
+          100: "#f8f9fa",
+          200: "#f1f3f5",
+          300: "#e9ecef",
+          400: "#dee2e6",
+          500: "#adb5bd",
+          600: "#868e96",
+          700: "#495057",
+          800: "#343a40",
+          900: "#212529",
         },
       },
       fontFamily: {
-        poppins: ["Poppins", "sans-serif"],
-        quicksand: ["Quicksand", "sans-serif"],
+        poppins: ["Poppins", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "sans-serif"],
+        quicksand: ["Quicksand", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "sans-serif"],
+        sans: ["Poppins", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "sans-serif"],
       },
       fontSize: {
         body: ["18px", "1.6"],

@@ -1,0 +1,335 @@
+<mxfile host="65bd71144e">
+    <diagram id="VieGoClassDiagram" name="VieGo Class Diagram">
+        <mxGraphModel dx="3326" dy="3264" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="2200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="User" value="&lt;b&gt;User&lt;/b&gt;&lt;br/&gt;&lt;hr/&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br/&gt;id: Integer (PK)&lt;br/&gt;username: String (unique)&lt;br/&gt;email: String (unique)&lt;br/&gt;password_hash: String&lt;br/&gt;role: Enum(user, moderator, admin, seller, editor)&lt;br/&gt;is_active, is_verified, email_verified: Boolean&lt;br/&gt;points, level: Integer&lt;br/&gt;bookmarks, liked_posts, followers: JSON Text&lt;br/&gt;seller_email, company_*: String&lt;br/&gt;created_at, updated_at: DateTime&lt;br/&gt;&lt;hr/&gt;&lt;b&gt;Relationships&lt;/b&gt;&lt;br/&gt;posts: 1..* Post&lt;br/&gt;comments: 1..* Comment&lt;br/&gt;tours: 0..* Tour (seller)&lt;br/&gt;bookings: 0..* Booking&lt;br/&gt;stories: 0..* Story&lt;br/&gt;notifications: 0..* Notification&lt;br/&gt;sent_messages/received_messages: 0..* Chat&lt;br/&gt;group_memberships: 0..* GroupMember&lt;br/&gt;friend_requests: 0..* FriendRequest&lt;br/&gt;nfts: 0..* NFT&lt;br/&gt;preferences: 0..1 UserPreferences" style="shape=rectangle;rounded=0;labelBackgroundColor=none;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-1110" y="-465" width="280" height="390" as="geometry"/>
+                </mxCell>
+                <mxCell id="Post" value="&lt;b&gt;Post&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br&gt;id: Integer (PK)&lt;br&gt;title, slug: String&lt;br&gt;content, excerpt: Text&lt;br&gt;content_type, category: Enum&lt;br&gt;featured_image, images, video_url: String/JSON&lt;br&gt;location_lat/lng: Float&lt;br&gt;tags: JSON Text&lt;br&gt;views_count, likes_count, comments_count: Integer&lt;br&gt;status: Enum(draft,published,archived,pending)&lt;br&gt;published_at: DateTime&lt;br&gt;author_id: FK(users.id)&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-830" y="330" width="210" height="260" as="geometry"/>
+                </mxCell>
+                <mxCell id="Booking" value="&lt;b&gt;Booking&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br&gt;id: Integer (PK)&lt;br&gt;tour_id: FK(tours.id)&lt;br&gt;user_id: FK(users.id)&lt;br&gt;date: String&lt;br&gt;participants/adults/children/infants: Integer&lt;br&gt;customer contact fields&lt;br&gt;base_price, total_price: Float&lt;br&gt;discount_code/amount: String/Float&lt;br&gt;payment_method: Enum(office,bank_transfer,online)&lt;br&gt;payment_status: Enum(unpaid,partial,paid)&lt;br&gt;status: Enum(pending,confirmed,cancelled)&lt;br&gt;notes: Text&lt;br&gt;created_at, updated_at: DateTime&lt;br&gt;&lt;hr&gt;&lt;b&gt;Relationships&lt;/b&gt;&lt;br&gt;tour: *..1 Tour&lt;br&gt;user: *..1 User&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-30" y="160" width="280" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="Location" value="&lt;b&gt;Location&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br&gt;id: Integer (PK)&lt;br&gt;name: String&lt;br&gt;latitude/longitude: Float&lt;br&gt;address/city/province/country: String&lt;br&gt;category: Enum(restaurant,attraction,... )&lt;br&gt;rating, reviews_count: Numeric&lt;br&gt;contact info: String&lt;br&gt;opening_hours: Text&lt;br&gt;price_range: Enum&lt;br&gt;images, tags, amenities: JSON Text&lt;br&gt;verified: Boolean&lt;br&gt;status: Enum(active,inactive,pending)&lt;br&gt;created_by: FK(users.id)&lt;br&gt;created_at, updated_at: DateTime&lt;br&gt;&lt;hr&gt;" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-250" y="-460" width="190" height="310" as="geometry"/>
+                </mxCell>
+                <mxCell id="Chat" value="&lt;b&gt;Chat&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br&gt;id: Integer (PK)&lt;br&gt;message: Text&lt;br&gt;message_type: Enum(text,image,audio,file,location,system)&lt;br&gt;file_url/file_type: String&lt;br&gt;room_id: String&lt;br&gt;conversation_type: Enum(direct,group,public)&lt;br&gt;status: Enum(sent,delivered,read,deleted)&lt;br&gt;language, translated_message: Text&lt;br&gt;created_at, updated_at, read_at: DateTime&lt;br&gt;sender_id: FK(users.id)&lt;br&gt;receiver_id: FK(users.id, nullable)&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-1110" y="350" width="260" height="235" as="geometry"/>
+                </mxCell>
+                <mxCell id="FriendRequest" value="&lt;b&gt;FriendRequest&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br&gt;id: Integer (PK)&lt;br&gt;requester_id: FK(users.id)&lt;br&gt;receiver_id: FK(users.id)&lt;br&gt;status: Enum(pending,accepted,rejected,cancelled)&lt;br&gt;created_at, updated_at, responded_at: DateTime&lt;br&gt;unique(requester_id,receiver_id)&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-40" y="-460" width="280" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="ActivityLog" value="&lt;b&gt;ActivityLog&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br&gt;id: Integer (PK)&lt;br&gt;user_id: FK(users.id, nullable)&lt;br&gt;action_type: Enum(user_register,...,other)&lt;br&gt;action_description: String&lt;br&gt;target_type/target_id: String/Integer&lt;br&gt;meta_data: JSON Text&lt;br&gt;ip_address: String&lt;br&gt;user_agent: String&lt;br&gt;severity: Enum(info,warning,error,critical)&lt;br&gt;created_at: DateTime&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-40" y="-300" width="300" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="UserPreferences" value="&lt;b&gt;UserPreferences&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br&gt;id: Integer (PK)&lt;br&gt;user_id: FK(users.id, unique)&lt;br&gt;travel_interests/cuisine_preferences/preferred_regions: JSON Text&lt;br&gt;budget_range/travel_style/group_size_preference: Enum&lt;br&gt;dietary_restrictions/preferred_activities: JSON Text&lt;br&gt;spice_tolerance/fitness_level: Enum&lt;br&gt;climate_preference: Enum&lt;br&gt;email_notifications/push_notifications/newsletter_subscription: Boolean&lt;br&gt;ai_recommendations: Boolean&lt;br&gt;personalization_data: JSON Text&lt;br&gt;created_at, updated_at: DateTime&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-810" y="-465" width="330" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_user_post" value="author_id (1 User - * Post)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="GroupChat" target="Post" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_post_comment" value="post_id (1 Post - * Comment)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="Post" target="Comment" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_user_comment" value="author_id (1 User - * Comment)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="User" target="Comment" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_comment_self" value="parent_id (self)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=open;endFill=0;startArrow=none;" parent="1" source="Comment" target="Comment" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="820" y="260" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="edge_user_story" value="user_id (1 User - * Story)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="User" target="Story" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_user_tour" value="seller_id (1 User - * Tour)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="Story" target="Tour" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="-140" y="225"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="edge_tour_booking" value="tour_id (1 Tour - * Booking)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="GroupMember" target="Booking" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_user_booking" value="user_id (1 User - * Booking)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="Report" target="Booking" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint y="450"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="edge_user_location" value="created_by (1 User - * Location)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="Notification" target="Location" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_user_notification" value="user_id (1 User - * Notification)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="User" target="Notification" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_user_chat_sender" value="sender_id (1 User - * Chat)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="Tour" target="Chat" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="edge_user_groupchat" value="created_by (1 User - * GroupChat)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="Story" target="GroupChat" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_groupchat_member" value="group_id (1 GroupChat - * GroupMember)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="GroupChat" target="GroupMember" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_user_groupmember" value="user_id (1 User - * GroupMember)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="User" target="GroupMember" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="400" y="-70"/>
+                            <mxPoint x="400" y="-70"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="edge_user_friend_requester" value="requester_id (1 User - * FriendRequest)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="User" target="FriendRequest" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_user_friend_receiver" value="receiver_id (1 User - * FriendRequest)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;dashed=1;endArrow=block;endFill=1;" parent="1" source="FriendRequest" target="User" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_user_report" value="reporter_id/resolved_by" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;dashed=1;endArrow=block;endFill=1;" parent="1" source="User" target="Report" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="40" y="490"/>
+                            <mxPoint x="20" y="490"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="edge_user_activitylog" value="user_id (0..1 User - * ActivityLog)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="User" target="ActivityLog" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="530" y="110"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="edge_user_preferences" value="user_id (1 User - 0..1 UserPreferences)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="Notification" target="UserPreferences" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" parent="1" source="User" target="Notification" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="220" y="65" as="sourcePoint"/>
+                        <mxPoint x="1180" y="1400" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="290" y="150"/>
+                            <mxPoint x="290" y="150"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="-dbd-b2m32b3WbHVVNJk-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" edge="1" parent="1" source="User" target="Comment">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="80" y="260" as="sourcePoint"/>
+                        <mxPoint x="-60" y="780" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="Comment" value="&lt;b&gt;Comment&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br&gt;id: Integer (PK)&lt;br&gt;content: Text&lt;br&gt;parent_id: FK(comments.id)&lt;br&gt;level: Integer&lt;br&gt;likes_count, replies_count: Integer&lt;br&gt;status: Enum(pending,approved,rejected,spam)&lt;br&gt;language, translated_content: Text&lt;br&gt;post_id: FK(posts.id)&lt;br&gt;author_id/user_id: FK(users.id)&lt;br&gt;created_at, updated_at: DateTime&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-40" y="-75" width="280" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="-dbd-b2m32b3WbHVVNJk-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" edge="1" parent="1" source="User" target="Story">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points"/>
+                        <mxPoint x="-60" y="220" as="sourcePoint"/>
+                        <mxPoint x="-760" y="300" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="-dbd-b2m32b3WbHVVNJk-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" edge="1" parent="1" source="Tour" target="GroupMember">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-640" y="225" as="sourcePoint"/>
+                        <mxPoint x="200" y="410" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="GroupMember" value="&lt;b&gt;GroupMember&lt;/b&gt;&lt;br/&gt;&lt;hr/&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br/&gt;id: Integer (PK)&lt;br/&gt;group_id: FK(group_chats.id)&lt;br/&gt;user_id: FK(users.id)&lt;br/&gt;role: Enum(admin,member)&lt;br/&gt;joined_at: DateTime&lt;br/&gt;unique(group_id,user_id)&lt;br/&gt;&lt;hr/&gt;&lt;b&gt;Behavior&lt;/b&gt;&lt;br/&gt;to_dict()" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-620" y="50" width="160" height="260" as="geometry"/>
+                </mxCell>
+                <mxCell id="-dbd-b2m32b3WbHVVNJk-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" edge="1" parent="1" source="User" target="Report">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points"/>
+                        <mxPoint y="220" as="sourcePoint"/>
+                        <mxPoint x="60" y="450" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="Report" value="&lt;b&gt;Report&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br&gt;id: Integer (PK)&lt;br&gt;reporter_id: FK(users.id)&lt;br&gt;report_type: Enum(post,comment,user,other)&lt;br&gt;target_id: Integer&lt;br&gt;reason: Enum(spam,harassment,...,other)&lt;br&gt;description: Text&lt;br&gt;status: Enum(pending,reviewing,resolved,dismissed)&lt;br&gt;priority: Enum(low,medium,high,urgent)&lt;br&gt;resolved_by: FK(users.id)&lt;br&gt;resolution_notes/action_taken: Text/Enum&lt;br&gt;created_at, updated_at, resolved_at: DateTime&lt;br&gt;&lt;hr&gt;" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-430" y="-130" width="320" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="-dbd-b2m32b3WbHVVNJk-6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" edge="1" parent="1" source="User" target="Story">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-100" y="25" as="sourcePoint"/>
+                        <mxPoint x="-470" y="-60" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="Story" value="&lt;b&gt;Story&lt;/b&gt;&lt;br/&gt;&lt;hr/&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br/&gt;id: Integer (PK)&lt;br/&gt;user_id: FK(users.id)&lt;br/&gt;content: Text&lt;br/&gt;media_url: String&lt;br/&gt;media_type: Enum(image,video)&lt;br/&gt;view_count: Integer&lt;br/&gt;created_at, expires_at: DateTime&lt;br/&gt;is_archived: Boolean&lt;br/&gt;&lt;hr/&gt;&lt;b&gt;Behavior&lt;/b&gt;&lt;br/&gt;is_active()&lt;br/&gt;archive()&lt;br/&gt;to_dict()" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-640" y="-210" width="190" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="-dbd-b2m32b3WbHVVNJk-7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" edge="1" parent="1" source="User" target="Tour">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="-130" y="-20"/>
+                            <mxPoint x="-130" y="-150"/>
+                        </Array>
+                        <mxPoint x="-970" y="-75" as="sourcePoint"/>
+                        <mxPoint x="-980" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="Tour" value="&lt;b&gt;Tour&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br&gt;id: Integer (PK)&lt;br&gt;title, description: Text&lt;br&gt;duration_days: Integer&lt;br&gt;max_participants/min_participants: Integer&lt;br&gt;difficulty_level: Enum&lt;br&gt;starting_location/ending_location: String&lt;br&gt;itinerary, locations_covered: JSON Text&lt;br&gt;price_per_person: Float&lt;br&gt;discount_percentage: Float&lt;br&gt;inclusions/exclusions: JSON Text&lt;br&gt;available_dates: JSON Text&lt;br&gt;category: Enum&lt;br&gt;rating, reviews_count: Numeric&lt;br&gt;views_count, bookings_count: Integer&lt;br&gt;status: Enum(active,inactive,draft,suspended)&lt;br&gt;seller_id: FK(users.id)&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-1085" y="-40" width="210" height="350" as="geometry"/>
+                </mxCell>
+                <mxCell id="-dbd-b2m32b3WbHVVNJk-8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" edge="1" parent="1" source="Comment" target="GroupChat">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="210" y="165" as="sourcePoint"/>
+                        <mxPoint x="-725" y="330" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="GroupChat" value="&lt;b&gt;GroupChat&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br&gt;id: Integer (PK)&lt;br&gt;room_id: String (unique)&lt;br&gt;name: String&lt;br&gt;description: Text&lt;br&gt;avatar_url: String&lt;br&gt;created_by: FK(users.id)&lt;br&gt;created_at, updated_at: DateTime&lt;br&gt;&lt;hr&gt;&lt;b&gt;Relationships&lt;/b&gt;&lt;br&gt;members: 1..* GroupMember&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-850" y="30" width="170" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="-dbd-b2m32b3WbHVVNJk-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonal=1;jettySize=auto;html=1;strokeColor=#0b5394;endArrow=block;endFill=1;" edge="1" parent="1" source="User" target="Notification">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-830" y="-270" as="sourcePoint"/>
+                        <mxPoint x="-100" y="-325" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="Notification" value="&lt;b&gt;Notification&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;br&gt;id: Integer (PK)&lt;br&gt;user_id: FK(users.id)&lt;br&gt;type/title/message: String&lt;br&gt;related_type/related_id: String/Integer&lt;br&gt;actor_id: FK(users.id)&lt;br&gt;is_read/is_seen: Boolean&lt;br&gt;extra_data: JSON Text&lt;br&gt;action_url: String&lt;br&gt;created_at/read_at/seen_at: DateTime&lt;br&gt;&lt;hr&gt;" style="shape=rectangle;rounded=0;strokeColor=#1a73e8;fillColor=#e8f0fe;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="-450" y="-460" width="170" height="200" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="Z49SZWBrOttS_q2Yn44x" name="Page-2">
+        <mxGraphModel dx="926" dy="745" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-11" value="" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERzeroToMany;startArrow=ERone;endFill=1;startFill=0;" edge="1" parent="1" source="5RJtUJGGH9t2SuCrjk7r-34" target="5RJtUJGGH9t2SuCrjk7r-17">
+                    <mxGeometry width="100" height="100" relative="1" as="geometry">
+                        <mxPoint x="240" y="620" as="sourcePoint"/>
+                        <mxPoint x="340" y="520" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-12" value="" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERzeroToMany;startArrow=ERone;endFill=1;startFill=0;" edge="1" parent="1" source="5RJtUJGGH9t2SuCrjk7r-14" target="5RJtUJGGH9t2SuCrjk7r-27">
+                    <mxGeometry width="100" height="100" relative="1" as="geometry">
+                        <mxPoint x="300" y="80" as="sourcePoint"/>
+                        <mxPoint x="360" y="105" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-13" value="Orders" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;" vertex="1" parent="1">
+                    <mxGeometry x="350" y="20" width="250" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-14" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=1;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-13">
+                    <mxGeometry y="30" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-15" value="PK" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;fontStyle=1;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-14">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-16" value="order_id int NOT NULL " style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;fontStyle=5;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-14">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-17" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-13">
+                    <mxGeometry y="60" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-18" value="FK1" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-17">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-19" value="customer_id int NOT NULL" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-17">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-20" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-13">
+                    <mxGeometry y="90" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-21" value="" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-20">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-22" value="order_date date NOT NULL" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-20">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-23" value="Shipments" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;" vertex="1" parent="1">
+                    <mxGeometry x="350" y="180" width="250" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-24" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=1;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-23">
+                    <mxGeometry y="30" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-25" value="PK" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;fontStyle=1;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-24">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-26" value="shipment_id int NOT NULL " style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;fontStyle=5;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-24">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-27" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-23">
+                    <mxGeometry y="60" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-28" value="FK1" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-27">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-29" value="order_id int NOT NULL" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-27">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-30" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-23">
+                    <mxGeometry y="90" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-31" value="" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-30">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-32" value="shipment_date date NOT NULL" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-30">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-33" value="Customers" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;" vertex="1" parent="1">
+                    <mxGeometry x="20" y="20" width="250" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-34" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=1;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-33">
+                    <mxGeometry y="30" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-35" value="PK" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;fontStyle=1;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-34">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-36" value="customer_id int NOT NULL " style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;fontStyle=5;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-34">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-37" value="" style="shape=partialRectangle;collapsible=0;dropTarget=0;pointerEvents=0;fillColor=none;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-33">
+                    <mxGeometry y="60" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-38" value="" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-37">
+                    <mxGeometry width="30" height="30" as="geometry">
+                        <mxRectangle width="30" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5RJtUJGGH9t2SuCrjk7r-39" value="customer_name char(50) NOT NULL" style="shape=partialRectangle;overflow=hidden;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;" vertex="1" parent="5RJtUJGGH9t2SuCrjk7r-37">
+                    <mxGeometry x="30" width="220" height="30" as="geometry">
+                        <mxRectangle width="220" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

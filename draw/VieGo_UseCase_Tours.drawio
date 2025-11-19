@@ -1,0 +1,88 @@
+<mxfile host="65bd71144e">
+    <diagram name="Tours Use Cases" id="viego-usecase-tours">
+        <mxGraphModel dx="1543" dy="1242" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="actor_seller" value="Seller" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=14" parent="1" vertex="1">
+                    <mxGeometry x="1010" y="435" width="60" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;endFill=0;" edge="1" parent="1" source="actor_user" target="uc_tours">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="actor_user" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=14" parent="1" vertex="1">
+                    <mxGeometry x="20" y="435" width="60" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="actor_guest" value="Guest" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=14" parent="1" vertex="1">
+                    <mxGeometry x="20" y="230" width="60" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="actor_system" value="System" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=14" parent="1" vertex="1">
+                    <mxGeometry x="1000" y="620" width="60" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_tours" value="Quản lý tour &amp; booking" style="ellipse;whiteSpace=wrap;html=1;fontSize=18;fontStyle=1;fillColor=#ecd8f6;strokeColor=#8f59af;strokeWidth=2" parent="1" vertex="1">
+                    <mxGeometry x="370" y="440" width="360" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_catalog" value="Xem catalog &amp; lọc tour" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;fillColor=#f2e8fb;strokeColor=#8f59af" parent="1" vertex="1">
+                    <mxGeometry x="250" y="310" width="240" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="" style="edgeStyle=none;html=1;endArrow=none;endFill=0;startArrow=classic;startFill=1;dashed=1;" edge="1" parent="1" source="uc_manage_tour" target="8">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_manage_tour" value="Seller tạo &amp; quản lý tour" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;fillColor=#f2e8fb;strokeColor=#8f59af" parent="1" vertex="1">
+                    <mxGeometry x="550" y="300" width="240" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_booking" value="Đặt tour &amp; xác nhận" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;fillColor=#f2e8fb;strokeColor=#8f59af" parent="1" vertex="1">
+                    <mxGeometry x="210" y="640" width="240" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_payment" value="Thanh toán &amp; hóa đơn" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;fillColor=#f2e8fb;strokeColor=#8f59af" parent="1" vertex="1">
+                    <mxGeometry x="500" y="640" width="240" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_reminder" value="Email xác nhận &amp; nhắc thanh toán" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;fillColor=#f2e8fb;strokeColor=#8f59af" parent="1" vertex="1">
+                    <mxGeometry x="630" y="740" width="260" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_catalog" value="" style="endArrow=none;dashed=1;html=1;startArrow=classic;startFill=1;endFill=0;" parent="1" source="uc_tours" target="uc_catalog" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_manage_tour" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_tours" target="uc_manage_tour" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_booking" value="" style="endArrow=none;dashed=1;html=1;startArrow=classic;startFill=1;endFill=0;" parent="1" source="uc_tours" target="uc_booking" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_payment" value="" style="endArrow=none;dashed=1;html=1;startArrow=classic;startFill=1;endFill=0;" parent="1" source="uc_tours" target="uc_payment" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_reminder" value="" style="endArrow=block;dashed=1;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="uc_payment" target="uc_reminder" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_seller_manage" value="" style="endArrow=none;html=1" parent="1" source="actor_seller" target="uc_manage_tour" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_seller_tours" value="" style="endArrow=none;html=1" parent="1" source="actor_seller" target="uc_tours" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_user_catalog" value="" style="endArrow=none;html=1" parent="1" source="actor_user" target="uc_catalog" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_user_booking" value="" style="endArrow=none;html=1" parent="1" source="actor_user" target="uc_booking" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_user_payment" value="" style="endArrow=none;html=1" parent="1" source="actor_user" target="uc_payment" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_guest_catalog" value="" style="endArrow=none;html=1" parent="1" source="actor_guest" target="uc_catalog" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_system_reminder" value="" style="endArrow=none;html=1" parent="1" source="actor_system" target="uc_reminder" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;Quản lý tour &amp;amp; booking&lt;/span&gt;" style="swimlane;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fillColor=#f5f5f5;strokeColor=#666666" parent="1" vertex="1">
+                    <mxGeometry x="130" y="80" width="810" height="750" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="CRUD Tour" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;fillColor=#f2e8fb;strokeColor=#8f59af" vertex="1" parent="1">
+                    <mxGeometry x="420" y="150" width="240" height="80" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,15 +1,56 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap");
+/* Font import - Next.js font loader handles this automatically, but keeping as fallback */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap&subset=latin,latin-ext");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* VieGo Brand Styles */
+/* VieGo Brand Styles - Soft & Elegant Color Palette */
 :root {
-  --primary-teal: #008080;
-  --accent-coral: #ff7f50;
-  --neutral-gray: #f5f5f5;
-  --text-dark: #262626;
-  --text-light: #404040;
+  /* Light Mode - Soft Colors */
+  --primary-teal: #5b9a8b;
+  --primary-teal-light: #7fb8aa;
+  --primary-teal-dark: #4a8275;
+  --accent-coral: #d4a5a0;
+  --accent-coral-light: #e8c4c0;
+  --neutral-gray: #f8f9fa;
+  --neutral-gray-light: #fcfcfd;
+  --neutral-gray-dark: #e9ecef;
+  --text-dark: #2c3e50;
+  --text-light: #5a6c7d;
+  --text-muted: #8b9aab;
+  
+  /* Background colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f1f3f5;
+  
+  /* Border colors */
+  --border-light: #e9ecef;
+  --border-medium: #dee2e6;
+}
+
+/* Dark Mode - Soft Dark Colors */
+.dark {
+  --primary-teal: #7fb8aa;
+  --primary-teal-light: #9dd5c7;
+  --primary-teal-dark: #5b9a8b;
+  --accent-coral: #e8c4c0;
+  --accent-coral-light: #f2ddd9;
+  --neutral-gray: #1a1d24;
+  --neutral-gray-light: #252832;
+  --neutral-gray-dark: #14161b;
+  --text-dark: #e9ecef;
+  --text-light: #cbd4db;
+  --text-muted: #9ca3af;
+  
+  /* Background colors */
+  --bg-primary: #1a1d24;
+  --bg-secondary: #252832;
+  --bg-tertiary: #2d3139;
+  
+  /* Border colors */
+  --border-light: #2d3139;
+  --border-medium: #3a3f48;
 }
 
 * {
@@ -24,12 +65,17 @@ html {
 }
 
 body {
-  font-family: "Poppins", sans-serif;
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   font-size: 18px;
   line-height: 1.6;
   color: var(--text-dark);
-  background-color: var(--neutral-gray);
+  background-color: var(--bg-secondary);
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-feature-settings: "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Desktop optimized typography */
@@ -58,10 +104,11 @@ body {
 .viego-logo {
   font-family: "Quicksand", sans-serif;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-teal), var(--accent-coral));
+  background: linear-gradient(135deg, var(--primary-teal), var(--primary-teal-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  transition: background 0.3s ease;
 }
 
 /* Parallax Hero Section */
@@ -81,36 +128,83 @@ body {
   justify-content: center;
 }
 
-/* Custom scrollbar for desktop */
+/* Custom scrollbar for desktop - Soft Design */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--neutral-gray);
+  background: var(--bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--primary-teal);
   border-radius: 4px;
+  transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-coral);
+  background: var(--primary-teal-dark);
 }
 
-/* Interactive Elements */
+.dark ::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--primary-teal-light);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-teal);
+}
+
+/* Interactive Elements - Soft & Elegant */
 .btn-primary {
-  @apply bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105;
+  background-color: var(--primary-teal);
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(0);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-teal-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(91, 154, 139, 0.25);
 }
 
 .btn-secondary {
-  @apply bg-purple-500 hover:bg-purple-600 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105;
+  background-color: var(--accent-coral);
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(0);
 }
 
-/* Card Hover Effects */
+.btn-secondary:hover {
+  background-color: var(--accent-coral-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 165, 160, 0.25);
+}
+
+/* Card Hover Effects - Soft & Smooth */
 .blog-card {
-  @apply bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:transform hover:scale-105;
+  background-color: var(--bg-primary);
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid var(--border-light);
+}
+
+.blog-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
 }
 
 /* Chat & Modal Styles */
@@ -259,4 +353,151 @@ body {
 
 .delay-2000 {
   animation-delay: 2s;
+}
+
+/* Shimmer animation for skeleton loaders */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-[shimmer_2s_infinite] {
+  animation: shimmer 2s infinite;
+}
+
+/* Scrollbar styles */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar for maps page */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(236, 72, 153, 0.8));
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 1), rgba(236, 72, 153, 1));
+}
+
+/* Firefox scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.8) rgba(255, 255, 255, 0.05);
+}
+
+/* Enhanced hover effects */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Gradient text effect */
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Smooth transitions - Enhanced */
+* {
+  transition-property: color, background-color, border-color,
+    text-decoration-color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Enhanced smooth animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.5s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* Glass morphism effect - Enhanced */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+}
+
+.dark .glass {
+  background: rgba(26, 29, 36, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
 }

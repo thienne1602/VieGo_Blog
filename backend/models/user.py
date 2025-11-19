@@ -20,10 +20,16 @@ class User(db.Model):
     cover_image_url = db.Column(db.String(255))
     
     # Role and permissions
-    role = db.Column(db.Enum('user', 'moderator', 'admin', 'seller', 'editor'), default='user')
+    role = db.Column(db.Enum('user', 'moderator', 'admin', 'seller', 'editor', 'tour_guide'), default='user')
     is_active = db.Column(db.Boolean, default=True)
     is_verified = db.Column(db.Boolean, default=False)
     email_verified = db.Column(db.Boolean, default=False)
+    
+    # Ban/restriction fields
+    account_banned_until = db.Column(db.DateTime, nullable=True)  # Account ban expiry
+    post_banned_until = db.Column(db.DateTime, nullable=True)  # Post ban expiry
+    comment_banned_until = db.Column(db.DateTime, nullable=True)  # Comment ban expiry
+    violation_count = db.Column(db.Integer, default=0, nullable=False, server_default='0')  # Number of violations
     
     # Gamification
     points = db.Column(db.Integer, default=0, nullable=False, server_default='0')
@@ -38,11 +44,26 @@ class User(db.Model):
     # Social media links
     social_links = db.Column(db.Text)  # JSON string
     
+    # Seller email configuration (for sending booking confirmation emails)
+    seller_email = db.Column(db.String(255))  # Email address for sending emails
+    seller_email_password = db.Column(db.String(255))  # Encrypted password for seller email
+    
+    # Company information (for sellers - displayed in bookings)
+    company_name = db.Column(db.String(255))  # Tên công ty
+    company_address = db.Column(db.Text)  # Địa chỉ công ty
+    company_phone = db.Column(db.String(50))  # Số điện thoại công ty
+    company_tax_id = db.Column(db.String(50))  # Mã số thuế
+    company_email = db.Column(db.String(255))  # Email công ty (để hiển thị trong booking)
+    bank_account_number = db.Column(db.String(100))  # Số tài khoản ngân hàng
+    bank_name = db.Column(db.String(255))  # Tên ngân hàng
+    bank_account_holder = db.Column(db.String(255))  # Chủ tài khoản
+    
     # Social features
     bookmarks = db.Column(db.Text)  # JSON array of bookmarked post IDs
     liked_posts = db.Column(db.Text)  # JSON array of liked post IDs
     following = db.Column(db.Text)  # JSON array of user IDs being followed
     followers = db.Column(db.Text)  # JSON array of follower user IDs
+    friends = db.Column(db.Text)  # JSON array of friend user IDs
     
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
@@ -122,6 +143,21 @@ class User(db.Model):
         if self.social_links:
             return json.loads(self.social_links)
         return {}
+    
+    def set_seller_email_password(self, password):
+        """Set seller email password (stored as plaintext for SMTP authentication)
+        
+        Note: In production, consider encrypting this with a reversible encryption method
+        since SMTP requires the original password for authentication.
+        """
+        if password:
+            # Store plaintext password (required for SMTP authentication)
+            # In production, use encryption like AES instead of plaintext
+            self.seller_email_password = password
+    
+    def get_seller_email_password(self):
+        """Get seller email password for SMTP authentication"""
+        return self.seller_email_password
     
     # ==================== 
     # Bookmarks Methods
@@ -229,6 +265,90 @@ class User(db.Model):
             return True
         return False
     
+    # ==================== 
+    # Friends Methods
+    # ====================
+    
+    def get_friends(self):
+        """Get list of friend user IDs"""
+        if self.friends:
+            return json.loads(self.friends)
+        return []
+    
+    def set_friends(self, user_ids):
+        """Set friend user IDs"""
+        self.friends = json.dumps(user_ids)
+    
+    def add_friend(self, user_id):
+        """Add a friend"""
+        friends = self.get_friends()
+        if user_id not in friends:
+            friends.append(user_id)
+            self.set_friends(friends)
+            return True
+        return False
+    
+    def remove_friend(self, user_id):
+        """Remove a friend"""
+        friends = self.get_friends()
+        if user_id in friends:
+            friends.remove(user_id)
+            self.set_friends(friends)
+            return True
+        return False
+    
+    def is_friend_with(self, user_id, auto_fix_inconsistency=True):
+        """Check if user is friend with another user (bidirectional check)
+        
+        Args:
+            user_id: ID of the other user to check
+            auto_fix_inconsistency: If True, automatically fix data inconsistency if found
+        """
+        # Check if this user has the other user in friends list
+        friends = self.get_friends()
+        has_friend = user_id in friends
+        
+        # Also check if the other user has this user in their friends list
+        # This ensures bidirectional consistency
+        try:
+            other_user = User.query.get(user_id)
+            if other_user:
+                other_friends = other_user.get_friends()
+                has_other = self.id in other_friends
+                
+                # If both sides have each other - confirmed friends
+                if has_friend and has_other:
+                    return True
+                # If neither side has each other - not friends
+                elif not has_friend and not has_other:
+                    return False
+                # Data inconsistency detected - one side has it but not the other
+                else:
+                    if auto_fix_inconsistency:
+                        # Fix the inconsistency
+                        if has_friend and not has_other:
+                            # This user has other, but other doesn't have this user
+                            other_user.add_friend(self.id)
+                            db.session.commit()
+                            print(f'[Friendship Fix] Fixed inconsistency: Added user {self.id} to user {user_id} friends list')
+                        elif not has_friend and has_other:
+                            # Other user has this user, but this user doesn't have other
+                            self.add_friend(user_id)
+                            db.session.commit()
+                            print(f'[Friendship Fix] Fixed inconsistency: Added user {user_id} to user {self.id} friends list')
+                        return True
+                    else:
+                        # Don't auto-fix, just return True if one side has it
+                        # This allows caller to handle the inconsistency
+                        return True
+            else:
+                # If other user doesn't exist, just check this side
+                return has_friend
+        except Exception as e:
+            # If error occurs, fall back to one-way check
+            print(f'[Friendship Check] Error in bidirectional check: {str(e)}')
+            return has_friend
+    
     def get_stats(self):
         """Get user statistics"""
         return {
@@ -252,6 +372,32 @@ class User(db.Model):
     def is_admin(self):
         """Check if user is admin"""
         return self.role == 'admin'
+    
+    def is_account_banned(self):
+        """Check if account is currently banned"""
+        if not self.account_banned_until:
+            return False
+        return datetime.utcnow() < self.account_banned_until
+    
+    def is_post_banned(self):
+        """Check if user is banned from posting"""
+        if not self.post_banned_until:
+            return False
+        return datetime.utcnow() < self.post_banned_until
+    
+    def is_comment_banned(self):
+        """Check if user is banned from commenting"""
+        if not self.comment_banned_until:
+            return False
+        return datetime.utcnow() < self.comment_banned_until
+    
+    def can_post(self):
+        """Check if user can create posts"""
+        return not self.is_post_banned() and self.is_active and not self.is_account_banned()
+    
+    def can_comment(self):
+        """Check if user can create comments"""
+        return not self.is_comment_banned() and self.is_active and not self.is_account_banned()
     
     def to_dict(self, include_sensitive=False):
         """Convert user to dictionary"""
@@ -279,7 +425,30 @@ class User(db.Model):
                 'email': self.email,
                 'is_active': self.is_active,
                 'is_verified': self.is_verified,
-                'updated_at': self.updated_at.isoformat() if self.updated_at else None
+                'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+                'seller_email': self.seller_email,  # Only include email, not password
+                'account_banned_until': self.account_banned_until.isoformat() if self.account_banned_until else None,
+                'post_banned_until': self.post_banned_until.isoformat() if self.post_banned_until else None,
+                'comment_banned_until': self.comment_banned_until.isoformat() if self.comment_banned_until else None,
+                'is_account_banned': self.is_account_banned(),
+                'is_post_banned': self.is_post_banned(),
+                'is_comment_banned': self.is_comment_banned(),
+                'can_post': self.can_post(),
+                'can_comment': self.can_comment(),
+                'violation_count': self.violation_count or 0
+            })
+        
+        # Include company information for sellers (sensitive but needed for bookings)
+        if self.role == 'seller' or include_sensitive:
+            data.update({
+                'company_name': self.company_name,
+                'company_address': self.company_address,
+                'company_phone': self.company_phone,
+                'company_tax_id': self.company_tax_id,
+                'company_email': self.company_email,
+                'bank_account_number': self.bank_account_number,
+                'bank_name': self.bank_name,
+                'bank_account_holder': self.bank_account_holder
             })
         
         return data

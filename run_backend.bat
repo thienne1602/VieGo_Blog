@@ -50,6 +50,23 @@ echo.
 REM Chuyển vào thư mục backend
 cd /d "%~dp0backend"
 
+REM Set email environment variables for Gmail
+set MAIL_SERVER=smtp.gmail.com
+set MAIL_PORT=587
+set MAIL_USE_TLS=true
+set MAIL_USE_SSL=false
+set MAIL_USERNAME=ngocthien160224@gmail.com
+set MAIL_PASSWORD=AbCd0000
+set MAIL_DEFAULT_SENDER=ngocthien160224@gmail.com
+
+REM Set Google Maps API Key
+set GOOGLE_MAPS_API_KEY=AIzaSyA7gWv2sQWonQMvSsWIOB00Sxcxgrf5lx0
+
+REM Set Weather API Key (Sử dụng WeatherAPI.com - miễn phí 1 triệu requests/tháng)
+REM Lấy key miễn phí tại: https://www.weatherapi.com/
+REM Google Geocoding đã được sử dụng tự động nếu có GOOGLE_MAPS_API_KEY
+set WEATHER_API_KEY=AIzaSyA7gWv2sQWonQMvSsWIOB00Sxcxgrf5lx0
+
 REM Chạy Flask server
 python main.py
 

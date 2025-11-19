@@ -1,0 +1,1049 @@
+<mxfile host="65bd71144e">
+    <diagram name="01 - Trình tự đăng nhập" id="sequence-login">
+        <mxGraphModel dx="3280" dy="2076" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="login_title" value="Trình tự đăng nhập người dùng" style="text;html=1;fontSize=20;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="1900" y="-20" width="420" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="login_user_header" value="Người dùng\n(Browser)" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="80" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="login_user_life" value="" style="shape=rectangle;fillColor=#fffaf0;strokeColor=#d6b656;strokeWidth=2;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="156" y="140" width="8" height="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="login_frontend_header" value="Giao diện Web\n(React)" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="80" width="180" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="login_frontend_life" value="" style="shape=rectangle;fillColor=#eef5ff;strokeColor=#6c8ebf;strokeWidth=2;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="446" y="140" width="8" height="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="login_backend_header" value="API Backend\n(Flask)" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="80" width="180" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="login_backend_life" value="" style="shape=rectangle;fillColor=#f2fbf2;strokeColor=#82b366;strokeWidth=2;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="726" y="140" width="8" height="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="login_db_header" value="MySQL Database" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="920" y="80" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="login_db_life" value="" style="shape=rectangle;fillColor=#fff5f5;strokeColor=#b85450;strokeWidth=2;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="1016" y="140" width="8" height="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="login_msg1" value="1. Người dùng nhập email + mật khẩu&lt;div&gt;&amp;nbsp;và gửi yêu cầu đăng nhập&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=20;entryX=1.066;entryY=0.102;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" edge="1">
+                    <mxGeometry x="-0.1748" y="40" relative="1" as="geometry">
+                        <mxPoint x="159.47" y="210" as="sourcePoint"/>
+                        <mxPoint x="453.99799999999993" y="231.8" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="430" y="210"/>
+                            <mxPoint x="430" y="232"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="login_msg2" value="2. React kiểm tra form,&lt;div&gt;&amp;nbsp;sinh request POST /api/auth/login&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=20;exitX=0.668;exitY=0.184;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.409;entryY=0.205;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="login_frontend_life" target="login_backend_life" edge="1">
+                    <mxGeometry x="-0.535" y="-50" relative="1" as="geometry">
+                        <mxPoint x="450" y="240" as="sourcePoint"/>
+                        <mxPoint x="740" y="240" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="450" y="306"/>
+                            <mxPoint x="450" y="290"/>
+                            <mxPoint x="670" y="290"/>
+                            <mxPoint x="670" y="324"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="login_msg3" value="3. Flask gọi SELECT user theo email" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=20;exitX=1.144;exitY=0.234;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="login_backend_life" target="login_db_life" edge="1">
+                    <mxGeometry x="0.1739" y="21" relative="1" as="geometry">
+                        <mxPoint x="740" y="290" as="sourcePoint"/>
+                        <mxPoint x="1040" y="290" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="950" y="350"/>
+                            <mxPoint x="950" y="350"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="49" value="Text" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="login_msg3">
+                    <mxGeometry x="-0.4887" y="2" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="login_msg4" value="4. MySQL trả về user record + mật khẩu hash" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=20;entryX=0.667;entryY=0.377;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="login_backend_life" edge="1">
+                    <mxGeometry x="0.0367" y="-60" relative="1" as="geometry">
+                        <mxPoint x="1010" y="450" as="sourcePoint"/>
+                        <mxPoint x="740" y="330" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="980" y="450"/>
+                            <mxPoint x="980" y="480"/>
+                            <mxPoint x="770" y="480"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="login_msg5" value="5. Backend so khớp bcrypt, sinh JWT + refresh token" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1a1a1a;dashed=1;endArrow=open;endFill=0;fontSize=20;entryX=0.146;entryY=0.556;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="login_backend_life" target="login_backend_life" edge="1">
+                    <mxGeometry x="-0.1239" y="67" relative="1" as="geometry">
+                        <mxPoint x="820" y="250" as="sourcePoint"/>
+                        <mxPoint x="820" y="290" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="900" y="590"/>
+                            <mxPoint x="900" y="640"/>
+                        </Array>
+                        <mxPoint x="-7" y="-30" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="login_msg6" value="6. Trả về 200 OK + JWT + thông tin hồ sơ" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=20;" parent="1" edge="1">
+                    <mxGeometry x="-0.0738" y="-45" relative="1" as="geometry">
+                        <mxPoint x="728" y="720" as="sourcePoint"/>
+                        <mxPoint x="450" y="740" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="590" y="720"/>
+                            <mxPoint x="590" y="740"/>
+                        </Array>
+                        <mxPoint x="25" y="-40" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="login_msg7" value="7. Frontend lưu token (localStorage) + cập nhật trạng thái đăng nhập" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=20;entryX=0;entryY=0.734;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.582;exitY=0.74;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="login_frontend_life" target="login_user_life" edge="1">
+                    <mxGeometry x="0.0422" y="-20" relative="1" as="geometry">
+                        <mxPoint x="410" y="880" as="sourcePoint"/>
+                        <mxPoint x="160" y="480" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="451" y="800"/>
+                            <mxPoint x="164" y="800"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="2" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px; font-weight: 700;&quot;&gt;Người dùng\n(Browser)&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+                    <mxGeometry x="1460" y="40" width="230" height="860" as="geometry"/>
+                </mxCell>
+                <mxCell id="63" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="2">
+                    <mxGeometry x="110" y="430" width="10" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px; font-weight: 700;&quot;&gt;Giao diện Web\n(React)&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+                    <mxGeometry x="1770" y="40" width="250" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="Bắt đầu" style="html=1;verticalAlign=bottom;startArrow=oval;endArrow=block;startSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="6">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-260" y="80" as="sourcePoint"/>
+                        <mxPoint x="-200.00000000000045" y="80.47619047619048" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="7" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="6">
+                    <mxGeometry x="120" y="120" width="10" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="6">
+                    <mxGeometry x="120" y="345" width="10" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px; font-weight: 700;&quot;&gt;API Backend\n(Flask)&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+                    <mxGeometry x="2090" y="40" width="230" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="48" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="16">
+                    <mxGeometry x="110" y="190" width="10" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="16" source="53" target="56">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="170" y="340"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="58" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px;&quot;&gt;5. Backend so khớp bcrypt, sinh JWT + refresh token&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="57">
+                    <mxGeometry x="0.2846" y="3" relative="1" as="geometry">
+                        <mxPoint x="247" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="53" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="16">
+                    <mxGeometry x="110" y="270" width="10" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="16">
+                    <mxGeometry x="110" y="360" width="10" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px; font-weight: 700;&quot;&gt;MySQL Database&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+                    <mxGeometry x="2410" y="40" width="230" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="17">
+                    <mxGeometry x="110" y="230" width="10" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1" target="48">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1900" y="244.5219047619047" as="sourcePoint"/>
+                        <mxPoint x="2204.5" y="244.5219047619047" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="47" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px;&quot;&gt;2. React kiểm tra form,&lt;/span&gt;&lt;div style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-size: 20px;&quot;&gt;&amp;nbsp;sinh request POST /api/auth/login&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="45">
+                    <mxGeometry x="0.0966" y="3" relative="1" as="geometry">
+                        <mxPoint x="23" y="-37" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="8" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px;&quot;&gt;1. Người dùng nhập email + mật khẩu&lt;/span&gt;&lt;div style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-size: 20px;&quot;&gt;&amp;nbsp;và gửi yêu cầu đăng nhập&lt;/div&gt;" style="html=1;verticalAlign=bottom;endArrow=block;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1" source="2" target="7">
+                    <mxGeometry x="0.1333" y="30" relative="1" as="geometry">
+                        <mxPoint x="1810" y="200" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="1795" y="190"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="51" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1" source="48" target="50">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px;&quot;&gt;3. Flask gọi SELECT user theo email&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="51">
+                    <mxGeometry x="-0.0555" y="2" relative="1" as="geometry">
+                        <mxPoint x="34" y="-28" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="54" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1" source="50" target="53">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px;&quot;&gt;4. MySQL trả về user record + mật khẩu hash&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="54">
+                    <mxGeometry x="0.1587" y="3" relative="1" as="geometry">
+                        <mxPoint x="159" y="-23" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="61" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1" source="56" target="60">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="62" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px;&quot;&gt;6. Trả về 200 OK + JWT + thông tin hồ sơ&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="61">
+                    <mxGeometry x="0.336" y="2" relative="1" as="geometry">
+                        <mxPoint x="101" y="33" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="64" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1" source="60" target="63">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px;&quot;&gt;7. Frontend lưu token (localStorage) + cập nhật trạng thái đăng nhập&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="64">
+                    <mxGeometry x="-0.0555" y="4" relative="1" as="geometry">
+                        <mxPoint x="156" y="39" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram name="02 - Trình tự đăng bài" id="sequence-post">
+        <mxGraphModel dx="2380" dy="1242" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0_post"/>
+                <mxCell id="1_post" parent="0_post"/>
+                <mxCell id="post_title" value="Trình tự tạo và xuất bản bài viết" style="text;html=1;fontSize=18;fontStyle=1" parent="1_post" vertex="1">
+                    <mxGeometry x="420" y="20" width="480" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="post_author_header" value="Tác giả\n(Người tạo nội dung)" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=18;" parent="1_post" vertex="1">
+                    <mxGeometry x="60" y="80" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="post_author_life" value="" style="shape=rectangle;fillColor=#fffaf0;strokeColor=#d6b656;strokeWidth=2;fontSize=18;" parent="1_post" vertex="1">
+                    <mxGeometry x="157" y="140" width="8" height="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="post_frontend_header" value="UI Quản trị\n(React CMS)" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=18;" parent="1_post" vertex="1">
+                    <mxGeometry x="340" y="80" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="post_frontend_life" value="" style="shape=rectangle;fillColor=#eef5ff;strokeColor=#6c8ebf;strokeWidth=2;fontSize=18;" parent="1_post" vertex="1">
+                    <mxGeometry x="437" y="140" width="8" height="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="post_api_header" value="Dịch vụ Bài viết\n(Flask API)" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=18;" parent="1_post" vertex="1">
+                    <mxGeometry x="620" y="80" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="post_api_life" value="" style="shape=rectangle;fillColor=#f2fbf2;strokeColor=#82b366;strokeWidth=2;fontSize=18;" parent="1_post" vertex="1">
+                    <mxGeometry x="717" y="140" width="8" height="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="post_storage_header" value="Kho Media\n(S3/Cloud Storage)" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=18;" parent="1_post" vertex="1">
+                    <mxGeometry x="900" y="80" width="220" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="post_storage_life" value="" style="shape=rectangle;fillColor=#fff8ec;strokeColor=#d79b00;strokeWidth=2;fontSize=18;" parent="1_post" vertex="1">
+                    <mxGeometry x="1007" y="140" width="8" height="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="post_db_header" value="MySQL" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=18;" parent="1_post" vertex="1">
+                    <mxGeometry x="1180" y="80" width="180" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="post_db_life" value="" style="shape=rectangle;fillColor=#fff5f5;strokeColor=#b85450;strokeWidth=2;fontSize=18;" parent="1_post" vertex="1">
+                    <mxGeometry x="1267" y="140" width="8" height="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="post_msg1" value="1. Tác giả nhập tiêu đề, nội dung, chọn thẻ" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=18;entryX=0.375;entryY=0.078;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.893;exitY=0.078;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_post" source="post_author_life" target="post_frontend_life" edge="1">
+                    <mxGeometry x="-0.0875" y="20" relative="1" as="geometry">
+                        <mxPoint x="160" y="200" as="sourcePoint"/>
+                        <mxPoint x="440" y="200" as="targetPoint"/>
+                        <Array as="points"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="post_msg2" value="2. UI chạy bộ kiểm tra: định dạng markdown, chiều dài, SEO pre-check" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;dashed=1;endArrow=open;endFill=0;fontSize=18;entryX=0.293;entryY=0.195;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_post" target="post_frontend_life" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="450" y="240" as="sourcePoint"/>
+                        <mxPoint x="440" y="270" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="520" y="315"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="post_msg3" value="3. Upload ảnh bìa lên S3, nhận URL" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=18;exitX=1.179;exitY=0.233;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.232;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_post" source="post_frontend_life" target="post_storage_life" edge="1">
+                    <mxGeometry x="-0.4477" relative="1" as="geometry">
+                        <mxPoint x="440" y="300" as="sourcePoint"/>
+                        <mxPoint x="1010" y="300" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="950" y="350"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="post_msg4" value="4. Gửi POST /api/posts với metadata + URL ảnh" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=18;exitX=1;exitY=0.299;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_post" source="post_frontend_life" edge="1">
+                    <mxGeometry x="-0.0176" y="-21" relative="1" as="geometry">
+                        <mxPoint x="440" y="340" as="sourcePoint"/>
+                        <mxPoint x="720" y="410" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="480" y="409"/>
+                            <mxPoint x="720" y="410"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="post_msg5" value="5. API xác thực JWT, chuẩn hóa slug, sinh preview" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;dashed=1;endArrow=open;endFill=0;fontSize=18;entryX=0.854;entryY=0.418;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.958;exitY=0.357;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_post" source="post_api_life" target="post_api_life" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="720" y="380" as="sourcePoint"/>
+                        <mxPoint x="720" y="410" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="725" y="460"/>
+                            <mxPoint x="890" y="460"/>
+                            <mxPoint x="890" y="516"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="post_msg6" value="6. Lưu bài viết vào MySQL (posts, post_tags, post_media)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=18;exitX=0.241;exitY=0.456;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.456;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_post" source="post_api_life" target="post_db_life" edge="1">
+                    <mxGeometry x="0.1352" relative="1" as="geometry">
+                        <mxPoint x="720" y="440" as="sourcePoint"/>
+                        <mxPoint x="1220" y="490" as="targetPoint"/>
+                        <Array as="points"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="post_msg7" value="7. MySQL phản hồi ID bài viết" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;dashed=1;endArrow=block;endFill=1;fontSize=18;exitX=0.071;exitY=0.545;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1.625;entryY=0.544;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_post" source="post_db_life" target="post_api_life" edge="1">
+                    <mxGeometry x="0.1071" relative="1" as="geometry">
+                        <mxPoint x="1200" y="590" as="sourcePoint"/>
+                        <mxPoint x="790" y="630" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="1200" y="630"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="post_msg8" value="8. API push thông báo tạo mới (Redis pub/sub)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=18;exitX=1.159;exitY=0.584;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.927;entryY=0.654;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_post" target="post_api_life" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="726.2720000000002" y="655.5999999999999" as="sourcePoint"/>
+                        <mxPoint x="750" y="710" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="726" y="650"/>
+                            <mxPoint x="810" y="650"/>
+                            <mxPoint x="810" y="729"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="post_msg9" value="9. API trả về 201 Created + dữ liệu bài viết" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=18;entryX=1.25;entryY=0.79;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_post" target="post_frontend_life" edge="1">
+                    <mxGeometry x="0.0268" y="-40" relative="1" as="geometry">
+                        <mxPoint x="720" y="851" as="sourcePoint"/>
+                        <mxPoint x="440" y="590" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="720" y="850"/>
+                            <mxPoint x="480" y="850"/>
+                            <mxPoint x="480" y="851"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="post_msg10" value="10. UI hiển thị thông báo thành công, điều hướng về danh sách" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=18;entryX=1.19;entryY=0.856;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.5;exitY=0.856;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_post" source="post_frontend_life" target="post_author_life" edge="1">
+                    <mxGeometry x="-0.011" y="30" relative="1" as="geometry">
+                        <mxPoint x="440" y="630" as="sourcePoint"/>
+                        <mxPoint x="160" y="630" as="targetPoint"/>
+                        <Array as="points"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-0" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;Trình tự tạo và xuất bản bài viết&lt;/span&gt;" style="text;html=1;fontSize=20;fontStyle=1" vertex="1" parent="1_post">
+                    <mxGeometry x="2100" y="100" width="420" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-1" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-weight: 700;&quot;&gt;Tác giả\n(Người tạo nội dung)&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};fillStyle=auto;fontSize=16;" vertex="1" parent="1_post">
+                    <mxGeometry x="1660" y="160" width="230" height="860" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-3" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px; font-weight: 700;&quot;&gt;UI Quản trị\n(React CMS)&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1_post">
+                    <mxGeometry x="1970" y="160" width="250" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-4" value="Bắt đầu" style="html=1;verticalAlign=bottom;startArrow=oval;endArrow=block;startSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="DgybSIQ6Z4XxidpG1skH-3">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-260" y="80" as="sourcePoint"/>
+                        <mxPoint x="-200.00000000000045" y="80.47619047619048" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-32" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="DgybSIQ6Z4XxidpG1skH-3" source="DgybSIQ6Z4XxidpG1skH-30" target="DgybSIQ6Z4XxidpG1skH-31">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="240" y="205"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-33" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;2. UI chạy bộ kiểm tra:&amp;nbsp;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;định dạng markdown, chiều dài, SEO pre-check&lt;/span&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="DgybSIQ6Z4XxidpG1skH-32">
+                    <mxGeometry x="0.1226" y="5" relative="1" as="geometry">
+                        <mxPoint x="115" y="-14" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-30" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="DgybSIQ6Z4XxidpG1skH-3">
+                    <mxGeometry x="120" y="130" width="10" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-31" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="DgybSIQ6Z4XxidpG1skH-3">
+                    <mxGeometry x="120" y="220" width="10" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-38" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="DgybSIQ6Z4XxidpG1skH-3">
+                    <mxGeometry x="120" y="330" width="10" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="0KqXFEuWI_8GY9NnYF0O-6" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="DgybSIQ6Z4XxidpG1skH-3">
+                    <mxGeometry x="120" y="680" width="10" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-7" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-weight: 700;&quot;&gt;Dịch vụ Bài viết\n(Flask API)&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=16;" vertex="1" parent="1_post">
+                    <mxGeometry x="2290" y="160" width="230" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-44" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="DgybSIQ6Z4XxidpG1skH-7" source="DgybSIQ6Z4XxidpG1skH-40" target="DgybSIQ6Z4XxidpG1skH-43">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="220" y="460"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-45" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;5. API xác thực JWT, chuẩn hóa slug, sinh preview&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="DgybSIQ6Z4XxidpG1skH-44">
+                    <mxGeometry x="0.101" relative="1" as="geometry">
+                        <mxPoint x="110" y="-13" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-40" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="DgybSIQ6Z4XxidpG1skH-7">
+                    <mxGeometry x="110" y="355" width="10" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-43" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="DgybSIQ6Z4XxidpG1skH-7">
+                    <mxGeometry x="110" y="470" width="10" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="0KqXFEuWI_8GY9NnYF0O-4" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="DgybSIQ6Z4XxidpG1skH-7" source="0KqXFEuWI_8GY9NnYF0O-0" target="0KqXFEuWI_8GY9NnYF0O-3">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="190" y="690"/>
+                            <mxPoint x="190" y="670"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="0KqXFEuWI_8GY9NnYF0O-5" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;8. API push thông báo tạo mới (Redis pub/sub)&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="0KqXFEuWI_8GY9NnYF0O-4">
+                    <mxGeometry x="0.1345" y="1" relative="1" as="geometry">
+                        <mxPoint x="199" y="5" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="0KqXFEuWI_8GY9NnYF0O-0" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="DgybSIQ6Z4XxidpG1skH-7">
+                    <mxGeometry x="110" y="580" width="10" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="0KqXFEuWI_8GY9NnYF0O-3" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="DgybSIQ6Z4XxidpG1skH-7">
+                    <mxGeometry x="110" y="670" width="10" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-13" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-weight: 700;&quot;&gt;Kho Media\n(S3/Cloud Storage)&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=16;" vertex="1" parent="1_post">
+                    <mxGeometry x="2610" y="160" width="230" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-35" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="DgybSIQ6Z4XxidpG1skH-13">
+                    <mxGeometry x="110" y="260" width="10" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-17" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;1. Tác giả nhập tiêu đề, nội dung, chọn thẻ&lt;/span&gt;" style="html=1;verticalAlign=bottom;endArrow=block;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_post" source="DgybSIQ6Z4XxidpG1skH-1" target="DgybSIQ6Z4XxidpG1skH-30">
+                    <mxGeometry x="0.1333" y="30" relative="1" as="geometry">
+                        <mxPoint x="2010" y="320" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="1995" y="310"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                        <mxPoint x="2090" y="310" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-27" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px; font-weight: 700;&quot;&gt;MySQL Database&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1_post">
+                    <mxGeometry x="2930" y="160" width="230" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-46" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="DgybSIQ6Z4XxidpG1skH-27">
+                    <mxGeometry x="110" y="530" width="10" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-36" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_post" source="DgybSIQ6Z4XxidpG1skH-31" target="DgybSIQ6Z4XxidpG1skH-13">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="2355" y="450"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-37" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;3. Upload ảnh bìa lên S3, nhận URL&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="DgybSIQ6Z4XxidpG1skH-36">
+                    <mxGeometry x="0.0047" y="-2" relative="1" as="geometry">
+                        <mxPoint y="18" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-41" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_post" source="DgybSIQ6Z4XxidpG1skH-38" target="DgybSIQ6Z4XxidpG1skH-40">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-42" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;4. Gửi POST /api/posts với metadata + URL ảnh&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="DgybSIQ6Z4XxidpG1skH-41">
+                    <mxGeometry x="-0.438" y="-1" relative="1" as="geometry">
+                        <mxPoint x="145" y="21" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-47" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_post" source="DgybSIQ6Z4XxidpG1skH-43" target="DgybSIQ6Z4XxidpG1skH-46">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="DgybSIQ6Z4XxidpG1skH-48" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;6. Lưu bài viết vào MySQL (posts, post_tags, post_media)&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="DgybSIQ6Z4XxidpG1skH-47">
+                    <mxGeometry x="0.1584" y="-4" relative="1" as="geometry">
+                        <mxPoint x="-5" y="-19" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="0KqXFEuWI_8GY9NnYF0O-1" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1_post" source="DgybSIQ6Z4XxidpG1skH-46" target="0KqXFEuWI_8GY9NnYF0O-0">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="0KqXFEuWI_8GY9NnYF0O-2" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;7. MySQL phản hồi ID bài viết&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="0KqXFEuWI_8GY9NnYF0O-1">
+                    <mxGeometry x="0.174" y="4" relative="1" as="geometry">
+                        <mxPoint x="19" y="16" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="0KqXFEuWI_8GY9NnYF0O-7" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1_post" source="0KqXFEuWI_8GY9NnYF0O-3" target="0KqXFEuWI_8GY9NnYF0O-6">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="0KqXFEuWI_8GY9NnYF0O-8" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;9. API trả về 201 Created + dữ liệu bài viết&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="0KqXFEuWI_8GY9NnYF0O-7">
+                    <mxGeometry x="-0.0967" y="-2" relative="1" as="geometry">
+                        <mxPoint x="18" y="32" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="0KqXFEuWI_8GY9NnYF0O-9" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1_post" source="0KqXFEuWI_8GY9NnYF0O-6" target="DgybSIQ6Z4XxidpG1skH-1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="0KqXFEuWI_8GY9NnYF0O-10" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;10. UI hiển thị thông báo thành công, điều hướng về danh sách&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="0KqXFEuWI_8GY9NnYF0O-9">
+                    <mxGeometry x="0.8623" relative="1" as="geometry">
+                        <mxPoint x="24" y="35" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram name="03 - Trình tự đặt tour" id="sequence-booking">
+        <mxGraphModel dx="1785" dy="931" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0_booking"/>
+                <mxCell id="1_booking" parent="0_booking"/>
+                <mxCell id="booking_title" value="Trình tự đặt tour và thanh toán" style="text;html=1;fontSize=15;fontStyle=1" parent="1_booking" vertex="1">
+                    <mxGeometry x="420" y="20" width="480" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="booking_customer_header" value="Khách hàng" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=15;" parent="1_booking" vertex="1">
+                    <mxGeometry x="70" y="80" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="booking_customer_life" value="" style="shape=rectangle;fillColor=#fffaf0;strokeColor=#d6b656;strokeWidth=2;fontSize=15;" parent="1_booking" vertex="1">
+                    <mxGeometry x="146" y="140" width="8" height="1410" as="geometry"/>
+                </mxCell>
+                <mxCell id="booking_frontend_header" value="Frontend Tours" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=15;" parent="1_booking" vertex="1">
+                    <mxGeometry x="320" y="80" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="booking_frontend_life" value="" style="shape=rectangle;fillColor=#eef5ff;strokeColor=#6c8ebf;strokeWidth=2;fontSize=15;" parent="1_booking" vertex="1">
+                    <mxGeometry x="417" y="140" width="8" height="1420" as="geometry"/>
+                </mxCell>
+                <mxCell id="booking_api_header" value="API Booking" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=15;" parent="1_booking" vertex="1">
+                    <mxGeometry x="570" y="80" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="booking_api_life" value="" style="shape=rectangle;fillColor=#f2fbf2;strokeColor=#82b366;strokeWidth=2;fontSize=15;" parent="1_booking" vertex="1">
+                    <mxGeometry x="667" y="140" width="8" height="1420" as="geometry"/>
+                </mxCell>
+                <mxCell id="booking_payment_header" value="Cổng thanh toán\n(VNPay/MoMo)" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=15;" parent="1_booking" vertex="1">
+                    <mxGeometry x="820" y="80" width="220" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="booking_payment_life" value="" style="shape=rectangle;fillColor=#fff8ec;strokeColor=#d79b00;strokeWidth=2;fontSize=15;" parent="1_booking" vertex="1">
+                    <mxGeometry x="927" y="140" width="8" height="1420" as="geometry"/>
+                </mxCell>
+                <mxCell id="booking_db_header" value="MySQL" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=15;" parent="1_booking" vertex="1">
+                    <mxGeometry x="1080" y="80" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="booking_db_life" value="" style="shape=rectangle;fillColor=#fff5f5;strokeColor=#b85450;strokeWidth=2;fontSize=15;" parent="1_booking" vertex="1">
+                    <mxGeometry x="1177" y="140" width="8" height="1420" as="geometry"/>
+                </mxCell>
+                <mxCell id="booking_msg1" value="1. Chọn tour, ngày khởi hành, số lượng khách" style="html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=15;exitX=0.525;exitY=0.05;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_booking" source="booking_customer_life" edge="1">
+                    <mxGeometry x="-0.0487" y="-19" relative="1" as="geometry">
+                        <mxPoint x="230" y="210" as="sourcePoint"/>
+                        <mxPoint x="420" y="211" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="booking_msg2" value="2. Frontend gọi GET /api/tours/:id/pricing" style="html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=15;entryX=0.417;entryY=0.119;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.894;exitY=0.121;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry x="0.0243" y="20" relative="1" as="geometry">
+                        <mxPoint x="425.00200000000007" y="272.8399999999999" as="sourcePoint"/>
+                        <mxPoint x="671.186" y="270" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="booking_msg3" value="3. API lấy giá hiện tại, tồn kho ghế" style="html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=15;exitX=0.899;exitY=0.198;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.482;entryY=0.198;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="670.332" y="309.9999999999999" as="sourcePoint"/>
+                        <mxPoint x="1176.9960000000003" y="309.9999999999999" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="booking_msg4" value="4. Trả về giá + quota còn lại" style="html=1;strokeColor=#1a1a1a;dashed=1;endArrow=block;endFill=1;fontSize=15;exitX=0.363;exitY=0.255;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1177.004" y="362.10000000000014" as="sourcePoint"/>
+                        <mxPoint x="667.1" y="360" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="booking_msg5" value="5. API trả dữ liệu để frontend hiển thị xác nhận" style="html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=15;entryX=0.72;entryY=0.334;entryDx=0;entryDy=0;entryPerimeter=0;exitX=-0.054;exitY=0.334;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry x="0.0585" y="-37" relative="1" as="geometry">
+                        <mxPoint x="668.808" y="430" as="sourcePoint"/>
+                        <mxPoint x="425" y="430" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="booking_msg6" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;6. Khách xác nhận, frontend tạo đơn và gọi POST /api/bookings&lt;/span&gt;" style="html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=15;exitX=0.72;exitY=0.405;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.423;entryY=0.406;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry x="0.0265" y="26" relative="1" as="geometry">
+                        <mxPoint x="422.76" y="510.0000000000001" as="sourcePoint"/>
+                        <mxPoint x="670.384" y="511.4200000000002" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="booking_msg7" value="7. API tạo bản ghi pending, sinh payment requestId" style="html=1;strokeColor=#1a1a1a;dashed=1;endArrow=open;endFill=0;fontSize=15;exitX=0.542;exitY=0.521;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.125;entryY=0.523;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="671.336" y="570" as="sourcePoint"/>
+                        <mxPoint x="1178" y="572.8399999999999" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="booking_msg8" value="8. API chuyển hướng khách đến VNPay cùng chữ ký" style="html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=15;exitX=0.304;exitY=0.628;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.601;entryY=0.628;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry x="0.1262" y="-22" relative="1" as="geometry">
+                        <mxPoint x="669.432" y="630.0000000000002" as="sourcePoint"/>
+                        <mxPoint x="421.808" y="630.0000000000002" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="booking_msg10" value="10. VNPay xác thực giao dịch, callback về /api/payment/callback" style="html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=15;entryX=0.78;entryY=0.719;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.899;exitY=0.721;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry x="0.0303" y="-22" relative="1" as="geometry">
+                        <mxPoint x="934.192" y="762.0600000000002" as="sourcePoint"/>
+                        <mxPoint x="673.24" y="759.22" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="booking_msg11" value="11. API cập nhật trạng thái booking thành confirmed" style="html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=15;entryX=-0.232;entryY=0.745;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry x="-0.5265" y="-100" relative="1" as="geometry">
+                        <mxPoint x="670" y="798.24" as="sourcePoint"/>
+                        <mxPoint x="1175.1439999999998" y="796.1400000000001" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="booking_msg12" value="12. API gửi email xác nhận + thông báo realtime" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;dashed=1;endArrow=open;endFill=0;fontSize=15;entryX=1.056;entryY=0.832;entryDx=0;entryDy=0;entryPerimeter=0;exitX=1.333;exitY=0.793;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry x="0.1653" y="59" relative="1" as="geometry">
+                        <mxPoint x="677.664" y="864.3" as="sourcePoint"/>
+                        <mxPoint x="675.4480000000001" y="919.6800000000001" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="810" y="864.24"/>
+                            <mxPoint x="810" y="919.24"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="booking_msg13" value="13. Frontend nhận callback thành công, hiển thị vé điện tử" style="html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=15;entryX=0.85;entryY=0.857;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.2;exitY=0.856;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry x="-0.5979" y="106" relative="1" as="geometry">
+                        <mxPoint x="668.6000000000001" y="953.76" as="sourcePoint"/>
+                        <mxPoint x="423.79999999999995" y="955.1800000000001" as="targetPoint"/>
+                        <mxPoint x="-1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="booking_msg14" value="14. Khách hàng xem chi tiết booking, tải hóa đơn" style="html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=15;entryX=0.225;entryY=0.906;entryDx=0;entryDy=0;entryPerimeter=0;exitX=-0.05;exitY=0.9;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry x="0.0159" y="32" relative="1" as="geometry">
+                        <mxPoint x="416.60000000000014" y="1016.24" as="sourcePoint"/>
+                        <mxPoint x="147.79999999999995" y="1015.7" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="OyNhr7u0VdChdV10FjaK-2" value="9. Frontend redirect đến cổng thanh toán" style="html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=15;exitX=0.482;exitY=0.685;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.661;entryY=0.685;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_booking" edge="1">
+                    <mxGeometry x="-0.0257" y="23" relative="1" as="geometry">
+                        <mxPoint x="420.856" y="710.9400000000003" as="sourcePoint"/>
+                        <mxPoint x="932.288" y="710.9400000000003" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-0" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 15px;&quot;&gt;Trình tự đặt tour và thanh toán&lt;/span&gt;" style="text;html=1;fontSize=20;fontStyle=1" vertex="1" parent="1_booking">
+                    <mxGeometry x="2100" y="100" width="420" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-1" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 15px; font-weight: 700;&quot;&gt;Khách hàng&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};fillStyle=auto;fontSize=16;" vertex="1" parent="1_booking">
+                    <mxGeometry x="1660" y="160" width="230" height="860" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-2" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 15px; font-weight: 700;&quot;&gt;Frontend Tours&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1_booking">
+                    <mxGeometry x="1970" y="160" width="250" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-3" value="Bắt đầu" style="html=1;verticalAlign=bottom;startArrow=oval;endArrow=block;startSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="nRg56pkByGcyri679iJt-2">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-260" y="80" as="sourcePoint"/>
+                        <mxPoint x="-200.00000000000045" y="80.47619047619048" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-6" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-2">
+                    <mxGeometry x="120" y="130" width="10" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-8" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-2">
+                    <mxGeometry x="120" y="330" width="10" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-9" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-2">
+                    <mxGeometry x="120" y="500" width="10" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-56" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-2">
+                    <mxGeometry x="120" y="720" width="10" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-10" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 15px; font-weight: 700;&quot;&gt;API Booking&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=16;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2290" y="160" width="230" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-53" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-10">
+                    <mxGeometry x="107.5" y="700" width="10" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-47" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-10">
+                    <mxGeometry x="105" y="400" width="15" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-13" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-10">
+                    <mxGeometry x="110" y="160" width="10" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-14" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-10">
+                    <mxGeometry x="110" y="270" width="10" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-17" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-10">
+                    <mxGeometry x="110" y="400" width="10" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-54" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="nRg56pkByGcyri679iJt-10" source="nRg56pkByGcyri679iJt-18" target="nRg56pkByGcyri679iJt-53">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="150" y="685"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-18" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-10">
+                    <mxGeometry x="107.5" y="610" width="10" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-19" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 15px; font-weight: 700;&quot;&gt;Cổng thanh toán\n(VNPay/MoMo)&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=16;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2540" y="160" width="230" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-20" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-19">
+                    <mxGeometry x="110" y="530" width="10" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-21" value="" style="html=1;verticalAlign=bottom;endArrow=block;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-1" target="nRg56pkByGcyri679iJt-6">
+                    <mxGeometry x="0.1333" y="30" relative="1" as="geometry">
+                        <mxPoint x="2010" y="320" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="1995" y="310"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                        <mxPoint x="2090" y="310" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-22" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 20px; font-weight: 700;&quot;&gt;MySQL Database&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1_booking">
+                    <mxGeometry x="2800" y="160" width="230" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-23" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-22">
+                    <mxGeometry x="110" y="180" width="10" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-7" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-22">
+                    <mxGeometry x="110" y="400" width="10" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-51" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="nRg56pkByGcyri679iJt-22">
+                    <mxGeometry x="110" y="600" width="10" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-41" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-6" target="nRg56pkByGcyri679iJt-13">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-42" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-13" target="nRg56pkByGcyri679iJt-23">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-43" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-23" target="nRg56pkByGcyri679iJt-14">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-44" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-14" target="nRg56pkByGcyri679iJt-8">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-45" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-8" target="nRg56pkByGcyri679iJt-17">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-46" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-17" target="nRg56pkByGcyri679iJt-7">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-48" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-47" target="nRg56pkByGcyri679iJt-9">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-49" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-9" target="nRg56pkByGcyri679iJt-20">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-50" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-20" target="nRg56pkByGcyri679iJt-18">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-52" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-18" target="nRg56pkByGcyri679iJt-51">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="2740" y="810"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-57" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-53" target="nRg56pkByGcyri679iJt-56">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-58" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1_booking" source="nRg56pkByGcyri679iJt-56" target="nRg56pkByGcyri679iJt-1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-59" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;1. Chọn tour, ngày khởi hành, số lượng khách&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="1790" y="270" width="340" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-63" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;2. Frontend gọi GET /api/tours/:id/pricing&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2150" y="300" width="300" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-64" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;3. API lấy giá hiện tại, tồn kho ghế&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2510" y="340" width="260" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-65" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;4. Trả về giá + quota còn lại&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2560" y="410" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-66" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;5. API trả dữ liệu để frontend hiển thị xác nhận&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2030" y="450" width="340" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-68" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;6. Khách xác nhận, frontend tạo đơn và gọi POST /api/bookings&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2120" y="530" width="460" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-69" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;7. API tạo bản ghi pending, sinh payment requestId&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2510" y="600" width="370" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-70" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;8. API chuyển hướng khách đến VNPay cùng chữ ký&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="1990" y="620" width="390" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-71" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;9. Frontend redirect đến cổng thanh toán&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2270" y="680" width="310" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-72" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;10. VNPay xác thực giao dịch, callback về /api/payment/callback&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2440" y="740" width="460" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-73" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;11. API cập nhật trạng thái booking thành confirmed&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2480" y="810" width="380" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-74" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;12. API gửi email xác nhận + thông báo realtime&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2430" y="880" width="350" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-75" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;13. Frontend nhận callback thành công, hiển thị vé điện tử&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="2000" y="850" width="420" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="nRg56pkByGcyri679iJt-76" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 15px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;14. Khách hàng xem chi tiết booking, tải hóa đơn&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_booking">
+                    <mxGeometry x="1790" y="920" width="360" height="40" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram name="04 - Trình tự thông báo realtime" id="sequence-notify">
+        <mxGraphModel dx="2040" dy="1064" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0_notify"/>
+                <mxCell id="1_notify" parent="0_notify"/>
+                <mxCell id="notify_title" value="Trình tự đẩy thông báo realtime khi có bình luận mới" style="text;html=1;fontSize=19;fontStyle=1" parent="1_notify" vertex="1">
+                    <mxGeometry x="360" y="20" width="640" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="notify_actor_header" value="Người tương tác" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=19;" parent="1_notify" vertex="1">
+                    <mxGeometry x="60" y="80" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="notify_actor_life" value="" style="shape=rectangle;fillColor=#fffaf0;strokeColor=#d6b656;strokeWidth=2;fontSize=19;" parent="1_notify" vertex="1">
+                    <mxGeometry x="157" y="140" width="8" height="830" as="geometry"/>
+                </mxCell>
+                <mxCell id="notify_frontend_header" value="Frontend (Socket.IO Client)" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=19;" parent="1_notify" vertex="1">
+                    <mxGeometry x="320" y="80" width="220" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="notify_frontend_life" value="" style="shape=rectangle;fillColor=#eef5ff;strokeColor=#6c8ebf;strokeWidth=2;fontSize=19;" parent="1_notify" vertex="1">
+                    <mxGeometry x="427" y="140" width="8" height="830" as="geometry"/>
+                </mxCell>
+                <mxCell id="notify_backend_header" value="Socket Server\n(Flask-SocketIO)" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=19;" parent="1_notify" vertex="1">
+                    <mxGeometry x="600" y="80" width="220" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="notify_backend_life" value="" style="shape=rectangle;fillColor=#f2fbf2;strokeColor=#82b366;strokeWidth=2;fontSize=19;" parent="1_notify" vertex="1">
+                    <mxGeometry x="707" y="140" width="8" height="830" as="geometry"/>
+                </mxCell>
+                <mxCell id="notify_redis_header" value="Redis Pub/Sub" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=19;" parent="1_notify" vertex="1">
+                    <mxGeometry x="880" y="80" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="notify_redis_life" value="" style="shape=rectangle;fillColor=#fff8ec;strokeColor=#d79b00;strokeWidth=2;fontSize=19;" parent="1_notify" vertex="1">
+                    <mxGeometry x="977" y="140" width="8" height="830" as="geometry"/>
+                </mxCell>
+                <mxCell id="notify_target_header" value="Người nhận thông báo" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=19;" parent="1_notify" vertex="1">
+                    <mxGeometry x="1140" y="80" width="220" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="notify_target_life" value="" style="shape=rectangle;fillColor=#fff5f5;strokeColor=#b85450;strokeWidth=2;fontSize=19;" parent="1_notify" vertex="1">
+                    <mxGeometry x="1247" y="140" width="8" height="820" as="geometry"/>
+                </mxCell>
+                <mxCell id="notify_msg1" value="1. Người tương tác gửi bình luận mới" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=19;exitX=0.818;exitY=0.131;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.25;entryY=0.132;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_notify" source="notify_actor_life" target="notify_frontend_life" edge="1">
+                    <mxGeometry x="0.0313" y="-20" relative="1" as="geometry">
+                        <mxPoint x="160" y="210" as="sourcePoint"/>
+                        <mxPoint x="440" y="210" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="notify_msg3" value="3. Socket server xác thực JWT &amp;amp; ghi log" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;dashed=1;endArrow=open;endFill=0;fontSize=19;exitX=0.818;exitY=0.259;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.705;entryY=0.327;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_notify" source="notify_backend_life" target="notify_backend_life" edge="1">
+                    <mxGeometry x="-0.4425" y="-25" relative="1" as="geometry">
+                        <mxPoint x="720" y="290" as="sourcePoint"/>
+                        <mxPoint x="810" y="410" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="840" y="355"/>
+                            <mxPoint x="840" y="411"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="notify_msg4" value="4. Server publish sự kiện tới Redis channel post:{id}" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=19;exitX=0.705;exitY=0.341;exitDx=0;exitDy=0;exitPerimeter=0;entryX=-0.091;entryY=0.34;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_notify" edge="1">
+                    <mxGeometry x="0.0148" y="32" relative="1" as="geometry">
+                        <mxPoint x="712.6400000000001" y="490.84999999999997" as="sourcePoint"/>
+                        <mxPoint x="976.2719999999999" y="490.02000000000004" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="notify_msg5" value="5. Worker subscribe nhận, chuẩn hóa payload" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;dashed=1;endArrow=open;endFill=0;fontSize=19;entryX=1.159;entryY=0.425;entryDx=0;entryDy=0;entryPerimeter=0;exitX=-0.205;exitY=0.426;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_notify" edge="1">
+                    <mxGeometry x="0.048" y="-23" relative="1" as="geometry">
+                        <mxPoint x="975.3599999999999" y="561.3999999999999" as="sourcePoint"/>
+                        <mxPoint x="716.2720000000002" y="560.5699999999999" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="notify_msg6" value="6. Server emit notification:new cho phòng của tác giả bài" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=19;entryX=0.023;entryY=0.574;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.705;exitY=0.569;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1_notify" source="notify_backend_life" target="notify_target_life" edge="1">
+                    <mxGeometry x="0.0069" y="21" relative="1" as="geometry">
+                        <mxPoint x="820" y="610" as="sourcePoint"/>
+                        <mxPoint x="1140" y="610" as="targetPoint"/>
+                        <mxPoint x="-1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="notify_msg7" value="7. Trình duyệt người nhận hiển thị badge + push notification" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=19;" parent="1_notify" edge="1">
+                    <mxGeometry x="-1" y="20" relative="1" as="geometry">
+                        <mxPoint x="1260" y="660" as="sourcePoint"/>
+                        <mxPoint x="1250" y="700" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="1310" y="660"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="notify_msg8" value="8. Frontend gửi event đã đọc, cập nhật trạng thái" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;dashed=1;endArrow=block;endFill=1;fontSize=19;" parent="1_notify" edge="1">
+                    <mxGeometry x="0.0256" y="20" relative="1" as="geometry">
+                        <mxPoint x="980" y="720" as="sourcePoint"/>
+                        <mxPoint x="707" y="720" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="DlOOwdEvowiGfciIx3Hn-3" value="2. Frontend emit sự kiện comment:new kèm JWT" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1a1a1a;endArrow=block;endFill=1;fontSize=19;exitX=0.705;exitY=0.207;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.375;entryY=0.207;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1_notify" source="notify_frontend_life" target="notify_backend_life" edge="1">
+                    <mxGeometry x="-0.0095" y="-28" relative="1" as="geometry">
+                        <mxPoint x="440" y="250" as="sourcePoint"/>
+                        <mxPoint x="720" y="250" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-0" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 19px;&quot;&gt;Trình tự đẩy thông báo realtime khi có bình luận mới&lt;/span&gt;" style="text;html=1;fontSize=20;fontStyle=1" vertex="1" parent="1_notify">
+                    <mxGeometry x="2100" y="100" width="420" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-1" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 19px; font-weight: 700;&quot;&gt;Người tương tác&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};fillStyle=auto;fontSize=16;" vertex="1" parent="1_notify">
+                    <mxGeometry x="1660" y="160" width="230" height="860" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-2" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 19px; font-weight: 700;&quot;&gt;Frontend (Socket.IO Client)&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1_notify">
+                    <mxGeometry x="1970" y="160" width="250" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-3" value="Bắt đầu" style="html=1;verticalAlign=bottom;startArrow=oval;endArrow=block;startSize=8;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="F9JGZqgDYJO0vbBnXwLc-2">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-260" y="80" as="sourcePoint"/>
+                        <mxPoint x="-200.00000000000045" y="80.47619047619048" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-6" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="F9JGZqgDYJO0vbBnXwLc-2">
+                    <mxGeometry x="120" y="130" width="10" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-56" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="F9JGZqgDYJO0vbBnXwLc-2">
+                    <mxGeometry x="120" y="630" width="10" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-8" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 19px; font-weight: 700;&quot;&gt;Socket Server\n(Flask-SocketIO)&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=16;" vertex="1" parent="1_notify">
+                    <mxGeometry x="2290" y="160" width="230" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-58" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="F9JGZqgDYJO0vbBnXwLc-8" source="F9JGZqgDYJO0vbBnXwLc-49" target="F9JGZqgDYJO0vbBnXwLc-50">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="190" y="250"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-49" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="F9JGZqgDYJO0vbBnXwLc-8">
+                    <mxGeometry x="110" y="170" width="10" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-50" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="F9JGZqgDYJO0vbBnXwLc-8">
+                    <mxGeometry x="110" y="260" width="10" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-52" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="F9JGZqgDYJO0vbBnXwLc-8">
+                    <mxGeometry x="110" y="370" width="10" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-55" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="F9JGZqgDYJO0vbBnXwLc-8">
+                    <mxGeometry x="110" y="570" width="10" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-16" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 19px; font-weight: 700;&quot;&gt;Redis Pub/Sub&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};fontSize=16;" vertex="1" parent="1_notify">
+                    <mxGeometry x="2540" y="160" width="230" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-51" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="F9JGZqgDYJO0vbBnXwLc-16">
+                    <mxGeometry x="110" y="300" width="10" height="330" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-61" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="F9JGZqgDYJO0vbBnXwLc-16">
+                    <mxGeometry x="105" y="550" width="20" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-18" value="" style="html=1;verticalAlign=bottom;endArrow=block;edgeStyle=elbowEdgeStyle;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_notify" source="F9JGZqgDYJO0vbBnXwLc-1" target="F9JGZqgDYJO0vbBnXwLc-6">
+                    <mxGeometry x="0.1333" y="30" relative="1" as="geometry">
+                        <mxPoint x="2010" y="320" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="1995" y="310"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                        <mxPoint x="2090" y="310" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-19" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 19px; font-weight: 700;&quot;&gt;Người nhận thông báo&lt;/span&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1_notify">
+                    <mxGeometry x="2800" y="160" width="230" height="800" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-64" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="F9JGZqgDYJO0vbBnXwLc-19" source="F9JGZqgDYJO0vbBnXwLc-53" target="F9JGZqgDYJO0vbBnXwLc-54">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="170" y="500"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-53" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="F9JGZqgDYJO0vbBnXwLc-19">
+                    <mxGeometry x="110" y="420" width="10" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-54" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;edgeStyle&quot;:&quot;elbowEdgeStyle&quot;,&quot;elbow&quot;:&quot;vertical&quot;,&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="F9JGZqgDYJO0vbBnXwLc-19">
+                    <mxGeometry x="110" y="530" width="10" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-35" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 19px; text-align: center; text-wrap-mode: nowrap; background-color: rgb(255, 255, 255);&quot;&gt;1. Người tương tác gửi bình luận mới&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_notify">
+                    <mxGeometry x="1790" y="260" width="340" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-57" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_notify" source="F9JGZqgDYJO0vbBnXwLc-6" target="F9JGZqgDYJO0vbBnXwLc-49">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-60" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_notify" source="F9JGZqgDYJO0vbBnXwLc-50" target="F9JGZqgDYJO0vbBnXwLc-51">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-62" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1_notify" source="F9JGZqgDYJO0vbBnXwLc-51" target="F9JGZqgDYJO0vbBnXwLc-52">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-63" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;" edge="1" parent="1_notify" source="F9JGZqgDYJO0vbBnXwLc-52" target="F9JGZqgDYJO0vbBnXwLc-53">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-65" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1_notify" source="F9JGZqgDYJO0vbBnXwLc-61" target="F9JGZqgDYJO0vbBnXwLc-55">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="F9JGZqgDYJO0vbBnXwLc-66" style="edgeStyle=elbowEdgeStyle;html=1;elbow=vertical;curved=0;rounded=0;dashed=1;" edge="1" parent="1_notify" source="F9JGZqgDYJO0vbBnXwLc-55" target="F9JGZqgDYJO0vbBnXwLc-56">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="DRdiy4o1eLYEtYRBI9Or-4" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 19px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;2. Frontend emit sự kiện comment:new kèm JWT&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_notify">
+                    <mxGeometry x="2120" y="300" width="450" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="DRdiy4o1eLYEtYRBI9Or-5" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 19px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;3. Socket server xác thực JWT &amp;amp; ghi log&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_notify">
+                    <mxGeometry x="2420" y="390" width="370" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="DRdiy4o1eLYEtYRBI9Or-6" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 19px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;4. Server publish sự kiện tới Redis channel post:{id}&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_notify">
+                    <mxGeometry x="2420" y="480" width="470" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="DRdiy4o1eLYEtYRBI9Or-7" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 19px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;5. Worker subscribe nhận, chuẩn hóa payload&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_notify">
+                    <mxGeometry x="2420" y="530" width="420" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="DRdiy4o1eLYEtYRBI9Or-8" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 19px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;6. Server emit notification:new cho phòng của tác giả bài&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_notify">
+                    <mxGeometry x="2420" y="590" width="510" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="DRdiy4o1eLYEtYRBI9Or-9" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 19px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;7. Trình duyệt người nhận hiển thị&amp;nbsp;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 19px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;badge + push notification&lt;/span&gt;&lt;/div&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_notify">
+                    <mxGeometry x="2780" y="650" width="560" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="DRdiy4o1eLYEtYRBI9Or-10" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 19px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;8. Gửi event đã đọc, cập nhật trạng thái&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_notify">
+                    <mxGeometry x="2420" y="710" width="450" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="DRdiy4o1eLYEtYRBI9Or-11" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 19px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;9. Frontend gửi event đã đọc&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1_notify">
+                    <mxGeometry x="2120" y="800" width="450" height="50" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

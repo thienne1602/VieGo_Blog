@@ -107,6 +107,22 @@ def login():
         if not user.is_active:
             return jsonify({'error': 'Tài khoản đã bị vô hiệu hóa'}), 403
         
+        # Check if account is banned
+        if user.is_account_banned():
+            banned_until = user.account_banned_until
+            if banned_until:
+                banned_until_str = banned_until.strftime("%d/%m/%Y %H:%M")
+                return jsonify({
+                    'error': f'Tài khoản của bạn đã bị khóa đến {banned_until_str}',
+                    'ban_type': 'account',
+                    'banned_until': banned_until.isoformat()
+                }), 403
+            else:
+                return jsonify({
+                    'error': 'Tài khoản của bạn đã bị khóa vĩnh viễn',
+                    'ban_type': 'account'
+                }), 403
+        
         # Update updated_at timestamp
         user.updated_at = datetime.utcnow()
         db.session.commit()
@@ -128,6 +144,24 @@ def login():
         
     except Exception as e:
         return jsonify({'error': f'Lỗi đăng nhập: {str(e)}'}), 500
+
+@auth_bp.route('/me', methods=['GET'])
+@jwt_required()
+def get_me():
+    """Get current user profile (alias for /profile)"""
+    try:
+        user_id = get_current_user_id()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'error': 'Không tìm thấy người dùng'}), 404
+        
+        return jsonify({
+            'user': user.to_dict(include_sensitive=True)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Lỗi lấy thông tin: {str(e)}'}), 500
 
 @auth_bp.route('/profile', methods=['GET'])
 @jwt_required()
@@ -167,6 +201,41 @@ def update_profile():
         for field in allowed_fields:
             if field in data:
                 setattr(user, field, data[field])
+        
+        # Update seller email and password if user is seller and fields are provided
+        if user.role == 'seller':
+            if 'seller_email' in data:
+                seller_email = data['seller_email'].strip().lower() if data['seller_email'] else None
+                if seller_email:
+                    # Validate email format
+                    if not validate_email(seller_email):
+                        return jsonify({'error': 'Email seller không hợp lệ'}), 400
+                user.seller_email = seller_email
+            
+            if 'seller_email_password' in data:
+                seller_password = data['seller_email_password']
+                if seller_password:
+                    # Only update if password is provided (not empty)
+                    user.set_seller_email_password(seller_password)
+                elif seller_password == '':
+                    # Empty string means clear the password
+                    user.seller_email_password = None
+            
+            # Update company information fields
+            company_fields = [
+                'company_name', 'company_address', 'company_phone', 
+                'company_tax_id', 'company_email', 'bank_account_number',
+                'bank_name', 'bank_account_holder'
+            ]
+            for field in company_fields:
+                if field in data:
+                    setattr(user, field, data[field].strip() if isinstance(data[field], str) else data[field])
+            
+            # Validate company email if provided
+            if 'company_email' in data and data['company_email']:
+                company_email = data['company_email'].strip().lower()
+                if not validate_email(company_email):
+                    return jsonify({'error': 'Email công ty không hợp lệ'}), 400
         
         # Update social links if provided
         if 'social_links' in data:

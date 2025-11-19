@@ -89,9 +89,13 @@ const LoginPage = () => {
             username: "",
             password: "Username hoặc mật khẩu không đúng",
           });
+          setLoading(false);
           return;
         }
-        router.push("/");
+        // Wait a bit for state to update and token to be stored
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        // Use window.location.href for full page reload to ensure auth state is refreshed
+        window.location.href = "/";
       } else {
         // Register logic
         alert("Đăng ký thành công! Vui lòng đăng nhập.");

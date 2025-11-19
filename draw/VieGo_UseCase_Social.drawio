@@ -1,0 +1,82 @@
+<mxfile host="65bd71144e">
+    <diagram name="Social Use Cases" id="viego-usecase-social">
+        <mxGraphModel dx="1089" dy="876" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" style="edgeStyle=none;html=1;endArrow=none;endFill=0;" edge="1" parent="1" source="actor_user" target="uc_social">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="actor_user" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=14" parent="1" vertex="1">
+                    <mxGeometry x="90" y="360" width="60" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" style="edgeStyle=none;html=1;endArrow=none;endFill=0;" edge="1" parent="1" source="actor_system" target="uc_social">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="actor_system" value="System" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=14" parent="1" vertex="1">
+                    <mxGeometry x="1030" y="375" width="60" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_social" value="Mạng xã hội &amp; tương tác" style="ellipse;whiteSpace=wrap;html=1;fontSize=18;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2" parent="1" vertex="1">
+                    <mxGeometry x="420" y="380" width="360" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_follow" value="Follow / Unfollow" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;fillColor=#fde1df;strokeColor=#b85450" parent="1" vertex="1">
+                    <mxGeometry x="240" y="600" width="220" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_friends" value="Kết bạn &amp; nhóm" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;fillColor=#fde1df;strokeColor=#b85450" parent="1" vertex="1">
+                    <mxGeometry x="330" y="240" width="220" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_stories" value="Stories 24h" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;fillColor=#fde1df;strokeColor=#b85450" parent="1" vertex="1">
+                    <mxGeometry x="490" y="640" width="220" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_chat" value="Chat realtime" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;fillColor=#fde1df;strokeColor=#b85450" parent="1" vertex="1">
+                    <mxGeometry x="740" y="620" width="220" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc_notif" value="Notifications tức thời" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;fillColor=#fde1df;strokeColor=#b85450" parent="1" vertex="1">
+                    <mxGeometry x="650" y="240" width="220" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_follow" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_social" target="uc_follow" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_friends" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_social" target="uc_friends" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_stories" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_social" target="uc_stories" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_chat" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_social" target="uc_chat" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="link_notif" value="" style="endArrow=block;dashed=1;html=1" parent="1" source="uc_social" target="uc_notif" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_user_follow" value="" style="endArrow=none;html=1" parent="1" source="actor_user" target="uc_follow" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_user_friends" value="" style="endArrow=none;html=1" parent="1" source="actor_user" target="uc_friends" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_user_stories" value="" style="endArrow=none;html=1" parent="1" source="actor_user" target="uc_stories" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_user_chat" value="" style="endArrow=none;html=1" parent="1" source="actor_user" target="uc_chat" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_user_notif" value="" style="endArrow=none;html=1" parent="1" source="actor_user" target="uc_notif" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_system_chat" value="" style="endArrow=none;html=1" parent="1" source="actor_system" target="uc_chat" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_system_notif" value="" style="endArrow=none;html=1" parent="1" source="actor_system" target="uc_notif" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="assoc_system_stories" value="" style="endArrow=none;html=1" parent="1" source="actor_system" target="uc_stories" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 18px;&quot;&gt;Mạng xã hội &amp;amp; tương tác&lt;/span&gt;" style="swimlane;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fillColor=#f5f5f5;strokeColor=#666666" parent="1" vertex="1">
+                    <mxGeometry x="200" y="180" width="770" height="580" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Google Maps - VieGo Blog</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1976d2;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        #map {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #1976d2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #1565c0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-item {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+        }
+        .log-error {
+            border-left-color: #dc3545;
+            color: #dc3545;
+        }
+        .log-success {
+            border-left-color: #28a745;
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Google Maps API - VieGo Blog</h1>
+        
+        <div id="status"></div>
+        
+        <div>
+            <button onclick="testAPIKey()">1. Test API Key</button>
+            <button onclick="testLibraries()">2. Test Libraries</button>
+            <button onclick="loadMap()">3. Load Map</button>
+            <button onclick="testPlacesAPI()">4. Test Places API</button>
+            <button onclick="clearLogs()">Clear Logs</button>
+        </div>
+        
+        <div id="map"></div>
+        
+        <div class="log" id="logs">
+            <div class="log-item">📝 Ready to test. Click buttons above to start debugging.</div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = 'AIzaSyA7gWv2sQWonQMvSsWIOB00Sxcxgrf5lx0';
+        let mapInstance = null;
+        let placesService = null;
+        
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const logItem = document.createElement('div');
+            logItem.className = `log-item ${type === 'error' ? 'log-error' : type === 'success' ? 'log-success' : ''}`;
+            const timestamp = new Date().toLocaleTimeString();
+            logItem.textContent = `[${timestamp}] ${message}`;
+            logsDiv.appendChild(logItem);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            log(message, type);
+        }
+        
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '<div class="log-item">📝 Logs cleared.</div>';
+        }
+        
+        async function testAPIKey() {
+            showStatus('⏳ Đang kiểm tra API key...', 'info');
+            log(`Testing API Key: ${API_KEY.substring(0, 10)}...`, 'info');
+            
+            try {
+                // Test loading Maps JavaScript API
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,geometry,drawing,visualization&callback=initTestCallback`;
+                    script.async = true;
+                    script.defer = true;
+                    
+                    window.initTestCallback = function() {
+                        log('✅ Script loaded successfully', 'success');
+                        
+                        if (window.google && window.google.maps) {
+                            showStatus('✅ API Key hợp lệ và hoạt động!', 'success');
+                            log('✅ Google Maps object exists', 'success');
+                            log(`✅ Maps API version: ${window.google.maps.version || 'unknown'}`, 'success');
+                            resolve(true);
+                        } else {
+                            showStatus('❌ Google Maps object không tồn tại', 'error');
+                            log('❌ Google Maps object not found', 'error');
+                            reject(new Error('Google Maps not loaded'));
+                        }
+                    };
+                    
+                    script.onerror = function(error) {
+                        showStatus('❌ Lỗi tải Google Maps API', 'error');
+                        log(`❌ Script load error: ${error}`, 'error');
+                        reject(error);
+                    };
+                    
+                    log(`📡 Loading script: ${script.src.substring(0, 80)}...`, 'info');
+                    document.head.appendChild(script);
+                });
+            } catch (error) {
+                showStatus(`❌ Lỗi: ${error.message}`, 'error');
+                log(`❌ Error: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+        
+        async function testLibraries() {
+            if (!window.google || !window.google.maps) {
+                showStatus('⚠️ Vui lòng chạy "Test API Key" trước!', 'warning');
+                return;
+            }
+            
+            showStatus('⏳ Đang kiểm tra libraries...', 'info');
+            const libs = [
+                { name: 'maps', check: () => !!window.google.maps },
+                { name: 'places', check: () => !!window.google.maps.places },
+                { name: 'geometry', check: () => !!window.google.maps.geometry },
+                { name: 'drawing', check: () => !!window.google.maps.drawing },
+                { name: 'visualization', check: () => !!window.google.maps.visualization },
+            ];
+            
+            let allOk = true;
+            libs.forEach(lib => {
+                const exists = lib.check();
+                if (exists) {
+                    log(`✅ ${lib.name} library: OK`, 'success');
+                } else {
+                    log(`❌ ${lib.name} library: MISSING`, 'error');
+                    allOk = false;
+                }
+            });
+            
+            if (allOk) {
+                showStatus('✅ Tất cả libraries đã được load thành công!', 'success');
+            } else {
+                showStatus('⚠️ Một số libraries chưa được load', 'warning');
+            }
+        }
+        
+        function loadMap() {
+            if (!window.google || !window.google.maps) {
+                showStatus('⚠️ Vui lòng chạy "Test API Key" trước!', 'warning');
+                return;
+            }
+            
+            showStatus('⏳ Đang load bản đồ...', 'info');
+            log('🗺️ Initializing map...', 'info');
+            
+            try {
+                const mapDiv = document.getElementById('map');
+                if (!mapDiv) {
+                    showStatus('❌ Không tìm thấy container bản đồ', 'error');
+                    return;
+                }
+                
+                mapInstance = new google.maps.Map(mapDiv, {
+                    center: { lat: 10.762622, lng: 106.660172 }, // Ho Chi Minh City
+                    zoom: 13,
+                    mapTypeId: 'roadmap',
+                    fullscreenControl: true,
+                    streetViewControl: true,
+                    mapTypeControl: true,
+                });
+                
+                log('✅ Map instance created', 'success');
+                
+                // Add marker
+                const marker = new google.maps.Marker({
+                    position: { lat: 10.762622, lng: 106.660172 },
+                    map: mapInstance,
+                    title: 'Ho Chi Minh City',
+                });
+                
+                log('✅ Marker added', 'success');
+                
+                // Test Places Service
+                placesService = new google.maps.places.PlacesService(mapInstance);
+                log('✅ Places Service initialized', 'success');
+                
+                showStatus('✅ Bản đồ đã được load thành công!', 'success');
+                log('✅ Map loaded and ready', 'success');
+            } catch (error) {
+                showStatus(`❌ Lỗi load bản đồ: ${error.message}`, 'error');
+                log(`❌ Map error: ${error.message}`, 'error');
+                log(`❌ Stack: ${error.stack}`, 'error');
+            }
+        }
+        
+        function testPlacesAPI() {
+            if (!placesService || !mapInstance) {
+                showStatus('⚠️ Vui lòng chạy "Load Map" trước!', 'warning');
+                return;
+            }
+            
+            showStatus('⏳ Đang test Places API...', 'info');
+            log('🔍 Testing Places API...', 'info');
+            
+            const request = {
+                location: mapInstance.getCenter(),
+                radius: 1000,
+                type: 'restaurant',
+                keyword: 'phở',
+            };
+            
+            placesService.nearbySearch(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    log(`✅ Places API: Found ${results.length} results`, 'success');
+                    showStatus(`✅ Places API hoạt động! Tìm thấy ${results.length} địa điểm.`, 'success');
+                    
+                    // Add markers for first 5 results
+                    results.slice(0, 5).forEach((place, index) => {
+                        if (place.geometry && place.geometry.location) {
+                            new google.maps.Marker({
+                                position: place.geometry.location,
+                                map: mapInstance,
+                                title: place.name,
+                            });
+                            log(`📍 Marker ${index + 1}: ${place.name}`, 'info');
+                        }
+                    });
+                    
+                    // Fit bounds
+                    const bounds = new google.maps.LatLngBounds();
+                    results.forEach(place => {
+                        if (place.geometry && place.geometry.location) {
+                            bounds.extend(place.geometry.location);
+                        }
+                    });
+                    mapInstance.fitBounds(bounds);
+                } else {
+                    log(`❌ Places API error: ${status}`, 'error');
+                    showStatus(`❌ Places API lỗi: ${status}`, 'error');
+                }
+            });
+        }
+        
+        // Auto-run test on load
+        window.addEventListener('load', () => {
+            log('🚀 Page loaded, ready for testing', 'info');
+            log(`🔑 API Key: ${API_KEY.substring(0, 10)}...`, 'info');
+        });
+    </script>
+</body>
+</html>
+

@@ -39,8 +39,8 @@ const AuthGuard: React.FC<Props> = ({ children }) => {
         return;
       }
 
-      // Allow access to welcome and tours pages
-      if (path === "/welcome" || isToursPath) {
+      // Allow access to welcome, login, register, and tours pages
+      if (path === "/welcome" || path === "/login" || path === "/register" || isToursPath) {
         return;
       }
 
@@ -49,8 +49,10 @@ const AuthGuard: React.FC<Props> = ({ children }) => {
       return;
     } else {
       // If authenticated and currently on welcome, send to home (blog)
+      // BUT allow if there's a ?force=true query parameter (for logout/login flow)
       // Allow authenticated users to visit /tours (listings) and its children.
-      if (path === "/welcome") {
+      const forceParam = new URLSearchParams(window.location.search).get("force");
+      if (path === "/welcome" && forceParam !== "true") {
         router.replace("/");
       }
     }

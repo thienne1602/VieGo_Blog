@@ -110,11 +110,11 @@ const PostsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 pt-20">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-primary mx-auto mb-4"></div>
-            <p className="text-neutral-600">Đang tải bài viết...</p>
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 dark:border-gray-700 border-t-primary-600 dark:border-t-primary-500 mx-auto mb-4"></div>
+            <p className="text-neutral-600 dark:text-gray-400">Đang tải bài viết...</p>
           </div>
         </div>
       </div>
@@ -122,7 +122,7 @@ const PostsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 pt-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div
@@ -131,10 +131,10 @@ const PostsPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-neutral-800 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-neutral-800 dark:text-white mb-4">
             Blog Du Lịch & Ẩm Thực
           </h1>
-          <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
+          <p className="text-xl text-neutral-600 dark:text-gray-400 max-w-2xl mx-auto">
             Khám phá những câu chuyện thú vị về du lịch và ẩm thực Việt Nam
           </p>
         </motion.div>
@@ -156,8 +156,10 @@ const PostsPage = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-4 py-3 pr-12 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
               />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400">
-                🔍
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 dark:text-gray-500">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </div>
             </div>
           </div>
@@ -170,8 +172,8 @@ const PostsPage = () => {
                 onClick={() => setSelectedCategory(category.value)}
                 className={`px-4 py-2 rounded-full border-2 transition-all duration-300 ${
                   selectedCategory === category.value
-                    ? "bg-primary border-primary text-white"
-                    : "bg-white border-neutral-200 text-neutral-700 hover:border-primary hover:text-primary"
+                    ? "bg-primary-600 dark:bg-primary-500 border-primary-600 dark:border-primary-500 text-white"
+                    : "bg-white dark:bg-gray-800 border-neutral-200 dark:border-gray-700 text-neutral-700 dark:text-gray-300 hover:border-primary-600 dark:hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
                 }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -189,11 +191,11 @@ const PostsPage = () => {
             animate={{ opacity: 1 }}
             className="text-center py-8"
           >
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
-              <p className="text-red-600 mb-4">⚠️ {error}</p>
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 max-w-md mx-auto">
+              <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                className="bg-red-600 dark:bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
               >
                 Thử lại
               </button>
@@ -208,11 +210,15 @@ const PostsPage = () => {
             animate={{ opacity: 1 }}
             className="text-center py-12"
           >
-            <div className="text-6xl mb-4">📝</div>
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
               Không tìm thấy bài viết
             </h3>
-            <p className="text-gray-500">
+            <p className="text-gray-500 dark:text-gray-400">
               {searchTerm || selectedCategory !== "all"
                 ? "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
                 : "Chưa có bài viết nào được đăng"}
@@ -226,17 +232,17 @@ const PostsPage = () => {
             {filteredPosts.map((post, index) => (
               <motion.article
                 key={post.id}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-700"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 whileHover={{ y: -5 }}
               >
                 {/* Image */}
-                <div className="h-48 bg-gradient-to-br from-primary-100 to-accent-100 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10" />
+                <div className="h-48 bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-black/20 z-10" />
                   <div className="absolute top-3 left-3 z-20">
-                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600">
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">
                       {post.category_name || "Khác"}
                     </span>
                   </div>
@@ -244,11 +250,11 @@ const PostsPage = () => {
 
                 {/* Content */}
                 <div className="p-6">
-                  <h3 className="font-bold text-xl mb-2 text-neutral-800 line-clamp-2 hover:text-primary transition-colors">
+                  <h3 className="font-bold text-xl mb-2 text-neutral-800 dark:text-white line-clamp-2 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
                     {post.title}
                   </h3>
 
-                  <p className="text-neutral-600 mb-4 line-clamp-3 leading-relaxed">
+                  <p className="text-neutral-600 dark:text-gray-300 mb-4 line-clamp-3 leading-relaxed">
                     {post.excerpt}
                   </p>
 
@@ -257,7 +263,7 @@ const PostsPage = () => {
                     {post.tags.slice(0, 3).map((tag, idx) => (
                       <span
                         key={idx}
-                        className="px-2 py-1 bg-neutral-100 text-neutral-600 text-xs rounded"
+                        className="px-2 py-1 bg-neutral-100 dark:bg-gray-700 text-neutral-600 dark:text-gray-300 text-xs rounded"
                       >
                         #{tag}
                       </span>
@@ -265,10 +271,21 @@ const PostsPage = () => {
                   </div>
 
                   {/* Meta Info */}
-                  <div className="flex items-center justify-between text-sm text-neutral-500">
+                  <div className="flex items-center justify-between text-sm text-neutral-500 dark:text-gray-400">
                     <div className="flex items-center space-x-4">
-                      <span>👤 {post.author_name || "Admin"}</span>
-                      <span>📍 {post.location || "Việt Nam"}</span>
+                      <span className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        {post.author_name || "Admin"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {post.location || "Việt Nam"}
+                      </span>
                     </div>
                     <span>
                       {formatDate(
@@ -278,21 +295,25 @@ const PostsPage = () => {
                   </div>
 
                   {/* Stats */}
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                    <div className="flex space-x-4 text-sm text-neutral-500">
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex space-x-4 text-sm text-neutral-500 dark:text-gray-400">
                       <span className="flex items-center space-x-1">
-                        <span>❤️</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
                         <span>{post.like_count || 0}</span>
                       </span>
                       <span className="flex items-center space-x-1">
-                        <span>💬</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
                         <span>{post.comment_count || 0}</span>
                       </span>
                     </div>
 
                     <Link
                       href={`/posts/${post.slug}`}
-                      className="text-primary hover:text-accent font-medium text-sm"
+                      className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-500 font-medium text-sm"
                     >
                       Đọc thêm →
                     </Link>

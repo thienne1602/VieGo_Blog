@@ -44,8 +44,16 @@ export default function WelcomePage() {
     setMounted(true);
   }, []);
 
-  // Don't redirect in useEffect - let middleware handle it
-  // This prevents redirect loops
+  // Check if user is already authenticated and force param is not set
+  // If authenticated without force param, they should be redirected by middleware/AuthGuard
+  // But if force=true, allow them to stay (for logout/login flow)
+  useEffect(() => {
+    const forceParam = new URLSearchParams(window.location.search).get("force");
+    if (isAuthenticated && forceParam !== "true" && !authLoading) {
+      // User is authenticated and no force param, redirect to home
+      router.replace("/");
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -139,16 +147,16 @@ export default function WelcomePage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-cyan-500 via-teal-400 to-emerald-500">
+    <div className="relative min-h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Floating circles */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-300/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-300/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        {/* Subtle floating circles */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary-100/30 dark:bg-primary-900/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent-100/30 dark:bg-accent-900/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-primary-100/20 dark:bg-primary-900/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
 
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+        {/* Subtle grid pattern overlay */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzllYTNhZiIgc3Ryb2tlLW9wYWNpdHk9IjAuMDMiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-50 dark:opacity-20"></div>
       </div>
 
       <div
@@ -161,26 +169,26 @@ export default function WelcomePage() {
           <div className="lg:col-span-3 hidden lg:block space-y-8 p-8">
             {/* Main Logo & Tagline */}
             <div className="space-y-6 animate-fade-in">
-              <div className="inline-flex items-center space-x-3 bg-white/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/20">
-                <Compass className="w-6 h-6 text-white animate-spin-slow" />
-                <span className="text-white font-semibold">
+              <div className="inline-flex items-center space-x-3 bg-white dark:bg-gray-800/50 backdrop-blur-md px-6 py-3 rounded-full border border-gray-200 dark:border-gray-700 shadow-lg">
+                <Compass className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                <span className="text-gray-800 dark:text-gray-200 font-semibold">
                   Khám phá Việt Nam đích thực
                 </span>
               </div>
 
-              <h1 className="text-8xl font-black text-white drop-shadow-2xl leading-tight">
-                Vie<span className="text-orange-400">Go</span>
+              <h1 className="text-8xl font-black text-gray-900 dark:text-white leading-tight">
+                Vie<span className="text-primary-600 dark:text-primary-400">Go</span>
               </h1>
 
-              <p className="text-3xl text-white/90 font-light leading-relaxed">
+              <p className="text-3xl text-gray-800 dark:text-gray-200 font-light leading-relaxed">
                 Hành trình của bạn,
                 <br />
-                <span className="font-semibold text-white">
+                <span className="font-semibold text-gray-900 dark:text-white">
                   Câu chuyện của chúng ta
                 </span>
               </p>
 
-              <p className="text-xl text-white/80 max-w-xl">
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-xl">
                 Nơi mọi chuyến đi trở thành kỷ niệm, mọi trải nghiệm được chia
                 sẻ, và mọi người đam mê du lịch kết nối với nhau.
               </p>
@@ -188,89 +196,89 @@ export default function WelcomePage() {
 
             {/* Features Grid */}
             <div className="grid grid-cols-2 gap-4 mt-12">
-              <div className="group bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-                <div className="bg-gradient-to-br from-cyan-400 to-blue-500 p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <MapPin className="w-7 h-7 text-white" />
+              <div className="group bg-white dark:bg-gray-800/50 backdrop-blur-md p-6 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                <div className="bg-primary-100 dark:bg-primary-900/30 p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <MapPin className="w-7 h-7 text-primary-600 dark:text-primary-400" />
                 </div>
-                <h3 className="font-bold text-white text-lg mb-2">
+                <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
                   5000+ Địa điểm
                 </h3>
-                <p className="text-white/70 text-sm">Khám phá khắp Việt Nam</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Khám phá khắp Việt Nam</p>
               </div>
 
-              <div className="group bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-                <div className="bg-gradient-to-br from-orange-400 to-red-500 p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <Utensils className="w-7 h-7 text-white" />
+              <div className="group bg-white dark:bg-gray-800/50 backdrop-blur-md p-6 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-accent-300 dark:hover:border-accent-600 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                <div className="bg-accent-100 dark:bg-accent-900/30 p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <Utensils className="w-7 h-7 text-accent-600 dark:text-accent-400" />
                 </div>
-                <h3 className="font-bold text-white text-lg mb-2">
+                <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
                   Ẩm thực đường phố
                 </h3>
-                <p className="text-white/70 text-sm">Khám phá hương vị Việt</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Khám phá hương vị Việt</p>
               </div>
 
-              <div className="group bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-                <div className="bg-gradient-to-br from-purple-400 to-pink-500 p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <Users className="w-7 h-7 text-white" />
+              <div className="group bg-white dark:bg-gray-800/50 backdrop-blur-md p-6 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                <div className="bg-primary-100 dark:bg-primary-900/30 p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <Users className="w-7 h-7 text-primary-600 dark:text-primary-400" />
                 </div>
-                <h3 className="font-bold text-white text-lg mb-2">
+                <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
                   Cộng đồng 10K+
                 </h3>
-                <p className="text-white/70 text-sm">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
                   Kết nối người yêu du lịch
                 </p>
               </div>
 
-              <div className="group bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-                <div className="bg-gradient-to-br from-green-400 to-emerald-500 p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <Mountain className="w-7 h-7 text-white" />
+              <div className="group bg-white dark:bg-gray-800/50 backdrop-blur-md p-6 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                  <Mountain className="w-7 h-7 text-green-600 dark:text-green-400" />
                 </div>
-                <h3 className="font-bold text-white text-lg mb-2">
+                <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-2">
                   Tour độc đáo
                 </h3>
-                <p className="text-white/70 text-sm">Trải nghiệm khác biệt</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Trải nghiệm khác biệt</p>
               </div>
             </div>
 
             {/* Stats Bar */}
-            <div className="flex items-center justify-around bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 mt-8">
+            <div className="flex items-center justify-around bg-white dark:bg-gray-800/50 backdrop-blur-md p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg mt-8">
               <div className="text-center">
-                <div className="text-4xl font-black text-white">50K+</div>
-                <div className="text-white/70 text-sm mt-1">Bài viết</div>
+                <div className="text-4xl font-black text-primary-600 dark:text-primary-400">50K+</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm mt-1">Bài viết</div>
               </div>
-              <div className="w-px h-12 bg-white/20"></div>
+              <div className="w-px h-12 bg-gray-200 dark:bg-gray-700"></div>
               <div className="text-center">
-                <div className="text-4xl font-black text-white">10K+</div>
-                <div className="text-white/70 text-sm mt-1">Thành viên</div>
+                <div className="text-4xl font-black text-primary-600 dark:text-primary-400">10K+</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm mt-1">Thành viên</div>
               </div>
-              <div className="w-px h-12 bg-white/20"></div>
+              <div className="w-px h-12 bg-gray-200 dark:bg-gray-700"></div>
               <div className="text-center">
-                <div className="text-4xl font-black text-white">1000+</div>
-                <div className="text-white/70 text-sm mt-1">Điểm đến</div>
+                <div className="text-4xl font-black text-primary-600 dark:text-primary-400">1000+</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm mt-1">Điểm đến</div>
               </div>
             </div>
           </div>
 
           {/* Right Side - Auth Form */}
           <div className="lg:col-span-2 w-full">
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-10 border border-white/50">
+            <div className="bg-white dark:bg-gray-800 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-10 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
               {/* Mobile Logo */}
               <div className="lg:hidden mb-6 text-center">
-                <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-orange-500 mb-2">
-                  VieGo
+                <h1 className="text-5xl font-black text-gray-900 dark:text-white mb-2">
+                  Vie<span className="text-primary-600 dark:text-primary-400">Go</span>
                 </h1>
-                <p className="text-gray-600 font-medium">
+                <p className="text-gray-600 dark:text-gray-400 font-medium">
                   Khám phá Việt Nam đích thực
                 </p>
               </div>
 
               {/* Welcome Text */}
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                   {isLogin
-                    ? "Chào mừng trở lại! 👋"
-                    : "Tham gia cùng chúng tôi! 🎉"}
+                    ? "Chào mừng trở lại!"
+                    : "Tham gia cùng chúng tôi!"}
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-400">
                   {isLogin
                     ? "Đăng nhập để tiếp tục hành trình của bạn"
                     : "Tạo tài khoản để bắt đầu khám phá"}
@@ -278,7 +286,7 @@ export default function WelcomePage() {
               </div>
 
               {/* Tab Switcher */}
-              <div className="flex bg-gradient-to-r from-teal-50 to-orange-50 rounded-xl p-1.5 mb-6">
+              <div className="flex bg-gray-100 dark:bg-gray-700/50 rounded-xl p-1.5 mb-6">
                 <button
                   onClick={() => {
                     setIsLogin(true);
@@ -292,8 +300,8 @@ export default function WelcomePage() {
                   }}
                   className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 ${
                     isLogin
-                      ? "bg-white text-teal-600 shadow-lg scale-105"
-                      : "text-gray-600 hover:text-gray-800"
+                      ? "bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-lg scale-105"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                   }`}
                 >
                   Đăng nhập
@@ -311,8 +319,8 @@ export default function WelcomePage() {
                   }}
                   className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 ${
                     !isLogin
-                      ? "bg-white text-orange-600 shadow-lg scale-105"
-                      : "text-gray-600 hover:text-gray-800"
+                      ? "bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-lg scale-105"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                   }`}
                 >
                   Đăng ký
@@ -321,9 +329,11 @@ export default function WelcomePage() {
 
               {/* Error Message */}
               {error && (
-                <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg mb-4 animate-shake">
+                <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-4 animate-shake">
                   <div className="flex items-center">
-                    <span className="text-2xl mr-3">⚠️</span>
+                    <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
                     <span>{error}</span>
                   </div>
                 </div>
@@ -333,7 +343,7 @@ export default function WelcomePage() {
               {isLogin ? (
                 <form onSubmit={handleLogin} className="space-y-5">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Tên đăng nhập hoặc Email
                     </label>
                     <input
@@ -341,14 +351,14 @@ export default function WelcomePage() {
                       name="username"
                       value={formData.username}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all"
+                      className="w-full px-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 outline-none transition-all"
                       placeholder="example@email.com"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Mật khẩu
                     </label>
                     <div className="relative">
@@ -357,7 +367,7 @@ export default function WelcomePage() {
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all"
+                        className="w-full px-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 outline-none transition-all"
                         placeholder="••••••••"
                         required
                       />
@@ -378,7 +388,7 @@ export default function WelcomePage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-2xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="w-full bg-primary-600 dark:bg-primary-500 hover:bg-primary-700 dark:hover:bg-primary-600 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center">
@@ -412,7 +422,7 @@ export default function WelcomePage() {
                 /* Register Form */
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Họ và tên
                     </label>
                     <input
@@ -420,14 +430,14 @@ export default function WelcomePage() {
                       name="full_name"
                       value={formData.full_name}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                      className="w-full px-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 outline-none transition-all"
                       placeholder="Nguyễn Văn A"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Tên đăng nhập
                     </label>
                     <input
@@ -435,14 +445,14 @@ export default function WelcomePage() {
                       name="username"
                       value={formData.username}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                      className="w-full px-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 outline-none transition-all"
                       placeholder="traveler123"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Email
                     </label>
                     <input
@@ -450,14 +460,14 @@ export default function WelcomePage() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                      className="w-full px-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 outline-none transition-all"
                       placeholder="example@email.com"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Mật khẩu
                     </label>
                     <div className="relative">
@@ -466,7 +476,7 @@ export default function WelcomePage() {
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                        className="w-full px-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 outline-none transition-all"
                         placeholder="Tối thiểu 6 ký tự"
                         required
                       />
@@ -487,7 +497,7 @@ export default function WelcomePage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-2xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="w-full bg-primary-600 dark:bg-primary-500 hover:bg-primary-700 dark:hover:bg-primary-600 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center">
@@ -521,7 +531,7 @@ export default function WelcomePage() {
 
               {/* Additional Info */}
               <div className="mt-8 text-center">
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-400">
                   {isLogin ? (
                     <>
                       Chưa có tài khoản?{" "}
@@ -536,7 +546,7 @@ export default function WelcomePage() {
                             full_name: "",
                           });
                         }}
-                        className="text-orange-600 hover:text-orange-700 font-bold hover:underline transition"
+                        className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-bold hover:underline transition"
                       >
                         Đăng ký miễn phí
                       </button>
@@ -555,7 +565,7 @@ export default function WelcomePage() {
                             full_name: "",
                           });
                         }}
-                        className="text-teal-600 hover:text-teal-700 font-bold hover:underline transition"
+                        className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-bold hover:underline transition"
                       >
                         Đăng nhập ngay
                       </button>

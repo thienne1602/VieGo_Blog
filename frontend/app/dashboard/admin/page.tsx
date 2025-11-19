@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useAuth } from "@/lib/AuthContext";
+import api from "@/lib/api";
 import {
   Users,
   FileText,
@@ -24,6 +26,7 @@ import {
   Clock,
   Ban,
   X,
+  Heart,
 } from "lucide-react";
 
 // Toast notification component
@@ -47,308 +50,170 @@ const Toast = ({ message, type, onClose }: any) => (
   </motion.div>
 );
 
-// API functions
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
+// API functions using the api client
 const adminAPI = {
   getStats: async () => {
-    const token = localStorage.getItem("access_token");
-    if (!token) throw new Error("No token - 401");
-
-    const response = await fetch(`${API_BASE_URL}/api/admin/stats/overview`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (response.status === 401) throw new Error("Unauthorized - 401");
-    if (response.status === 403) throw new Error("Forbidden - 403");
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    return response.json();
+    const result = await api.get("/admin/stats/overview");
+    if (!result.success)
+      throw new Error(result.error || "Failed to fetch stats");
+    return result.data;
   },
 
   getRecentActivity: async () => {
-    const token = localStorage.getItem("access_token");
-    if (!token) throw new Error("No token - 401");
-
-    const response = await fetch(`${API_BASE_URL}/api/admin/activity/recent`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (response.status === 401) throw new Error("Unauthorized - 401");
-    if (response.status === 403) throw new Error("Forbidden - 403");
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    return response.json();
+    const result = await api.get("/admin/activity/recent");
+    if (!result.success)
+      throw new Error(result.error || "Failed to fetch activity");
+    return result.data;
   },
 
   getUsers: async (params: any = {}) => {
-    const token = localStorage.getItem("access_token");
-    const queryParams = new URLSearchParams(params).toString();
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/users?${queryParams}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    if (!response.ok) throw new Error("Failed to fetch users");
-    return response.json();
+    const result = await api.get("/admin/users", params);
+    if (!result.success)
+      throw new Error(result.error || "Failed to fetch users");
+    return result.data;
   },
 
   updateUser: async (userId: number, data: any) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error("Failed to update user");
-    return response.json();
+    const result = await api.put(`/admin/users/${userId}`, data);
+    if (!result.success)
+      throw new Error(result.error || "Failed to update user");
+    return result.data;
   },
 
   deleteUser: async (userId: number) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error("Failed to delete user");
-    return response.json();
+    const result = await api.delete(`/admin/users/${userId}`);
+    if (!result.success)
+      throw new Error(result.error || "Failed to delete user");
+    return result.data;
   },
 
   banUser: async (userId: number) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/users/${userId}/ban`,
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    if (!response.ok) throw new Error("Failed to ban user");
-    return response.json();
+    const result = await api.post(`/admin/users/${userId}/ban`, {});
+    if (!result.success) throw new Error(result.error || "Failed to ban user");
+    return result.data;
   },
 
   unbanUser: async (userId: number) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/users/${userId}/unban`,
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    if (!response.ok) throw new Error("Failed to unban user");
-    return response.json();
+    const result = await api.post(`/admin/users/${userId}/unban`, {});
+    if (!result.success)
+      throw new Error(result.error || "Failed to unban user");
+    return result.data;
   },
 
   getPosts: async (params: any = {}) => {
-    const token = localStorage.getItem("access_token");
-    const queryParams = new URLSearchParams(params).toString();
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/posts?${queryParams}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    if (!response.ok) throw new Error("Failed to fetch posts");
-    return response.json();
+    const result = await api.get("/admin/posts", params);
+    if (!result.success)
+      throw new Error(result.error || "Failed to fetch posts");
+    return result.data;
   },
 
   updatePost: async (postId: number, data: any) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${API_BASE_URL}/api/admin/posts/${postId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error("Failed to update post");
-    return response.json();
+    const result = await api.put(`/admin/posts/${postId}`, data);
+    if (!result.success)
+      throw new Error(result.error || "Failed to update post");
+    return result.data;
   },
 
   deletePost: async (postId: number) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${API_BASE_URL}/api/admin/posts/${postId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error("Failed to delete post");
-    return response.json();
+    const result = await api.delete(`/admin/posts/${postId}`);
+    if (!result.success)
+      throw new Error(result.error || "Failed to delete post");
+    return result.data;
   },
 
   getComments: async (params: any = {}) => {
-    const token = localStorage.getItem("access_token");
-    const queryParams = new URLSearchParams(params).toString();
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/comments?${queryParams}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    if (!response.ok) throw new Error("Failed to fetch comments");
-    return response.json();
+    const result = await api.get("/admin/comments", params);
+    if (!result.success)
+      throw new Error(result.error || "Failed to fetch comments");
+    return result.data;
   },
 
   deleteComment: async (commentId: number) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/comments/${commentId}`,
-      {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    if (!response.ok) throw new Error("Failed to delete comment");
-    return response.json();
+    const result = await api.delete(`/admin/comments/${commentId}`);
+    if (!result.success)
+      throw new Error(result.error || "Failed to delete comment");
+    return result.data;
   },
 
   getAnalytics: async (days: number = 30) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/analytics/overview?days=${days}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    if (!response.ok) throw new Error("Failed to fetch analytics");
-    return response.json();
+    const result = await api.get("/admin/analytics/overview", { days });
+    if (!result.success)
+      throw new Error(result.error || "Failed to fetch analytics");
+    return result.data;
   },
 
   getReports: async (params: any = {}) => {
-    const token = localStorage.getItem("access_token");
-    const queryParams = new URLSearchParams(params).toString();
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/reports?${queryParams}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    if (!response.ok) throw new Error("Failed to fetch reports");
-    return response.json();
+    const result = await api.get("/admin/reports", params);
+    if (!result.success)
+      throw new Error(result.error || "Failed to fetch reports");
+    return result.data;
   },
 
   getReportsStats: async () => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${API_BASE_URL}/api/admin/reports/stats`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error("Failed to fetch report stats");
-    return response.json();
+    const result = await api.get("/admin/reports/stats");
+    if (!result.success)
+      throw new Error(result.error || "Failed to fetch report stats");
+    return result.data;
   },
 
   resolveReport: async (reportId: number, data: any) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/reports/${reportId}/resolve`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      }
-    );
-    if (!response.ok) throw new Error("Failed to resolve report");
-    return response.json();
+    const result = await api.post(`/admin/reports/${reportId}/resolve`, data);
+    if (!result.success)
+      throw new Error(result.error || "Failed to resolve report");
+    return result.data;
   },
 
   dismissReport: async (reportId: number, data: any) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/reports/${reportId}/dismiss`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      }
-    );
-    if (!response.ok) throw new Error("Failed to dismiss report");
-    return response.json();
+    const result = await api.post(`/admin/reports/${reportId}/dismiss`, data);
+    if (!result.success)
+      throw new Error(result.error || "Failed to dismiss report");
+    return result.data;
   },
 
   getSettings: async () => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${API_BASE_URL}/api/admin/settings`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error("Failed to fetch settings");
-    return response.json();
+    const result = await api.get("/admin/settings");
+    if (!result.success)
+      throw new Error(result.error || "Failed to fetch settings");
+    return result.data;
   },
 
   updateSettings: async (data: any) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${API_BASE_URL}/api/admin/settings`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error("Failed to update settings");
-    return response.json();
+    const result = await api.put("/admin/settings", data);
+    if (!result.success)
+      throw new Error(result.error || "Failed to update settings");
+    return result.data;
   },
 };
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<any>(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  const currentTabRef = useRef<string>("overview");
 
-  // Check authentication on mount
+  // Check authentication and authorization
   useEffect(() => {
-    const checkAuth = () => {
-      // Migrate old token if exists
-      const oldToken = localStorage.getItem("viego_token");
-      const newToken = localStorage.getItem("access_token");
+    if (authLoading) return; // Wait for auth to complete
 
-      if (oldToken && !newToken) {
-        console.log("Migrating token from viego_token to access_token");
-        localStorage.setItem("access_token", oldToken);
-        localStorage.removeItem("viego_token");
-      }
+    if (!user) {
+      console.error("No user found - redirecting to welcome");
+      showToast("Vui lòng đăng nhập lại", "error");
+      setTimeout(() => router.push("/welcome"), 1500);
+      return;
+    }
 
-      // Check if token exists
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        console.error("No access token found - redirecting to login");
-        showToast("Vui lòng đăng nhập lại", "error");
-        setTimeout(() => router.push("/login"), 1500);
-        return;
-      }
+    if (user.role !== "admin" && user.role !== "moderator") {
+      console.error("User is not admin - access denied");
+      showToast("Bạn không có quyền truy cập Admin Dashboard", "error");
+      setTimeout(() => router.push("/"), 1500);
+      return;
+    }
 
-      // Check if user is admin
-      try {
-        const userStr = localStorage.getItem("user");
-        if (userStr) {
-          const user = JSON.parse(userStr);
-          if (user.role !== "admin" && user.role !== "moderator") {
-            console.error("User is not admin - access denied");
-            showToast("Bạn không có quyền truy cập Admin Dashboard", "error");
-            setTimeout(() => router.push("/dashboard"), 1500);
-            return;
-          }
-        }
-      } catch (e) {
-        console.error("Failed to parse user data:", e);
-      }
-
-      setAuthChecked(true);
-    };
-
-    checkAuth();
-  }, [router]);
+    // Load initial data
+    loadData();
+  }, [user, authLoading, router]);
 
   // Stats state
   const [stats, setStats] = useState({
@@ -417,10 +282,12 @@ export default function AdminDashboard() {
 
   // Load data based on active tab
   useEffect(() => {
-    if (authChecked) {
+    if (user && !authLoading) {
+      // Update current tab ref to track which tab is loading
+      currentTabRef.current = activeTab;
       loadData();
     }
-  }, [activeTab, authChecked]);
+  }, [activeTab, user, authLoading]);
 
   // Reload users when filters change
   useEffect(() => {
@@ -451,33 +318,68 @@ export default function AdminDashboard() {
   }, [reportsPage, reportsStatusFilter, reportsPriorityFilter]);
 
   const loadData = async () => {
+    const tabWhenStarted = currentTabRef.current;
     setLoading(true);
     try {
-      if (activeTab === "overview") {
+      if (activeTab === "overview" && tabWhenStarted === "overview") {
         const [statsData, activityData] = await Promise.all([
           adminAPI.getStats(),
           adminAPI.getRecentActivity(),
         ]);
-        setStats(statsData);
-        setRecentActivity(activityData);
-      } else if (activeTab === "users") {
+        // Only update state if we're still on the same tab and data is valid
+        if (currentTabRef.current === "overview") {
+          if (statsData && typeof statsData === "object") {
+            setStats(statsData);
+          }
+          if (activityData && Array.isArray(activityData)) {
+            setRecentActivity(activityData);
+          }
+        }
+      } else if (activeTab === "users" && tabWhenStarted === "users") {
         await loadUsers();
-      } else if (activeTab === "content") {
+      } else if (activeTab === "content" && tabWhenStarted === "content") {
         await loadPosts();
-      } else if (activeTab === "comments") {
+      } else if (activeTab === "comments" && tabWhenStarted === "comments") {
         await loadComments();
-      } else if (activeTab === "reports") {
+      } else if (activeTab === "reports" && tabWhenStarted === "reports") {
         await loadReports();
-        const statsData = await adminAPI.getReportsStats();
-        setReportsStats(statsData);
-      } else if (activeTab === "analytics") {
+        if (currentTabRef.current === "reports") {
+          try {
+            const statsData = await adminAPI.getReportsStats();
+            if (statsData && typeof statsData === "object") {
+              setReportsStats(statsData);
+            }
+          } catch (err) {
+            console.error("Failed to load reports stats:", err);
+            // Don't show error toast for stats, keep existing data
+          }
+        }
+      } else if (activeTab === "analytics" && tabWhenStarted === "analytics") {
         const data = await adminAPI.getAnalytics(30);
-        setAnalytics(data);
-      } else if (activeTab === "settings") {
+        if (
+          currentTabRef.current === "analytics" &&
+          data &&
+          typeof data === "object"
+        ) {
+          setAnalytics(data);
+        }
+      } else if (activeTab === "settings" && tabWhenStarted === "settings") {
         const data = await adminAPI.getSettings();
-        setSettings(data);
+        if (
+          currentTabRef.current === "settings" &&
+          data &&
+          typeof data === "object"
+        ) {
+          setSettings(data);
+        }
       }
     } catch (error: any) {
+      // Only handle errors if we're still on the same tab
+      if (currentTabRef.current !== tabWhenStarted) {
+        console.log("Tab changed during load, ignoring error");
+        return;
+      }
+
       console.error("Failed to load data:", error);
 
       // Handle authentication errors
@@ -487,18 +389,27 @@ export default function AdminDashboard() {
       ) {
         showToast("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại", "error");
         localStorage.clear();
-        setTimeout(() => router.push("/login"), 2000);
+        setTimeout(() => router.push("/welcome"), 2000);
+        return; // Don't continue execution
       } else if (
         error.message?.includes("403") ||
         error.message?.includes("Forbidden")
       ) {
         showToast("Bạn không có quyền truy cập", "error");
         setTimeout(() => router.push("/dashboard"), 2000);
+        return; // Don't continue execution
       } else {
-        showToast("Không thể tải dữ liệu. Vui lòng thử lại", "error");
+        // For other errors, show message but keep existing data
+        showToast(
+          "Không thể tải dữ liệu. Dữ liệu cũ vẫn được giữ lại. Vui lòng thử lại",
+          "error"
+        );
       }
     } finally {
-      setLoading(false);
+      // Only set loading to false if we're still on the same tab
+      if (currentTabRef.current === tabWhenStarted) {
+        setLoading(false);
+      }
     }
   };
 
@@ -510,11 +421,20 @@ export default function AdminDashboard() {
       if (usersStatusFilter) params.status = usersStatusFilter;
 
       const data = await adminAPI.getUsers(params);
-      setUsers(data.users);
-      setUsersPagination(data.pagination);
+      // Only update state if data is valid
+      if (data && data.users && Array.isArray(data.users)) {
+        setUsers(data.users);
+      }
+      if (data && data.pagination && typeof data.pagination === "object") {
+        setUsersPagination(data.pagination);
+      }
     } catch (error) {
       console.error("Failed to load users:", error);
-      showToast("Failed to load users", "error");
+      showToast(
+        "Không thể tải danh sách người dùng. Dữ liệu cũ vẫn được giữ lại",
+        "error"
+      );
+      // Don't clear existing data on error
     }
   };
 
@@ -526,11 +446,20 @@ export default function AdminDashboard() {
       if (postsCategoryFilter) params.category = postsCategoryFilter;
 
       const data = await adminAPI.getPosts(params);
-      setPosts(data.posts);
-      setPostsPagination(data.pagination);
+      // Only update state if data is valid
+      if (data && data.posts && Array.isArray(data.posts)) {
+        setPosts(data.posts);
+      }
+      if (data && data.pagination && typeof data.pagination === "object") {
+        setPostsPagination(data.pagination);
+      }
     } catch (error) {
       console.error("Failed to load posts:", error);
-      showToast("Failed to load posts", "error");
+      showToast(
+        "Không thể tải danh sách bài viết. Dữ liệu cũ vẫn được giữ lại",
+        "error"
+      );
+      // Don't clear existing data on error
     }
   };
 
@@ -540,11 +469,20 @@ export default function AdminDashboard() {
         page: commentsPage,
         per_page: 20,
       });
-      setComments(data.comments);
-      setCommentsPagination(data.pagination);
+      // Only update state if data is valid
+      if (data && data.comments && Array.isArray(data.comments)) {
+        setComments(data.comments);
+      }
+      if (data && data.pagination && typeof data.pagination === "object") {
+        setCommentsPagination(data.pagination);
+      }
     } catch (error) {
       console.error("Failed to load comments:", error);
-      showToast("Failed to load comments", "error");
+      showToast(
+        "Không thể tải danh sách bình luận. Dữ liệu cũ vẫn được giữ lại",
+        "error"
+      );
+      // Don't clear existing data on error
     }
   };
 
@@ -555,11 +493,20 @@ export default function AdminDashboard() {
       if (reportsPriorityFilter) params.priority = reportsPriorityFilter;
 
       const data = await adminAPI.getReports(params);
-      setReports(data.reports);
-      setReportsPagination(data.pagination);
+      // Only update state if data is valid
+      if (data && data.reports && Array.isArray(data.reports)) {
+        setReports(data.reports);
+      }
+      if (data && data.pagination && typeof data.pagination === "object") {
+        setReportsPagination(data.pagination);
+      }
     } catch (error) {
       console.error("Failed to load reports:", error);
-      showToast("Failed to load reports", "error");
+      showToast(
+        "Không thể tải danh sách báo cáo. Dữ liệu cũ vẫn được giữ lại",
+        "error"
+      );
+      // Don't clear existing data on error
     }
   };
 
@@ -743,12 +690,14 @@ export default function AdminDashboard() {
   const StatCard = ({ title, value, change, icon: Icon, color }: any) => (
     <motion.div
       whileHover={{ scale: 1.05 }}
-      className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
+      className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700"
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-gray-600 text-sm font-medium">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
+            {title}
+          </p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {value.toLocaleString()}
           </p>
           {change && (
@@ -824,9 +773,9 @@ export default function AdminDashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              🚀 Thao Tác Nhanh
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Thao Tác Nhanh
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <button
@@ -869,9 +818,9 @@ export default function AdminDashboard() {
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              📈 Hoạt Động Gần Đây
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Hoạt Động Gần Đây
             </h3>
             <div className="space-y-3">
               {recentActivity.length === 0 ? (
@@ -969,9 +918,9 @@ export default function AdminDashboard() {
 
           {/* Users Table */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
-                👥 Danh Sách Người Dùng ({usersPagination.totalItems || 0})
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Danh Sách Người Dùng ({usersPagination.totalItems || 0})
               </h3>
             </div>
             <div className="overflow-x-auto">
@@ -1017,9 +966,22 @@ export default function AdminDashboard() {
                               className="h-10 w-10 rounded-full"
                               src={
                                 user.avatarUrl ||
-                                `https://ui-avatars.com/api/?name=${user.username}&background=random`
+                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                  user.username || "User"
+                                )}&size=200&background=0ea5e9&color=fff&bold=true`
                               }
                               alt=""
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                if (
+                                  !target.src.includes("name=") ||
+                                  !user.username
+                                )
+                                  return;
+                                target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                  user.username
+                                )}&size=200&background=6366f1&color=fff&bold=true`;
+                              }}
                             />
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">
@@ -1206,9 +1168,9 @@ export default function AdminDashboard() {
 
           {/* Posts Grid */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
-                📝 Danh Sách Bài Viết ({postsPagination.totalItems || 0})
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Danh Sách Bài Viết ({postsPagination.totalItems || 0})
               </h3>
             </div>
             <div className="overflow-x-auto">
@@ -1377,9 +1339,9 @@ export default function AdminDashboard() {
 
   const renderReports = () => (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          🚨 Báo Cáo & Khiếu Nại
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Báo Cáo & Khiếu Nại
         </h3>
         <div className="space-y-4">
           <p className="text-gray-600">
@@ -1469,9 +1431,9 @@ export default function AdminDashboard() {
         </div>
       ) : reports.length > 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
-              📋 Reports List ({reportsPagination.totalItems || 0})
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Reports List ({reportsPagination.totalItems || 0})
             </h3>
           </div>
           <div className="overflow-x-auto">
@@ -1615,16 +1577,16 @@ export default function AdminDashboard() {
         </div>
       ) : (
         <>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              📊 Phân Tích Hệ Thống
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Phân Tích Hệ Thống
             </h3>
             {analytics ? (
               <div className="space-y-6">
                 {/* Top Authors */}
                 <div>
-                  <h4 className="text-md font-semibold text-gray-800 mb-3">
-                    🏆 Top Tác Giả
+                  <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                    Top Tác Giả
                   </h4>
                   <div className="space-y-2">
                     {analytics.topAuthors && analytics.topAuthors.length > 0 ? (
@@ -1661,8 +1623,8 @@ export default function AdminDashboard() {
 
                 {/* Top Posts */}
                 <div>
-                  <h4 className="text-md font-semibold text-gray-800 mb-3">
-                    📈 Bài Viết Phổ Biến
+                  <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                    Bài Viết Phổ Biến
                   </h4>
                   <div className="space-y-2">
                     {analytics.topPosts && analytics.topPosts.length > 0 ? (
@@ -1682,11 +1644,13 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                           <div className="flex items-center space-x-4 text-sm">
-                            <span className="text-gray-600">
-                              👁️ {post.viewsCount.toLocaleString()}
+                            <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                              <Eye className="w-4 h-4" />
+                              {post.viewsCount.toLocaleString()}
                             </span>
-                            <span className="text-gray-600">
-                              ❤️ {post.likesCount}
+                            <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                              <Heart className="w-4 h-4" />
+                              {post.likesCount}
                             </span>
                           </div>
                         </div>
@@ -1701,8 +1665,8 @@ export default function AdminDashboard() {
 
                 {/* Category Distribution */}
                 <div>
-                  <h4 className="text-md font-semibold text-gray-800 mb-3">
-                    📂 Phân Bố Danh Mục
+                  <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                    Phân Bố Danh Mục
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {analytics.categoryDistribution &&
@@ -1710,7 +1674,7 @@ export default function AdminDashboard() {
                       analytics.categoryDistribution.map((cat: any) => (
                         <div
                           key={cat.category}
-                          className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100"
+                          className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800"
                         >
                           <p className="text-sm text-gray-600 capitalize">
                             {cat.category}
@@ -1746,16 +1710,16 @@ export default function AdminDashboard() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       ) : (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            ⚙️ Cài Đặt Hệ Thống
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Cài Đặt Hệ Thống
           </h3>
           {settings && (
             <div className="space-y-6">
               {/* Site Settings */}
               <div>
-                <h4 className="text-md font-semibold text-gray-800 mb-3">
-                  🌐 Thông Tin Website
+                <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                  Thông Tin Website
                 </h4>
                 <div className="space-y-4">
                   <div>
@@ -1792,8 +1756,8 @@ export default function AdminDashboard() {
 
               {/* Feature Toggles */}
               <div>
-                <h4 className="text-md font-semibold text-gray-800 mb-3">
-                  🔧 Tính Năng
+                <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                  Tính Năng
                 </h4>
                 <div className="space-y-3">
                   <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -1867,9 +1831,9 @@ export default function AdminDashboard() {
               <div className="flex justify-end">
                 <button
                   onClick={handleSettingsSave}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-6 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
                 >
-                  💾 Lưu Cài Đặt
+                  Lưu Cài Đặt
                 </button>
               </div>
             </div>
@@ -1887,9 +1851,9 @@ export default function AdminDashboard() {
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
-              💬 Danh Sách Comments ({commentsPagination.totalItems || 0})
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Danh Sách Comments ({commentsPagination.totalItems || 0})
             </h3>
           </div>
           <div className="overflow-x-auto">
@@ -2084,10 +2048,20 @@ export default function AdminDashboard() {
               <img
                 src={
                   editUserModal.avatarUrl ||
-                  `https://ui-avatars.com/api/?name=${editUserModal.username}&background=random`
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    editUserModal.username || "User"
+                  )}&size=200&background=0ea5e9&color=fff&bold=true`
                 }
                 alt={editUserModal.username}
                 className="w-20 h-20 rounded-full"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes("name=") || !editUserModal.username)
+                    return;
+                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    editUserModal.username
+                  )}&size=200&background=6366f1&color=fff&bold=true`;
+                }}
               />
               <div>
                 <div className="font-semibold text-gray-900">
@@ -2180,10 +2154,11 @@ export default function AdminDashboard() {
                 <option value="moderator">Moderator</option>
                 <option value="admin">Admin</option>
                 <option value="seller">Seller</option>
+                <option value="tour_guide">Hướng Dẫn Viên</option>
               </select>
               {formData.role !== editUserModal.originalRole && (
-                <p className="text-sm text-orange-600 mt-2">
-                  ⚠️ Warning: Changing user role will affect their permissions
+                <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">
+                  Warning: Changing user role will affect their permissions
                 </p>
               )}
             </div>
@@ -2244,10 +2219,20 @@ export default function AdminDashboard() {
               <img
                 src={
                   viewUserModal.avatarUrl ||
-                  `https://ui-avatars.com/api/?name=${viewUserModal.username}&background=random`
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    viewUserModal.username || "User"
+                  )}&size=200&background=0ea5e9&color=fff&bold=true`
                 }
                 alt={viewUserModal.username}
                 className="w-24 h-24 rounded-full border-4 border-blue-100"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes("name=") || !viewUserModal.username)
+                    return;
+                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    viewUserModal.username
+                  )}&size=200&background=6366f1&color=fff&bold=true`;
+                }}
               />
               <div className="flex-1">
                 <h4 className="text-2xl font-bold text-gray-900">
@@ -2318,7 +2303,7 @@ export default function AdminDashboard() {
             )}
 
             {/* Stats */}
-            <div className="flex justify-around bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg">
+            <div className="flex justify-around bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
                   {viewUserModal.points || 0}
@@ -2365,7 +2350,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {toast && (
         <Toast
           message={toast.message}
@@ -2380,7 +2365,7 @@ export default function AdminDashboard() {
       <ViewUserModal />
 
       {/* Show loading screen while checking auth */}
-      {!authChecked ? (
+      {authLoading || !user ? (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
@@ -2390,12 +2375,14 @@ export default function AdminDashboard() {
       ) : (
         <div className="flex">
           {/* Sidebar */}
-          <div className="w-64 bg-white shadow-sm min-h-screen">
+          <div className="w-64 bg-white dark:bg-gray-800 shadow-sm min-h-screen border-r border-gray-200 dark:border-gray-700">
             <div className="p-6">
-              <h1 className="text-xl font-bold text-gray-900">
-                👑 Admin Panel
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                Admin Panel
               </h1>
-              <p className="text-sm text-gray-600 mt-1">VieGo Blog Dashboard</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                VieGo Blog Dashboard
+              </p>
             </div>
 
             <nav className="mt-6">
@@ -2405,8 +2392,8 @@ export default function AdminDashboard() {
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center space-x-3 px-6 py-3 text-left transition-all duration-300 ${
                     activeTab === item.id
-                      ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 shadow-md transform scale-105"
-                      : "text-gray-700 hover:bg-gray-50 hover:transform hover:scale-102"
+                      ? "bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 shadow-md border-r-2 border-primary-600 dark:border-primary-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
                   <item.icon

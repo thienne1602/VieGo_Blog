@@ -4,6 +4,7 @@
   "description": "VieGo - Blog Du Lịch & Ẩm Thực Sáng Tạo - Frontend",
   "scripts": {
     "dev": "next dev",
+    "dev:turbo": "next dev --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -26,6 +27,7 @@
     "react-pdf": "^7.5.0",
     "react-share": "^4.4.0",
     "react-syntax-highlighter": "^15.5.0",
+    "recharts": "^2.15.4",
     "socket.io-client": "^4.7.0",
     "tailwindcss": "^3.3.0",
     "web3": "^4.2.0"

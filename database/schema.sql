@@ -148,7 +148,7 @@ CREATE TABLE comments (
 CREATE TABLE chats (
     id INT PRIMARY KEY AUTO_INCREMENT,
     message TEXT NOT NULL,
-    message_type ENUM('text', 'image', 'file', 'location', 'system') DEFAULT 'text',
+    message_type ENUM('text', 'image', 'audio', 'file', 'location', 'system') DEFAULT 'text',
     file_url VARCHAR(255), -- For file/image messages
     file_type VARCHAR(50), -- MIME type
     room_id VARCHAR(100), -- For group chats

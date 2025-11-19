@@ -1,0 +1,234 @@
+<mxfile host="65bd71144e">
+    <diagram id="profileActivity" name="Hoạt động Quản lý Hồ sơ">
+        <mxGraphModel dx="1089" dy="876" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="startProfile" value="Bắt đầu" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="20" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="profileView" value="Người dùng mở trang hồ sơ" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="120" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="profileEdit" value="Chọn chỉnh sửa thông tin" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="210" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="profileInput" value="Cập nhật trường dữ liệu" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="300" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="profileSubmit" value="Gửi yêu cầu lưu" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="390" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="profileValidate" value="Thông tin hợp lệ?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="295" y="490" width="150" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="profileSave" value="Lưu thay đổi vào hệ thống" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="610" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="profileNotify" value="Thông báo cập nhật thành công" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="700" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="endProfile" value="Kết thúc" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="800" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="profileError" value="Hiển thị lỗi và gợi ý sửa" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="610" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="profileRetry" value="Yêu cầu nhập lại thông tin" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="700" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeProfileStart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="startProfile" target="profileView" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeProfileView" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="profileView" target="profileEdit" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeProfileEdit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="profileEdit" target="profileInput" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeProfileInput" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="profileInput" target="profileSubmit" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeProfileSubmit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="profileSubmit" target="profileValidate" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeProfileYes" value="Có" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;fontSize=12;" parent="1" source="profileValidate" target="profileSave" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeProfileSave" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="profileSave" target="profileNotify" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeProfileNotify" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="profileNotify" target="endProfile" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeProfileNo" value="Không" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;fontSize=12;" parent="1" source="profileValidate" target="profileError" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeProfileError" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="profileError" target="profileRetry" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeProfileRetry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="profileRetry" target="profileInput" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="840" y="730"/>
+                            <mxPoint x="840" y="330"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="favoriteActivity" name="Hoạt động Lưu Tour Yêu thích">
+        <mxGraphModel dx="926" dy="745" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="startFavorite" value="Bắt đầu" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="20" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="favoriteBrowse" value="Người dùng xem danh sách tour" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="120" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="favoriteSelect" value="Chọn tour muốn lưu" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="210" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="favoriteAction" value="Nhấn nút thêm vào yêu thích" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="300" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="favoriteAuth" value="Người dùng đã đăng nhập?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="295" y="400" width="150" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="favoriteSave" value="Lưu tour vào danh sách yêu thích" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="520" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="favoriteUpdate" value="Cập nhật biểu tượng và thông báo" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="610" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="endFavorite" value="Kết thúc" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="700" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="favoritePrompt" value="Hiển thị yêu cầu đăng nhập" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="520" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="favoriteRedirect" value="Chuyển người dùng đến trang đăng nhập" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="610" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFavoriteStart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="startFavorite" target="favoriteBrowse" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFavoriteBrowse" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="favoriteBrowse" target="favoriteSelect" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFavoriteSelect" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="favoriteSelect" target="favoriteAction" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFavoriteAction" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="favoriteAction" target="favoriteAuth" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFavoriteYes" value="Có" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;fontSize=12;" parent="1" source="favoriteAuth" target="favoriteSave" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFavoriteSave" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="favoriteSave" target="favoriteUpdate" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFavoriteUpdate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="favoriteUpdate" target="endFavorite" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFavoriteNo" value="Không" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;fontSize=12;" parent="1" source="favoriteAuth" target="favoritePrompt" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFavoritePrompt" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="favoritePrompt" target="favoriteRedirect" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFavoriteRedirect" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="favoriteRedirect" target="endFavorite" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="feedbackActivity" name="Hoạt động Gửi Phản hồi">
+        <mxGraphModel dx="1323" dy="1064" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="startFeedback" value="Bắt đầu" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="30" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="feedbackOpen" value="Người dùng mở form phản hồi" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="120" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="feedbackTopic" value="Chọn chủ đề phản hồi" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="210" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="feedbackInput" value="Nhập nội dung chi tiết" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="300" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="feedbackAttach" value="Đính kèm minh chứng (tuỳ chọn)" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="390" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="feedbackSubmit" value="Gửi yêu cầu phản hồi" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="480" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="feedbackValidate" value="Thông tin hợp lệ?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="295" y="580" width="150" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="feedbackStore" value="Ghi nhận phản hồi vào hệ thống" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="700" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="feedbackNotify" value="Gửi email xác nhận tới người dùng" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="790" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="endFeedback" value="Kết thúc" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;fontColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="880" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="feedbackError" value="Hiển thị lỗi và nhắc chỉnh sửa" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="700" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="feedbackRetry" value="Yêu cầu cập nhật lại thông tin" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="790" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFeedbackStart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="startFeedback" target="feedbackOpen" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFeedbackOpen" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="feedbackOpen" target="feedbackTopic" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFeedbackTopic" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="feedbackTopic" target="feedbackInput" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFeedbackInput" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="feedbackInput" target="feedbackAttach" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFeedbackAttach" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="feedbackAttach" target="feedbackSubmit" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFeedbackSubmit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="feedbackSubmit" target="feedbackValidate" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFeedbackYes" value="Có" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;fontSize=12;" parent="1" source="feedbackValidate" target="feedbackStore" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFeedbackStore" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="feedbackStore" target="feedbackNotify" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFeedbackNotify" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="feedbackNotify" target="endFeedback" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFeedbackNo" value="Không" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;fontSize=12;" parent="1" source="feedbackValidate" target="feedbackError" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFeedbackError" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="feedbackError" target="feedbackRetry" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edgeFeedbackRetry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jettySize=auto;html=1;endArrow=block;endFill=1;" parent="1" source="feedbackRetry" target="feedbackInput" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="820" y="820"/>
+                            <mxPoint x="820" y="330"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

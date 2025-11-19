@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Google Maps API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1976d2;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        #map {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #1976d2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #1565c0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ Test Google Maps API</h1>
+        
+        <div id="status"></div>
+        
+        <div>
+            <button onclick="testAPI()">Test API Key</button>
+            <button onclick="loadMap()">Load Map</button>
+            <button onclick="testPlaces()">Test Places API</button>
+        </div>
+        
+        <div id="map"></div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_KEY = 'AIzaSyA7gWv2sQWonQMvSsWIOB00Sxcxgrf5lx0';
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function addResult(message) {
+            const resultsDiv = document.getElementById('results');
+            const p = document.createElement('p');
+            p.textContent = message;
+            resultsDiv.appendChild(p);
+        }
+        
+        async function testAPI() {
+            showStatus('⏳ Đang kiểm tra API key...', 'info');
+            
+            try {
+                // Test 1: Load Maps JavaScript API
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,geometry,drawing&callback=initTestMap`;
+                script.async = true;
+                script.defer = true;
+                
+                window.initTestMap = function() {
+                    showStatus('✅ API Key hợp lệ và hoạt động!', 'success');
+                    addResult('✅ Google Maps JavaScript API: OK');
+                    
+                    // Test libraries
+                    if (window.google && window.google.maps) {
+                        addResult('✅ Maps API library: OK');
+                    }
+                    if (window.google && window.google.maps && window.google.maps.places) {
+                        addResult('✅ Places API library: OK');
+                    }
+                    if (window.google && window.google.maps && window.google.maps.geometry) {
+                        addResult('✅ Geometry API library: OK');
+                    }
+                    if (window.google && window.google.maps && window.google.maps.drawing) {
+                        addResult('✅ Drawing API library: OK');
+                    }
+                };
+                
+                document.head.appendChild(script);
+                
+            } catch (error) {
+                showStatus(`❌ Lỗi: ${error.message}`, 'error');
+                addResult(`❌ Error: ${error.message}`);
+            }
+        }
+        
+        let map;
+        let placesService;
+        
+        function loadMap() {
+            if (!window.google || !window.google.maps) {
+                showStatus('⚠️ Vui lòng chạy "Test API Key" trước!', 'error');
+                return;
+            }
+            
+            showStatus('⏳ Đang tải bản đồ...', 'info');
+            
+            const mapDiv = document.getElementById('map');
+            map = new google.maps.Map(mapDiv, {
+                center: { lat: 21.0285, lng: 105.8542 }, // Hanoi
+                zoom: 13,
+                mapTypeControl: true,
+                streetViewControl: true,
+            });
+            
+            // Add marker
+            const marker = new google.maps.Marker({
+                position: { lat: 21.0285, lng: 105.8542 },
+                map: map,
+                title: 'Hà Nội, Việt Nam'
+            });
+            
+            showStatus('✅ Bản đồ đã được tải thành công!', 'success');
+            addResult('✅ Map loaded với marker tại Hà Nội');
+            
+            placesService = new google.maps.places.PlacesService(map);
+        }
+        
+        function testPlaces() {
+            if (!window.google || !window.google.maps || !map) {
+                showStatus('⚠️ Vui lòng chạy "Load Map" trước!', 'error');
+                return;
+            }
+            
+            showStatus('⏳ Đang test Places API...', 'info');
+            
+            const request = {
+                query: 'Nhà hàng Hà Nội',
+                fields: ['name', 'geometry', 'rating', 'formatted_address'],
+                locationBias: { lat: 21.0285, lng: 105.8542 },
+            };
+            
+            const service = new google.maps.places.PlacesService(map);
+            
+            service.findPlaceFromQuery(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    showStatus(`✅ Places API hoạt động! Tìm thấy ${results.length} kết quả`, 'success');
+                    
+                    results.forEach((place, index) => {
+                        addResult(`${index + 1}. ${place.name} - Rating: ${place.rating || 'N/A'}`);
+                        
+                        if (place.geometry && place.geometry.location) {
+                            new google.maps.Marker({
+                                position: place.geometry.location,
+                                map: map,
+                                title: place.name
+                            });
+                        }
+                    });
+                    
+                    if (results.length > 0 && results[0].geometry && results[0].geometry.viewport) {
+                        map.fitBounds(results[0].geometry.viewport);
+                    }
+                } else {
+                    showStatus(`❌ Places API error: ${status}`, 'error');
+                    addResult(`❌ Status: ${status}`);
+                }
+            });
+        }
+        
+        // Auto test on load
+        window.addEventListener('load', () => {
+            showStatus('ℹ️ Click các nút để test API', 'info');
+        });
+    </script>
+</body>
+</html>
+

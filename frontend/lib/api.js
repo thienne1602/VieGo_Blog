@@ -2,22 +2,93 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+// Default timeout for API requests (10 seconds)
+const DEFAULT_TIMEOUT = 10000;
+
+// Normalize base URL to ensure it ends with /api
+function normalizeBaseURL(url) {
+  if (!url) return "http://localhost:5000/api";
+  // Remove trailing slash
+  url = url.replace(/\/$/, "");
+  // Add /api if not present
+  if (!url.endsWith("/api")) {
+    url = url + "/api";
+  }
+  return url;
+}
+
+// Fetch with timeout helper - exported for use in other components
+export async function fetchWithTimeout(
+  url,
+  options = {},
+  timeout = DEFAULT_TIMEOUT
+) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === "AbortError") {
+      throw new TypeError(
+        "Request timeout: Không thể kết nối với máy chủ trong thời gian quy định."
+      );
+    }
+    throw error;
+  }
+}
+
+// Get current port from window.location
+function getCurrentPort() {
+  if (typeof window !== "undefined") {
+    const port =
+      window.location.port ||
+      (window.location.protocol === "https:" ? "443" : "80");
+    return port;
+  }
+  return "3000"; // Default fallback
+}
+
+// Get storage key with port suffix to ensure isolation between clients
+function getStorageKey(baseKey) {
+  const port = getCurrentPort();
+  return `${baseKey}_${port}`;
+}
+
+// Get cookie name with port suffix
+function getCookieName(baseName) {
+  const port = getCurrentPort();
+  return `${baseName}_${port}`;
+}
+
 // API client with error handling and caching
 class ApiClient {
   constructor(baseURL = API_BASE_URL) {
-    this.baseURL = baseURL;
+    // Normalize base URL to ensure it always ends with /api
+    this.baseURL = normalizeBaseURL(baseURL);
     this.token = null;
     this.cache = new Map();
-    this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+    this.cacheTimeout = 5 * 60 * 1000; // 5 minutes default
+
+    // Longer cache for static/rarely-changing data
+    this.longCacheTimeout = 30 * 60 * 1000; // 30 minutes for categories, locations
   }
 
   // Set authentication token
   setToken(token) {
     this.token = token;
     if (typeof window !== "undefined") {
-      localStorage.setItem("access_token", token);
-      // Set cookie as well for consistency
-      document.cookie = `access_token=${token};path=/;max-age=${
+      localStorage.setItem(getStorageKey("access_token"), token);
+      // Set cookie as well for consistency (with port-specific name)
+      const port = getCurrentPort();
+      const cookieName = getCookieName("access_token");
+      document.cookie = `${cookieName}=${token};path=/;max-age=${
         7 * 24 * 60 * 60
       };SameSite=Strict`;
     }
@@ -27,7 +98,7 @@ class ApiClient {
   getToken() {
     if (this.token) return this.token;
     if (typeof window !== "undefined") {
-      return localStorage.getItem("access_token");
+      return localStorage.getItem(getStorageKey("access_token"));
     }
     return null;
   }
@@ -36,11 +107,11 @@ class ApiClient {
   clearAuth() {
     this.token = null;
     if (typeof window !== "undefined") {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("user");
-      // Clear cookie
-      document.cookie =
-        "access_token=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
+      localStorage.removeItem(getStorageKey("access_token"));
+      localStorage.removeItem(getStorageKey("user"));
+      // Clear cookie (with port-specific name)
+      const cookieName = getCookieName("access_token");
+      document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
     }
   }
 
@@ -49,34 +120,58 @@ class ApiClient {
     return `${endpoint}_${JSON.stringify(options?.params || {})}`;
   }
 
-  isValidCache(cacheData) {
-    return Date.now() - cacheData.timestamp < this.cacheTimeout;
+  getCacheTimeout(endpoint) {
+    // Use longer cache for static data endpoints
+    const longCacheEndpoints = ["/categories", "/maps/locations", "/locations"];
+    if (longCacheEndpoints.some((path) => endpoint.includes(path))) {
+      return this.longCacheTimeout;
+    }
+    return this.cacheTimeout;
   }
 
-  setCache(key, data) {
+  isValidCache(cacheData, timeout) {
+    const cacheTimeout = timeout || cacheData.timeout || this.cacheTimeout;
+    return Date.now() - cacheData.timestamp < cacheTimeout;
+  }
+
+  setCache(key, data, timeout = null) {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
+      timeout: timeout || this.cacheTimeout,
     });
   }
 
-  getCache(key) {
+  getCache(key, endpoint) {
     const cached = this.cache.get(key);
-    return cached && this.isValidCache(cached) ? cached.data : null;
+    const timeout = this.getCacheTimeout(endpoint || "");
+    return cached && this.isValidCache(cached, timeout) ? cached.data : null;
   }
 
   // Make API request with automatic error handling and caching
   async request(endpoint, options = {}) {
     const cacheKey = this.getCacheKey(endpoint, options);
 
-    // Check cache for GET requests
-    if (!options.method || options.method === "GET") {
-      const cached = this.getCache(cacheKey);
-      if (cached) return cached;
+    // Check cache for GET requests (skip if cache: false in options)
+    if (
+      (!options.method || options.method === "GET") &&
+      options.cache !== false
+    ) {
+      const cached = this.getCache(cacheKey, endpoint);
+      if (cached) {
+        // Only log cache hits in development
+        if (process.env.NODE_ENV === "development") {
+          console.log(`[API] 💨 Cache hit for: ${endpoint}`);
+        }
+        return cached;
+      }
     }
 
     const url = `${this.baseURL}${endpoint}`;
     const token = this.getToken();
+
+    // Debug: Log URL for troubleshooting
+    console.log(`[API] Request URL: ${url}`);
 
     const config = {
       headers: {
@@ -86,14 +181,39 @@ class ApiClient {
       ...options,
     };
 
+    // Add no-cache headers in development to prevent aggressive caching
+    if (process.env.NODE_ENV === "development") {
+      config.headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+      config.headers["Pragma"] = "no-cache";
+      config.headers["Expires"] = "0";
+      // Add cache buster timestamp to URL for GET requests
+      if (!options.method || options.method === "GET") {
+        // Skip cache for development
+        config.cache = "no-store";
+      }
+    }
+
     // Add authorization header if token exists
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     try {
-      const response = await fetch(url, config);
-      const data = await response.json();
+      // Use fetchWithTimeout instead of fetch
+      const timeout = options.timeout || DEFAULT_TIMEOUT;
+      const response = await fetchWithTimeout(url, config, timeout);
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        // If response is not JSON, return error
+        return {
+          success: false,
+          error: "Server response is not valid JSON",
+          status: response.status,
+        };
+      }
 
       if (!response.ok) {
         throw new Error(
@@ -103,21 +223,53 @@ class ApiClient {
         );
       }
 
-      // Cache successful GET requests
-      if (!options.method || options.method === "GET") {
-        this.setCache(cacheKey, data);
+      // Format response object
+      const responseObj = { success: true, data: data, response };
+
+      console.log(`[API] ✅ Response received for ${endpoint}:`, {
+        success: responseObj.success,
+        hasData: !!responseObj.data,
+        dataKeys: responseObj.data ? Object.keys(responseObj.data) : [],
+        cacheKey,
+      });
+
+      // Extra debug for bookings endpoint
+      if (endpoint.includes("bookings")) {
+        console.log(`[API] 🔍 Raw data from backend:`, data);
+        console.log(`[API] 🔍 responseObj.data:`, responseObj.data);
+        if (data && data.data) {
+          console.log(`[API] 🔍 data.data:`, data.data);
+          console.log(`[API] 🔍 data.data.bookings:`, data.data.bookings);
+        }
       }
 
-      return { success: true, data: data, response };
+      // Cache successful GET requests - cache the formatted response object (skip if cache: false)
+      if (
+        (!options.method || options.method === "GET") &&
+        options.cache !== false
+      ) {
+        const timeout = this.getCacheTimeout(endpoint);
+        this.setCache(cacheKey, responseObj, timeout);
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `[API] 💾 Cached response for: ${endpoint} (TTL: ${
+              timeout / 1000
+            }s)`
+          );
+        }
+      }
+
+      return responseObj;
     } catch (error) {
       console.error(`API Error [${endpoint}]:`, error);
 
-      // If network error or JSON parse error
-      if (error instanceof TypeError) {
+      // If network error, timeout, or JSON parse error
+      if (error instanceof TypeError || error.name === "AbortError") {
         return {
           success: false,
           error:
-            "Không thể kết nối với máy chủ. Vui lòng kiểm tra kết nối mạng.",
+            error.message ||
+            "Không thể kết nối với máy chủ. Vui lòng kiểm tra kết nối mạng hoặc đảm bảo backend đang chạy.",
           status: 0,
         };
       }
@@ -130,8 +282,72 @@ class ApiClient {
     }
   }
 
+  // Download file (for exports)
+  async download(endpoint) {
+    const url = `${this.baseURL}${endpoint}`;
+    const token = this.getToken();
+
+    const config = {
+      headers: {},
+    };
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    try {
+      const response = await fetchWithTimeout(url, config, DEFAULT_TIMEOUT * 3); // Longer timeout for downloads
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Download failed" }));
+        throw new Error(
+          errorData.error || `HTTP ${response.status}: ${response.statusText}`
+        );
+      }
+
+      // Get filename from Content-Disposition header or generate one
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = "download";
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(
+          /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+        );
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/['"]/g, "");
+        }
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+
+      return { success: true, filename };
+    } catch (error) {
+      console.error(`Download Error [${endpoint}]:`, error);
+      return {
+        success: false,
+        error: error.message || "Download failed",
+      };
+    }
+  }
+
   // GET request
-  async get(endpoint, params = {}) {
+  async get(endpoint, params = {}, options = {}) {
+    // Clear cache for this specific request if bypassCache is set
+    if (options.bypassCache) {
+      const cacheKey = this.getCacheKey(endpoint, { params });
+      this.cache.delete(cacheKey);
+      console.log(`[API] 🗑️ Cleared cache for: ${cacheKey}`);
+    }
+
     const queryString = Object.keys(params).length
       ? "?" + new URLSearchParams(params).toString()
       : "";
@@ -139,6 +355,17 @@ class ApiClient {
     return this.request(`${endpoint}${queryString}`, {
       method: "GET",
     });
+  }
+
+  // Clear all cache
+  clearCache() {
+    this.cache.clear();
+  }
+
+  // Clear cache for specific endpoint
+  clearCacheFor(endpoint, params = {}) {
+    const cacheKey = this.getCacheKey(endpoint, { params });
+    this.cache.delete(cacheKey);
   }
 
   // POST request
@@ -178,7 +405,10 @@ class ApiClient {
 
       // Store user info
       if (typeof window !== "undefined") {
-        localStorage.setItem("user", JSON.stringify(result.data.user));
+        localStorage.setItem(
+          getStorageKey("user"),
+          JSON.stringify(result.data.user)
+        );
       }
     }
 
@@ -193,7 +423,7 @@ class ApiClient {
   // Get current user from localStorage
   getCurrentUser() {
     if (typeof window !== "undefined") {
-      const userStr = localStorage.getItem("user");
+      const userStr = localStorage.getItem(getStorageKey("user"));
       if (userStr) {
         try {
           return JSON.parse(userStr);
@@ -247,22 +477,93 @@ class ApiClient {
     return this.get("/categories");
   }
 
-  // Locations methods
+  // Locations/Maps methods
   async getLocations(filters = {}) {
-    return this.get("/locations", filters);
+    return this.get("/maps/locations", filters);
   }
 
-  async getFeaturedLocations() {
-    return this.getLocations({ featured: true, per_page: 10 });
+  async getLocation(locationId) {
+    return this.get(`/maps/locations/${locationId}`);
+  }
+
+  async getLocationCategories() {
+    return this.get("/maps/categories");
+  }
+
+  async getNearbyLocations(lat, lng, radius = 10) {
+    return this.get("/maps/nearby", { lat, lng, radius });
+  }
+
+  async getMapStatistics() {
+    return this.get("/maps/statistics");
+  }
+
+  async createLocation(locationData) {
+    return this.post("/maps/locations", locationData);
+  }
+
+  async updateLocation(locationId, locationData) {
+    return this.put(`/maps/locations/${locationId}`, locationData);
+  }
+
+  async deleteLocation(locationId) {
+    return this.delete(`/maps/locations/${locationId}`);
+  }
+
+  async rateLocation(locationId, rating) {
+    return this.post(`/maps/locations/${locationId}/rate`, { rating });
+  }
+
+  // Travel Routes methods
+  async getTravelRoutes(params = {}) {
+    return this.get("/maps/routes", params);
+  }
+
+  async createTravelRoute(routeData) {
+    return this.post("/maps/routes", routeData);
+  }
+
+  // Weather methods
+  async getWeather(lat, lng) {
+    return this.get("/maps/weather", { lat, lng });
+  }
+
+  // Directions methods
+  async getDirections(origin, destination, mode = "driving") {
+    return this.get("/maps/directions", { origin, destination, mode });
   }
 
   // Tours methods
-  async getTours(filters = {}) {
-    return this.get("/tours", filters);
+  async getTours(filters = {}, options = {}) {
+    return this.get("/tours", filters, options);
   }
 
-  async getTour(slug) {
-    return this.get(`/tours/${slug}`);
+  async getTour(tourId) {
+    return this.get(`/tours/${tourId}`);
+  }
+
+  async getTourCategories() {
+    return this.get("/tours/categories");
+  }
+
+  async createTour(tourData) {
+    return this.post("/tours", tourData);
+  }
+
+  async updateTour(tourId, tourData) {
+    return this.put(`/tours/${tourId}`, tourData);
+  }
+
+  async deleteTour(tourId) {
+    return this.delete(`/tours/${tourId}`);
+  }
+
+  async bookTour(tourId, bookingData) {
+    return this.post(`/tours/${tourId}/book`, bookingData);
+  }
+
+  async getMyTours() {
+    return this.get("/tours/mine");
   }
 
   // Bookings methods
@@ -274,12 +575,50 @@ class ApiClient {
     return this.get("/seller/stats");
   }
 
+  async getRevenueStats(period = "month", startDate = null, endDate = null) {
+    let url = `/seller/revenue-stats?period=${period}`;
+    if (startDate) url += `&start_date=${startDate}`;
+    if (endDate) url += `&end_date=${endDate}`;
+    return this.get(url);
+  }
+
+  async exportRevenue(
+    period = "month",
+    startDate = null,
+    endDate = null,
+    format = "excel"
+  ) {
+    let url = `/seller/export/revenue?period=${period}&format=${format}`;
+    if (startDate) url += `&start_date=${startDate}`;
+    if (endDate) url += `&end_date=${endDate}`;
+    return this.download(url);
+  }
+
+  async exportBookings(startDate = null, endDate = null, format = "excel") {
+    let url = `/seller/export/bookings?format=${format}`;
+    if (startDate) url += `&start_date=${startDate}`;
+    if (endDate) url += `&end_date=${endDate}`;
+    return this.download(url);
+  }
+
+  async assignAllTours() {
+    return this.post("/seller/assign-all-tours");
+  }
+
+  async getBooking(bookingId) {
+    return this.get(`/bookings/${bookingId}`);
+  }
+
   async updateBooking(bookingId, data) {
     return this.request(`/bookings/${bookingId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
+  }
+
+  async sendPaymentReminder(bookingId) {
+    return this.post(`/bookings/send-payment-reminder/${bookingId}`);
   }
 
   // Comments methods
@@ -305,6 +644,11 @@ class ApiClient {
     return this.get(`/users/${userId}`);
   }
 
+  async getCurrentProfile() {
+    // Get current user's full profile with sensitive info (company info for sellers)
+    return this.get("/auth/profile");
+  }
+
   async updateProfile(profileData) {
     return this.put("/auth/profile", profileData);
   }
@@ -312,7 +656,7 @@ class ApiClient {
   // Upload methods
   async uploadImage(file, type = "post") {
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("file", file);
     formData.append("type", type);
 
     const token = this.getToken();
@@ -323,7 +667,12 @@ class ApiClient {
     };
 
     try {
-      const response = await fetch(`${this.baseURL}/upload/image`, config);
+      // Use fetchWithTimeout for uploads with longer timeout (30 seconds)
+      const response = await fetchWithTimeout(
+        `${this.baseURL}/upload/image`,
+        config,
+        30000
+      );
       const data = await response.json();
 
       if (!response.ok) {
@@ -332,6 +681,85 @@ class ApiClient {
 
       return { success: true, data };
     } catch (error) {
+      if (error instanceof TypeError || error.name === "AbortError") {
+        return {
+          success: false,
+          error:
+            "Upload timeout: Vui lòng thử lại với file nhỏ hơn hoặc kiểm tra kết nối mạng.",
+        };
+      }
+      return { success: false, error: error.message };
+    }
+  }
+
+  async uploadAvatar(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const token = this.getToken();
+    const config = {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    };
+
+    try {
+      const response = await fetchWithTimeout(
+        `${this.baseURL}/upload/avatar`,
+        config,
+        30000
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      return { success: true, data };
+    } catch (error) {
+      if (error instanceof TypeError || error.name === "AbortError") {
+        return {
+          success: false,
+          error:
+            "Upload timeout: Vui lòng thử lại với file nhỏ hơn hoặc kiểm tra kết nối mạng.",
+        };
+      }
+      return { success: false, error: error.message };
+    }
+  }
+
+  async uploadCover(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const token = this.getToken();
+    const config = {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    };
+
+    try {
+      const response = await fetchWithTimeout(
+        `${this.baseURL}/upload/cover`,
+        config,
+        30000
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      return { success: true, data };
+    } catch (error) {
+      if (error instanceof TypeError || error.name === "AbortError") {
+        return {
+          success: false,
+          error:
+            "Upload timeout: Vui lòng thử lại với file nhỏ hơn hoặc kiểm tra kết nối mạng.",
+        };
+      }
       return { success: false, error: error.message };
     }
   }

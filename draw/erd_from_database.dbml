@@ -1,0 +1,496 @@
+// Generated DBML from draw/database.sql
+Table activity_logs {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  user_id int
+  action_type enum('user_register','user_login','user_logout','user_update','user_delete','user_ban','user_unban','post_create','post_update','post_delete','post_publish','comment_create','comment_update','comment_delete','report_create','report_resolve','admin_action','system_event','other') COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  action_description varchar(255) COLLATE utf8mb4_unicode_ci
+  target_type varchar(50) COLLATE utf8mb4_unicode_ci
+  target_id int
+  meta_data text COLLATE utf8mb4_unicode_ci
+  ip_address varchar(45) COLLATE utf8mb4_unicode_ci
+  user_agent varchar(255) COLLATE utf8mb4_unicode_ci
+  severity enum('info','warning','error','critical') COLLATE utf8mb4_unicode_ci
+  created_at datetime
+}
+
+Table banned_keywords {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  keyword varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  severity enum('low','medium','high','critical') COLLATE utf8mb4_unicode_ci
+  description text COLLATE utf8mb4_unicode_ci
+  created_by int NOT NULL [not null]
+  created_at datetime
+  updated_at datetime
+  is_active tinyint(1)
+}
+
+Table bookings {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  tour_id int NOT NULL [not null]
+  user_id int NOT NULL [not null]
+  date varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  participants int NOT NULL [not null]
+  adults int
+  children int
+  infants int
+  full_name varchar(255) COLLATE utf8mb4_unicode_ci
+  email varchar(255) COLLATE utf8mb4_unicode_ci
+  phone varchar(50) COLLATE utf8mb4_unicode_ci
+  address text COLLATE utf8mb4_unicode_ci
+  base_price float
+  adult_price float
+  child_price float
+  infant_price float
+  discount_code varchar(50) COLLATE utf8mb4_unicode_ci
+  discount_amount float
+  total_price float NOT NULL [not null]
+  currency varchar(10) COLLATE utf8mb4_unicode_ci
+  payment_method enum('office','bank_transfer','online') COLLATE utf8mb4_unicode_ci
+  payment_status enum('unpaid','partial','paid') COLLATE utf8mb4_unicode_ci
+  status enum('pending','confirmed','cancelled') COLLATE utf8mb4_unicode_ci
+  notes text COLLATE utf8mb4_unicode_ci
+  created_at datetime
+  updated_at datetime
+}
+
+Table bookmarks {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  user_id int NOT NULL [not null]
+  post_id int NOT NULL [not null]
+  created_at timestamp NULL
+}
+
+Table chats {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  message text COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  message_type enum('text','image','audio','file','location','system') COLLATE utf8mb4_unicode_ci
+  file_url varchar(255) COLLATE utf8mb4_unicode_ci
+  file_type varchar(50) COLLATE utf8mb4_unicode_ci
+  room_id varchar(100) COLLATE utf8mb4_unicode_ci
+  conversation_type enum('direct','group','public') COLLATE utf8mb4_unicode_ci
+  status enum('sent','delivered','read','deleted') COLLATE utf8mb4_unicode_ci
+  language varchar(10) COLLATE utf8mb4_unicode_ci
+  translated_message text COLLATE utf8mb4_unicode_ci
+  auto_translated tinyint(1)
+  created_at datetime
+  updated_at datetime
+  read_at datetime
+  sender_id int NOT NULL [not null]
+  receiver_id int
+}
+
+Table comments {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  post_id int NOT NULL [not null]
+  user_id int NOT NULL [not null]
+  parent_id int
+  content text COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  like_count int
+  is_edited tinyint(1)
+  created_at timestamp NULL
+  updated_at timestamp NULL
+  level int
+  likes_count int
+  replies_count int
+  flagged tinyint(1)
+  flag_reason varchar(255) COLLATE utf8mb4_unicode_ci
+  translated_content text COLLATE utf8mb4_unicode_ci
+  language varchar(10) COLLATE utf8mb4_unicode_ci
+  status enum('pending','approved','rejected','spam') COLLATE utf8mb4_unicode_ci
+  author_id int
+}
+
+Table contacts {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  user_id int
+  name varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  email varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  phone varchar(50) COLLATE utf8mb4_unicode_ci
+  subject varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  message text COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  category enum('technical','account','content','payment','general','report','suggestion','other') COLLATE utf8mb4_unicode_ci
+  status enum('pending','in_progress','resolved','closed') COLLATE utf8mb4_unicode_ci
+  priority enum('low','medium','high','urgent') COLLATE utf8mb4_unicode_ci
+  assigned_to int
+  response text COLLATE utf8mb4_unicode_ci
+  responded_at datetime
+  responded_by int
+  attachments text COLLATE utf8mb4_unicode_ci
+  created_at datetime
+  updated_at datetime
+  resolved_at datetime
+}
+
+Table followers {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  follower_id int NOT NULL [not null]
+  following_id int NOT NULL [not null]
+  created_at timestamp NULL
+}
+
+Table follows {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  follower_id int NOT NULL [not null]
+  following_id int NOT NULL [not null]
+  created_at timestamp NULL
+}
+
+Table friend_requests {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  requester_id int NOT NULL [not null]
+  receiver_id int NOT NULL [not null]
+  status enum('pending','accepted','rejected','cancelled') COLLATE utf8mb4_unicode_ci
+  created_at datetime
+  updated_at datetime
+  responded_at datetime
+}
+
+Table group_chats {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  room_id varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  name varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  description text COLLATE utf8mb4_unicode_ci
+  avatar_url varchar(255) COLLATE utf8mb4_unicode_ci
+  created_by int NOT NULL [not null]
+  created_at datetime
+  updated_at datetime
+}
+
+Table group_members {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  group_id int NOT NULL [not null]
+  user_id int NOT NULL [not null]
+  role enum('admin','member') COLLATE utf8mb4_unicode_ci
+  joined_at datetime
+}
+
+Table likes {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  user_id int NOT NULL [not null]
+  post_id int
+  comment_id int
+  created_at timestamp NULL
+}
+
+Table locations {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  name varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  slug varchar(255) COLLATE utf8mb4_unicode_ci
+  address text COLLATE utf8mb4_unicode_ci
+  city varchar(100) COLLATE utf8mb4_unicode_ci
+  province varchar(100) COLLATE utf8mb4_unicode_ci
+  country varchar(100) COLLATE utf8mb4_unicode_ci
+  category enum('restaurant','attraction','hotel','transport','shopping','entertainment') COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  subcategory varchar(100) COLLATE utf8mb4_unicode_ci
+  rating float
+  reviews_count int
+  phone varchar(20) COLLATE utf8mb4_unicode_ci
+  website varchar(255) COLLATE utf8mb4_unicode_ci
+  email varchar(120) COLLATE utf8mb4_unicode_ci
+  opening_hours text COLLATE utf8mb4_unicode_ci
+  price_range enum('budget','mid-range','luxury') COLLATE utf8mb4_unicode_ci
+  images text COLLATE utf8mb4_unicode_ci
+  latitude decimal(10,8)
+  longitude decimal(11,8)
+  description text COLLATE utf8mb4_unicode_ci
+  image_url varchar(500) COLLATE utf8mb4_unicode_ci
+  featured_image varchar(500) COLLATE utf8mb4_unicode_ci
+  tags text COLLATE utf8mb4_unicode_ci
+  amenities text COLLATE utf8mb4_unicode_ci
+  languages_spoken text COLLATE utf8mb4_unicode_ci
+  verified tinyint(1)
+  status enum('active','inactive','pending') COLLATE utf8mb4_unicode_ci
+  created_at timestamp NULL
+  updated_at timestamp NULL
+  created_by int
+}
+
+Table nfts {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  token_id varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  contract_address varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  name varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  description text COLLATE utf8mb4_unicode_ci
+  badge_type enum('explorer','foodie','photographer','writer','adventurer','cultural','special') COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  badge_level enum('bronze','silver','gold','platinum','legendary') COLLATE utf8mb4_unicode_ci
+  rarity enum('common','uncommon','rare','epic','legendary') COLLATE utf8mb4_unicode_ci
+  image_url varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  animation_url varchar(255) COLLATE utf8mb4_unicode_ci
+  metadata_url varchar(255) COLLATE utf8mb4_unicode_ci
+  achievement_criteria text COLLATE utf8mb4_unicode_ci
+  points_required int
+  locations_required text COLLATE utf8mb4_unicode_ci
+  posts_required int
+  transaction_hash varchar(100) COLLATE utf8mb4_unicode_ci
+  block_number int
+  gas_used int
+  status enum('minted','pending','failed','burned') COLLATE utf8mb4_unicode_ci
+  transferable tinyint(1)
+  tradeable tinyint(1)
+  unlocked tinyint(1)
+  unlock_date datetime
+  created_at datetime
+  minted_at datetime
+  owner_id int NOT NULL [not null]
+}
+
+Table notifications {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  user_id int NOT NULL [not null]
+  type varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  title varchar(255) COLLATE utf8mb4_unicode_ci
+  message text COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  related_type varchar(50) COLLATE utf8mb4_unicode_ci
+  related_id int
+  actor_id int
+  action_url varchar(500) COLLATE utf8mb4_unicode_ci
+  extra_data text COLLATE utf8mb4_unicode_ci
+  read_at datetime
+  seen_at datetime
+  is_read tinyint(1)
+  is_seen tinyint(1)
+  metadata text COLLATE utf8mb4_unicode_ci
+  created_at timestamp NULL
+}
+
+Table posts {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  title varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  slug varchar(255) COLLATE utf8mb4_unicode_ci
+  content text COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  summary text COLLATE utf8mb4_unicode_ci
+  excerpt text COLLATE utf8mb4_unicode_ci
+  featured_image varchar(500) COLLATE utf8mb4_unicode_ci
+  author_id int NOT NULL [not null]
+  location_id int
+  category varchar(50) COLLATE utf8mb4_unicode_ci
+  tags json
+  status varchar(20) COLLATE utf8mb4_unicode_ci
+  view_count int
+  like_count int
+  comment_count int
+  is_featured tinyint(1)
+  published_at timestamp NULL
+  created_at timestamp NULL
+  updated_at timestamp NULL
+  content_type enum('blog','video','photo','tour_guide') COLLATE utf8mb4_unicode_ci
+  language varchar(10) COLLATE utf8mb4_unicode_ci
+  reading_time int
+  images text COLLATE utf8mb4_unicode_ci
+  video_url varchar(500) COLLATE utf8mb4_unicode_ci
+  video_embed text COLLATE utf8mb4_unicode_ci
+  location_lat float
+  location_lng float
+  location_name varchar(255) COLLATE utf8mb4_unicode_ci
+  location_address varchar(500) COLLATE utf8mb4_unicode_ci
+  difficulty_level enum('easy','moderate','hard') COLLATE utf8mb4_unicode_ci
+  views_count int
+  likes_count int
+  shares_count int
+  comments_count int
+  featured tinyint(1)
+  meta_title varchar(255) COLLATE utf8mb4_unicode_ci
+  meta_description text COLLATE utf8mb4_unicode_ci
+  meta_keywords varchar(500) COLLATE utf8mb4_unicode_ci
+  is_interactive tinyint(1)
+  story_choices text COLLATE utf8mb4_unicode_ci
+  collaborative tinyint(1)
+  collaborators text COLLATE utf8mb4_unicode_ci
+}
+
+Table post_images {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  post_id int NOT NULL [not null]
+  image_url varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  caption text COLLATE utf8mb4_unicode_ci
+  display_order int
+  created_at timestamp NULL
+}
+
+Table post_stats {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  post_id int NOT NULL [not null]
+  view_count int
+  like_count int
+  comment_count int
+  share_count int
+  created_at timestamp NULL
+  updated_at timestamp NULL
+}
+
+Table reports {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  reporter_id int NOT NULL [not null]
+  report_type enum('post','comment','user','other') COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  target_id int NOT NULL [not null]
+  reason enum('spam','harassment','hate_speech','inappropriate_content','violence','copyright','misinformation','other') COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  description text COLLATE utf8mb4_unicode_ci
+  status enum('pending','reviewing','resolved','dismissed') COLLATE utf8mb4_unicode_ci
+  priority enum('low','medium','high','urgent') COLLATE utf8mb4_unicode_ci
+  resolved_by int
+  resolution_notes text COLLATE utf8mb4_unicode_ci
+  action_taken enum('none','content_removed','user_warned','user_banned','edited','other') COLLATE utf8mb4_unicode_ci
+  created_at datetime
+  updated_at datetime
+  resolved_at datetime
+}
+
+Table stories {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  user_id int NOT NULL [not null]
+  content text COLLATE utf8mb4_unicode_ci
+  media_url varchar(500) COLLATE utf8mb4_unicode_ci
+  media_type enum('image','video') COLLATE utf8mb4_unicode_ci
+  view_count int
+  created_at timestamp NULL
+  expires_at timestamp NULL
+  is_archived tinyint(1)
+}
+
+Table tours {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  title varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  description text COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  duration_days int NOT NULL [not null]
+  max_participants int
+  min_participants int
+  difficulty_level enum('easy','moderate','hard') COLLATE utf8mb4_unicode_ci
+  starting_location varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  ending_location varchar(255) COLLATE utf8mb4_unicode_ci
+  itinerary text COLLATE utf8mb4_unicode_ci
+  locations_covered text COLLATE utf8mb4_unicode_ci
+  price_per_person float NOT NULL [not null]
+  currency varchar(3) COLLATE utf8mb4_unicode_ci
+  discount_percentage float
+  inclusions text COLLATE utf8mb4_unicode_ci
+  exclusions text COLLATE utf8mb4_unicode_ci
+  featured_image varchar(255) COLLATE utf8mb4_unicode_ci
+  gallery_images text COLLATE utf8mb4_unicode_ci
+  video_url varchar(255) COLLATE utf8mb4_unicode_ci
+  available_dates text COLLATE utf8mb4_unicode_ci
+  booking_deadline_days int
+  cancellation_policy text COLLATE utf8mb4_unicode_ci
+  category enum('adventure','cultural','food','nature','urban','spiritual') COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  tags text COLLATE utf8mb4_unicode_ci
+  rating float
+  reviews_count int
+  views_count int
+  bookings_count int
+  status enum('active','inactive','draft','suspended') COLLATE utf8mb4_unicode_ci
+  created_at datetime
+  updated_at datetime
+  seller_id int NOT NULL [not null]
+  featured tinyint(1)
+  affiliate_link varchar(500) COLLATE utf8mb4_unicode_ci
+  commission_rate float
+  age_requirement varchar(50) COLLATE utf8mb4_unicode_ci
+  fitness_requirement enum('low','moderate','high') COLLATE utf8mb4_unicode_ci
+  equipment_provided text COLLATE utf8mb4_unicode_ci
+  equipment_required text COLLATE utf8mb4_unicode_ci
+}
+
+Table users {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  username varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  email varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  password_hash varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL [not null]
+  full_name varchar(200) COLLATE utf8mb4_unicode_ci
+  bio text COLLATE utf8mb4_unicode_ci
+  avatar_url varchar(500) COLLATE utf8mb4_unicode_ci
+  cover_image_url varchar(500) COLLATE utf8mb4_unicode_ci
+  role enum('user','moderator','admin','seller','editor') COLLATE utf8mb4_unicode_ci
+  is_active tinyint(1)
+  email_verified tinyint(1)
+  account_banned_until datetime
+  post_banned_until datetime
+  comment_banned_until datetime
+  violation_count int
+  created_at timestamp NULL
+  updated_at timestamp NULL
+  is_verified tinyint(1)
+  points int NOT NULL [not null]
+  level int NOT NULL [not null]
+  badges text COLLATE utf8mb4_unicode_ci
+  location varchar(255) COLLATE utf8mb4_unicode_ci
+  language varchar(10) COLLATE utf8mb4_unicode_ci
+  timezone varchar(50) COLLATE utf8mb4_unicode_ci
+  social_links text COLLATE utf8mb4_unicode_ci
+  bookmarks text COLLATE utf8mb4_unicode_ci
+  liked_posts text COLLATE utf8mb4_unicode_ci
+  following text COLLATE utf8mb4_unicode_ci
+  followers text COLLATE utf8mb4_unicode_ci
+  seller_email varchar(255) COLLATE utf8mb4_unicode_ci
+  seller_email_password varchar(255) COLLATE utf8mb4_unicode_ci
+  company_name varchar(255) COLLATE utf8mb4_unicode_ci
+  company_address text COLLATE utf8mb4_unicode_ci
+  company_phone varchar(50) COLLATE utf8mb4_unicode_ci
+  company_tax_id varchar(50) COLLATE utf8mb4_unicode_ci
+  company_email varchar(255) COLLATE utf8mb4_unicode_ci
+  bank_account_number varchar(100) COLLATE utf8mb4_unicode_ci
+  bank_name varchar(255) COLLATE utf8mb4_unicode_ci
+  bank_account_holder varchar(255) COLLATE utf8mb4_unicode_ci
+  friends text COLLATE utf8mb4_unicode_ci
+}
+
+Table user_preferences {
+  id int NOT NULL AUTO_INCREMENT [pk, not null]
+  user_id int NOT NULL [not null]
+  travel_interests text COLLATE utf8mb4_unicode_ci
+  budget_range enum('budget','mid-range','luxury') COLLATE utf8mb4_unicode_ci
+  travel_style enum('backpacker','family','luxury','business','adventure') COLLATE utf8mb4_unicode_ci
+  dietary_restrictions text COLLATE utf8mb4_unicode_ci
+  cuisine_preferences text COLLATE utf8mb4_unicode_ci
+  spice_tolerance enum('none','mild','medium','hot') COLLATE utf8mb4_unicode_ci
+  preferred_activities text COLLATE utf8mb4_unicode_ci
+  fitness_level enum('low','moderate','high') COLLATE utf8mb4_unicode_ci
+  group_size_preference enum('solo','couple','small_group','large_group') COLLATE utf8mb4_unicode_ci
+  preferred_regions text COLLATE utf8mb4_unicode_ci
+  climate_preference enum('tropical','temperate','cold','any') COLLATE utf8mb4_unicode_ci
+  email_notifications tinyint(1)
+  push_notifications tinyint(1)
+  newsletter_subscription tinyint(1)
+  ai_recommendations tinyint(1)
+  personalization_data text COLLATE utf8mb4_unicode_ci
+  created_at datetime
+  updated_at datetime
+}
+
+Ref: activity_logs.user_id > users.id
+Ref: banned_keywords.created_by > users.id
+Ref: bookings.tour_id > tours.id
+Ref: bookings.user_id > users.id
+Ref: bookmarks.user_id > users.id
+Ref: bookmarks.post_id > posts.id
+Ref: chats.sender_id > users.id
+Ref: chats.receiver_id > users.id
+Ref: comments.post_id > posts.id
+Ref: comments.user_id > users.id
+Ref: comments.parent_id > comments.id
+Ref: contacts.user_id > users.id
+Ref: contacts.assigned_to > users.id
+Ref: contacts.responded_by > users.id
+Ref: followers.follower_id > users.id
+Ref: followers.following_id > users.id
+Ref: follows.follower_id > users.id
+Ref: follows.following_id > users.id
+Ref: friend_requests.requester_id > users.id
+Ref: friend_requests.receiver_id > users.id
+Ref: group_chats.created_by > users.id
+Ref: group_members.group_id > group_chats.id
+Ref: group_members.user_id > users.id
+Ref: likes.user_id > users.id
+Ref: likes.post_id > posts.id
+Ref: likes.comment_id > comments.id
+Ref: locations.created_by > users.id
+Ref: nfts.owner_id > users.id
+Ref: notifications.user_id > users.id
+Ref: notifications.actor_id > users.id
+Ref: notifications.actor_id > users.id
+Ref: posts.author_id > users.id
+Ref: post_images.post_id > posts.id
+Ref: post_stats.post_id > posts.id
+Ref: reports.reporter_id > users.id
+Ref: reports.resolved_by > users.id
+Ref: stories.user_id > users.id
+Ref: tours.seller_id > users.id
+Ref: user_preferences.user_id > users.id
