@@ -10,7 +10,7 @@ echo ╚════════════════════════
 echo.
 
 REM Kiểm tra virtual environment
-if not exist "%~dp0.venv_new\Scripts\activate.bat" (
+if not exist "%~dp0..\.venv_new\Scripts\activate.bat" (
     echo ❌ Virtual environment không tồn tại!
     echo.
     echo 💡 Tạo virtual environment:
@@ -24,10 +24,10 @@ if not exist "%~dp0.venv_new\Scripts\activate.bat" (
 
 REM Activate virtual environment
 echo 🔧 Activating virtual environment...
-call "%~dp0.venv_new\Scripts\activate.bat"
+call "%~dp0..\.venv_new\Scripts\activate.bat"
 
 REM Kiểm tra file main.py
-if not exist "%~dp0backend\main.py" (
+if not exist "%~dp0..\backend\main.py" (
     echo ❌ main.py not found in backend folder!
     pause
     exit /b 1
@@ -48,7 +48,7 @@ echo ============================================================
 echo.
 
 REM Chuyển vào thư mục backend
-cd /d "%~dp0backend"
+cd /d "%~dp0..\backend"
 
 REM Set email environment variables for Gmail
 set MAIL_SERVER=smtp.gmail.com

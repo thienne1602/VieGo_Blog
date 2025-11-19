@@ -10,7 +10,7 @@ echo ╚════════════════════════
 echo.
 
 REM Kiểm tra virtual environment
-if not exist "%~dp0.venv_new\Scripts\activate.bat" (
+if not exist "%~dp0...\.venv_new\Scripts\activate.bat" (
     echo ❌ Virtual environment không tồn tại!
     echo.
     echo 💡 Tạo virtual environment...
@@ -25,7 +25,7 @@ if not exist "%~dp0.venv_new\Scripts\activate.bat" (
 
 REM Activate virtual environment
 echo 🔧 Activating virtual environment...
-call "%~dp0.venv_new\Scripts\activate.bat"
+call "%~dp0...\.venv_new\Scripts\activate.bat"
 
 REM Kiểm tra pip
 echo.
@@ -58,7 +58,7 @@ echo 📦 Installing other dependencies from requirements.txt...
 echo ⚠️  Note: Some packages may fail to build (e.g. lru-dict requires Visual C++)
 echo    But Flask-Mail and most packages should install fine.
 echo.
-python -m pip install -r backend\requirements.txt
+python -m pip install -r "%~dp0..\..\backend\requirements.txt"
 
 REM Kiểm tra Flask-Mail đã được cài thành công
 python -c "import flask_mail; print('✅ Flask-Mail OK:', flask_mail.__version__)" 2>nul

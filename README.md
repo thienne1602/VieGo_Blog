@@ -46,6 +46,7 @@
 ## ✨ Tính năng chính
 
 ### 📝 Hệ thống Blog & Nội dung
+
 - ✅ Tạo, chỉnh sửa bài viết với rich text editor
 - ✅ Hỗ trợ nhiều loại nội dung: blog, video, photo gallery, tour guide
 - ✅ Upload và quản lý hình ảnh
@@ -55,6 +56,7 @@
 - ✅ Chia sẻ lên mạng xã hội
 
 ### 🎫 Quản lý Tour & Booking
+
 - ✅ Tạo và quản lý tour với lịch trình chi tiết
 - ✅ Hệ thống booking tour trực tuyến
 - ✅ Quản lý thông tin người tham gia (participants)
@@ -63,12 +65,14 @@
 - ✅ Xuất danh sách người tham gia (Excel/CSV)
 
 ### 👥 Phân công & Quản lý Hướng dẫn viên
+
 - ✅ Phân công hướng dẫn viên cho từng tour
 - ✅ Xem danh sách tour được phân công
 - ✅ Thông báo real-time khi được phân công
 - ✅ Quản lý thông tin hướng dẫn viên
 
 ### 📍 Theo dõi Tiến trình Tour
+
 - ✅ Check-in/Check-out tại các điểm tham quan
 - ✅ Cập nhật tiến trình real-time
 - ✅ Upload hình ảnh tại điểm check-in
@@ -76,6 +80,7 @@
 - ✅ Khách hàng xem tiến trình tour của mình
 
 ### 👤 Quản lý Người dùng & Phân quyền
+
 - ✅ Đăng ký, đăng nhập với JWT
 - ✅ Phân quyền: User, Moderator, Admin, Seller, Tour Guide
 - ✅ Xác thực email
@@ -83,6 +88,7 @@
 - ✅ Hệ thống điểm, level, badges
 
 ### 💬 Social Features
+
 - ✅ Follow/Unfollow users
 - ✅ Friend requests và quản lý bạn bè
 - ✅ Real-time chat (Socket.io)
@@ -91,6 +97,7 @@
 - ✅ News feed và timeline
 
 ### 🎯 Tính năng Nâng cao
+
 - ✅ Đa ngôn ngữ (i18n)
 - ✅ Google Maps integration
 - ✅ Tích hợp AI/ML recommendations
@@ -103,6 +110,7 @@
 ## 🛠 Công nghệ sử dụng
 
 ### Backend
+
 - **Framework**: Flask 2.3.3
 - **Database**: MySQL 8.0 + SQLAlchemy ORM
 - **Authentication**: Flask-JWT-Extended
@@ -111,6 +119,7 @@
 - **File Processing**: Pillow, ReportLab, openpyxl
 
 ### Frontend
+
 - **Framework**: Next.js 14.0 (React 18.2)
 - **Styling**: TailwindCSS 3.3
 - **State Management**: React Hooks + Context API
@@ -120,6 +129,7 @@
 - **UI Libraries**: Framer Motion, Lucide Icons
 
 ### DevOps & Tools
+
 - **Version Control**: Git
 - **Package Managers**: pip (Python), npm (Node.js)
 - **Testing**: pytest (Backend), Jest (Frontend)
@@ -201,13 +211,13 @@ python database/schema.sql
 Hoặc sử dụng file bat:
 
 ```bash
-.\create_database_manual.bat
+.\database\create_database_manual.sql
 ```
 
 #### Seed dữ liệu mẫu (Optional)
 
 ```bash
-.\seed_data.bat
+.\scripts\setup\seed_data.bat
 ```
 
 ---
@@ -286,18 +296,18 @@ Frontend sẽ chạy tại: `http://localhost:3000`
 
 ```powershell
 # Chạy toàn bộ hệ thống (Backend + Frontend)
-.\launcher.ps1
+.\scripts\launchers\launcher.ps1
 
 # Hoặc chạy riêng lẻ
-.\run_backend.bat
-.\run_frontend.bat
+.\scripts\run_backend.bat
+.\scripts\run_frontend.bat
 ```
 
 ### Cách 3: Sử dụng start.bat
 
 ```bash
 # Chạy cả backend và frontend trong một terminal
-.\start.bat
+.\scripts\start.bat
 ```
 
 ---
@@ -326,15 +336,26 @@ VieGo_Blog/
 │
 ├── database/              # Database scripts
 │   ├── schema.sql        # Database schema
-│   └── migrations/       # Migration scripts
+│   ├── migrations/       # Migration scripts
+│   └── *.sql            # SQL migration files
 │
-├── uploads/              # Uploaded files
-├── .gitignore           # Git ignore rules
-├── README.md            # This file
-├── QUICK_START_GUIDE.md # Hướng dẫn nhanh
-├── DATA_DICTIONARY.md   # Từ điển dữ liệu
-├── DEPLOYMENT_CHECKLIST.md # Checklist triển khai
-└── TOUR_FEATURES_README.md # Tài liệu tính năng tour
+├── scripts/              # Scripts thực thi
+│   ├── launchers/       # PowerShell launcher scripts
+│   ├── setup/           # Setup & installation scripts
+│   ├── run_backend.bat  # Chạy backend server
+│   ├── run_frontend.bat # Chạy frontend server
+│   └── start.bat        # Khởi động toàn bộ hệ thống
+│
+├── docs/                 # Tài liệu
+│   ├── DATA_DICTIONARY.md # Từ điển dữ liệu
+│   ├── DEPLOYMENT_CHECKLIST.md # Checklist triển khai
+│   ├── QUICK_START_GUIDE.md # Hướng dẫn nhanh
+│   └── TOUR_FEATURES_README.md # Tài liệu tính năng tour
+│
+├── tests/               # Test files
+├── uploads/            # Uploaded files
+├── .gitignore         # Git ignore rules
+└── README.md          # This file
 ```
 
 ---

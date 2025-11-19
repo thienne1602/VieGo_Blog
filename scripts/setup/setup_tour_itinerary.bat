@@ -5,7 +5,7 @@ echo ============================================
 echo.
 
 echo [1/3] Running database migration...
-"E:\laragon\bin\mysql\mysql-8.0.30-winx64\bin\mysql.exe" -u root viego_blog < database\migrate_tour_itinerary_system.sql
+"E:\laragon\bin\mysql\mysql-8.0.30-winx64\bin\mysql.exe" -u root viego_blog < "%~dp0..\..\database\migrate_tour_itinerary_system.sql"
 
 if %errorlevel% neq 0 (
     echo [ERROR] Migration failed!
@@ -24,8 +24,8 @@ echo   - checkpoint_checkins
 echo.
 
 echo [3/3] Creating upload directory...
-if not exist "uploads\checkpoint_photos" (
-    mkdir uploads\checkpoint_photos
+if not exist "%~dp0..\..\uploads\checkpoint_photos" (
+    mkdir "%~dp0..\..\uploads\checkpoint_photos"
     echo [OK] Created uploads\checkpoint_photos directory
 ) else (
     echo [OK] Upload directory already exists

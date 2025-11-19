@@ -31,14 +31,14 @@ for /f "delims=" %%v in ('"%NODE_PATH%\node.exe" --version') do (
 )
 
 REM Kiểm tra thư mục frontend
-if not exist "%~dp0frontend" (
+if not exist "%~dp0..\frontend" (
     echo ❌ Thư mục frontend không tồn tại!
     pause
     exit /b 1
 )
 
 REM Chuyển vào thư mục frontend
-cd /d "%~dp0frontend"
+cd /d "%~dp0..\frontend"
 
 REM Kiểm tra package.json
 if not exist "package.json" (

@@ -21,12 +21,12 @@ if errorlevel 1 (
 )
 
 REM Run PowerShell GUI script with UTF-8 encoding
-powershell -ExecutionPolicy Bypass -NoProfile -File "%~dp0launcher.ps1"
+powershell -ExecutionPolicy Bypass -NoProfile -File "%~dp0launchers\launcher.ps1"
 
 if errorlevel 1 (
     echo.
     echo ❌ Có lỗi xảy ra khi chạy GUI!
-    echo 💡 Thử chạy trực tiếp: powershell -ExecutionPolicy Bypass -File launcher.ps1
+    echo 💡 Thử chạy trực tiếp: powershell -ExecutionPolicy Bypass -File launchers\launcher.ps1
     pause
 )
 

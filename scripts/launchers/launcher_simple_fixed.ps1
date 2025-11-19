@@ -15,7 +15,7 @@ Add-Type -AssemblyName System.Drawing
 $script:backendProcess = $null
 $script:frontendProcesses = @()
 $script:isRunning = $false
-$script:projectPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$script:projectPath = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 
 # ============================================
 # CREATE MAIN FORM
@@ -323,7 +323,7 @@ function Start-Servers {
     Add-Log "📊 Backend (1) + Frontend ($clientCount)" "Cyan"
     
     Add-Log "🔧 Khởi động Backend..." "Yellow"
-    $backendScript = "$projectPath\run_backend.bat"
+    $backendScript = "$projectPath\scripts\run_backend.bat"
     $script:backendProcess = Start-Process -FilePath "cmd.exe" -ArgumentList "/k", "`"$backendScript`"" -PassThru -WindowStyle Normal
     
     Add-Log "⏳ Đợi Backend khởi động..." "Yellow"
@@ -335,7 +335,7 @@ function Start-Servers {
     for ($i = 1; $i -le $clientCount; $i++) {
         $port = $startPort + $i - 1
         if ($i -eq 1 -and $clientCount -eq 1) {
-            $frontendScript = "$projectPath\run_frontend.bat"
+            $frontendScript = "$projectPath\scripts\run_frontend.bat"
             $process = Start-Process -FilePath "cmd.exe" -ArgumentList "/k", "`"$frontendScript`"" -PassThru -WindowStyle Normal
         } else {
             $frontendScript = "$projectPath\run_frontend_port.bat"

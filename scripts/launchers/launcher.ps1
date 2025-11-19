@@ -5,7 +5,7 @@ Add-Type -AssemblyName System.Drawing
 $script:backendProcess = $null
 $script:frontendProcesses = @()
 $script:isRunning = $false
-$script:projectPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$script:projectPath = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 
 # Create Form
 $form = New-Object System.Windows.Forms.Form
@@ -147,7 +147,7 @@ function Start-Servers {
     $statusLabel.ForeColor = [System.Drawing.Color]::Yellow
     
     Add-Log 'Khoi dong Backend...'
-    $backendScript = "$projectPath\run_backend.bat"
+    $backendScript = "$projectPath\scripts\run_backend.bat"
     $script:backendProcess = Start-Process -FilePath 'cmd.exe' -ArgumentList '/k', "`"$backendScript`"" -PassThru -WindowStyle Normal
     Start-Sleep -Seconds 5
     
@@ -155,10 +155,10 @@ function Start-Servers {
     for ($i = 1; $i -le $clientCount; $i++) {
         $port = 3000 + $i - 1
         if ($i -eq 1 -and $clientCount -eq 1) {
-            $frontendScript = "$projectPath\run_frontend.bat"
+            $frontendScript = "$projectPath\scripts\run_frontend.bat"
             $process = Start-Process -FilePath 'cmd.exe' -ArgumentList '/k', "`"$frontendScript`"" -PassThru -WindowStyle Normal
         } else {
-            $frontendScript = "$projectPath\run_frontend_port.bat"
+            $frontendScript = "$projectPath\scripts\run_frontend_port.bat"
             $process = Start-Process -FilePath 'cmd.exe' -ArgumentList '/k', "`"$frontendScript`" $port" -PassThru -WindowStyle Normal
         }
         $script:frontendProcesses += $process

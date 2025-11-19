@@ -3,7 +3,7 @@ echo Creating Admin User for VieGo Blog...
 echo =====================================
 
 REM Chuyển vào thư mục backend
-cd /d "%~dp0backend"
+cd /d "%~dp0..\..\backend"
 
 echo Current directory: %CD%
 echo Running admin user creation script...
