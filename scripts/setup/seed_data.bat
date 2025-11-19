@@ -11,7 +11,7 @@ echo ╚════════════════════════
 echo.
 
 REM Check virtual environment
-if not exist "%~dp0...\.venv_new\Scripts\activate.bat" (
+if not exist "%~dp0..\..\.venv_new\Scripts\activate.bat" (
     echo ❌ Virtual environment không tồn tại!
     echo.
     echo 💡 Tạo virtual environment:
@@ -24,7 +24,7 @@ if not exist "%~dp0...\.venv_new\Scripts\activate.bat" (
 )
 
 echo 🔧 Activating virtual environment...
-call "%~dp0...\.venv_new\Scripts\activate.bat"
+call "%~dp0..\..\.venv_new\Scripts\activate.bat"
 
 echo.
 echo ============================================================
