@@ -12,7 +12,7 @@ notifications_bp = Blueprint('notifications', __name__, url_prefix='/api/notific
 @notifications_bp.route('', methods=['GET'])
 @jwt_required()
 def get_notifications():
-    """Get notifications for current user"""
+    """Get notifications for current user with filtering options"""
     try:
         current_user_id = get_jwt_identity()
         if not current_user_id:
@@ -38,15 +38,20 @@ def get_notifications():
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         unread_only = request.args.get('unread_only', 'false').lower() == 'true'
+        notification_type = request.args.get('type', None)  # Filter by type: message, like, comment, etc.
         
         # Build query with error handling for table not existing
         # CRITICAL: Always filter by current_user_id to prevent data leakage
         try:
             query = Notification.query.filter_by(user_id=current_user_id)
-            print(f'[Notifications] Query built for user_id={current_user_id}, unread_only={unread_only}')
+            print(f'[Notifications] Query built for user_id={current_user_id}, unread_only={unread_only}, type={notification_type}')
             
             if unread_only:
                 query = query.filter_by(is_read=False)
+            
+            # Filter by notification type if specified
+            if notification_type:
+                query = query.filter_by(type=notification_type)
             
             # Order by most recent first
             query = query.order_by(Notification.created_at.desc())
@@ -68,16 +73,30 @@ def get_notifications():
                     except:
                         pass
             
-            # Get unread count
-            unread_count = 0
+            # Get unread count by category
+            unread_stats = {}
             try:
-                unread_count = Notification.query.filter_by(
+                # Total unread
+                total_unread = Notification.query.filter_by(
                     user_id=current_user_id,
                     is_read=False
                 ).count()
-                print(f'[Notifications] Unread count for user_id={current_user_id}: {unread_count}')
+                unread_stats['total'] = total_unread
+                
+                # Unread by type
+                types = ['message', 'like', 'comment', 'follow', 'friend_request', 'booking']
+                for ntype in types:
+                    count = Notification.query.filter_by(
+                        user_id=current_user_id,
+                        is_read=False,
+                        type=ntype
+                    ).count()
+                    unread_stats[ntype] = count
+                
+                print(f'[Notifications] Unread stats for user_id={current_user_id}: {unread_stats}')
             except Exception as count_error:
-                print(f'[Notifications] Error getting unread count: {str(count_error)}')
+                print(f'[Notifications] Error getting unread stats: {str(count_error)}')
+                unread_stats = {'total': 0}
             
             print(f'[Notifications] Returning {len(notifications)} notifications to user_id={current_user_id}')
             return jsonify({
@@ -86,7 +105,8 @@ def get_notifications():
                 'page': page,
                 'per_page': per_page,
                 'pages': pagination.pages,
-                'unread_count': unread_count
+                'unread_count': unread_stats.get('total', 0),
+                'unread_stats': unread_stats
             }), 200
         except Exception as db_error:
             # If table doesn't exist or other DB error, return empty result instead of 500
@@ -107,6 +127,7 @@ def get_notifications():
                 'per_page': per_page,
                 'pages': 0,
                 'unread_count': 0,
+                'unread_stats': {'total': 0},
                 'warning': 'Không thể tải thông báo. Vui lòng thử lại sau.'
             }), 200
         
@@ -230,6 +251,108 @@ def delete_notification(notification_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'Lỗi xóa thông báo: {str(e)}'}), 500
+
+@notifications_bp.route('/delete-all', methods=['DELETE'])
+@jwt_required()
+def delete_all_notifications():
+    """Delete all notifications for current user"""
+    try:
+        current_user_id = get_jwt_identity()
+        # Convert to int if it's a string
+        if isinstance(current_user_id, str) and current_user_id.isdigit():
+            current_user_id = int(current_user_id)
+        
+        # Delete all notifications
+        deleted_count = Notification.query.filter_by(
+            user_id=current_user_id
+        ).delete()
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Đã xóa tất cả thông báo',
+            'deleted_count': deleted_count
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi xóa thông báo: {str(e)}'}), 500
+
+@notifications_bp.route('/delete-read', methods=['DELETE'])
+@jwt_required()
+def delete_read_notifications():
+    """Delete all read notifications for current user"""
+    try:
+        current_user_id = get_jwt_identity()
+        # Convert to int if it's a string
+        if isinstance(current_user_id, str) and current_user_id.isdigit():
+            current_user_id = int(current_user_id)
+        
+        # Delete read notifications
+        deleted_count = Notification.query.filter_by(
+            user_id=current_user_id,
+            is_read=True
+        ).delete()
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Đã xóa thông báo đã đọc',
+            'deleted_count': deleted_count
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi xóa thông báo: {str(e)}'}), 500
+
+@notifications_bp.route('/stats', methods=['GET'])
+@jwt_required()
+def get_notification_stats():
+    """Get notification statistics for current user"""
+    try:
+        current_user_id = get_jwt_identity()
+        # Convert to int if it's a string
+        if isinstance(current_user_id, str) and current_user_id.isdigit():
+            current_user_id = int(current_user_id)
+        
+        # Get total count
+        total = Notification.query.filter_by(user_id=current_user_id).count()
+        
+        # Get unread count
+        unread = Notification.query.filter_by(
+            user_id=current_user_id,
+            is_read=False
+        ).count()
+        
+        # Get counts by type
+        types_count = {}
+        types = ['message', 'like', 'comment', 'follow', 'friend_request', 'booking', 'system']
+        for ntype in types:
+            count = Notification.query.filter_by(
+                user_id=current_user_id,
+                type=ntype
+            ).count()
+            if count > 0:
+                types_count[ntype] = count
+        
+        # Get recent activity (last 7 days)
+        from datetime import datetime, timedelta
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        recent = Notification.query.filter(
+            Notification.user_id == current_user_id,
+            Notification.created_at >= week_ago
+        ).count()
+        
+        return jsonify({
+            'total': total,
+            'unread': unread,
+            'read': total - unread,
+            'by_type': types_count,
+            'last_7_days': recent
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Lỗi lấy thống kê: {str(e)}'}), 500
 
 def create_notification(user_id, type, message, title=None, actor_id=None, 
                        related_type=None, related_id=None, action_url=None, metadata=None, emit_realtime=True):

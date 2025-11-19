@@ -517,18 +517,214 @@ def mark_message_as_read(message_id):
 @chat_bp.route('/unread-count', methods=['GET'])
 @jwt_required()
 def get_unread_message_count():
-    """Get count of unread messages"""
+    """Get count of unread messages (including group chats)"""
     try:
         current_user_id = get_jwt_identity()
-        count = Chat.query.filter_by(
+        
+        # Count unread direct messages
+        direct_count = Chat.query.filter_by(
             receiver_id=current_user_id,
-            status='sent'
+            conversation_type='direct'
+        ).filter(
+            Chat.status.in_(['sent', 'delivered'])
         ).count()
         
-        return jsonify({'unread_count': count}), 200
+        # Count unread group messages
+        # Get all groups user is a member of
+        user_groups = db.session.query(GroupChat.room_id).join(
+            GroupMember
+        ).filter(
+            GroupMember.user_id == current_user_id
+        ).all()
+        
+        group_room_ids = [g.room_id for g in user_groups]
+        
+        group_count = 0
+        if group_room_ids:
+            group_count = Chat.query.filter(
+                Chat.room_id.in_(group_room_ids),
+                Chat.conversation_type == 'group',
+                Chat.sender_id != current_user_id,
+                Chat.status.in_(['sent', 'delivered'])
+            ).count()
+        
+        total_count = direct_count + group_count
+        
+        return jsonify({
+            'unread_count': total_count,
+            'direct_count': direct_count,
+            'group_count': group_count
+        }), 200
         
     except Exception as e:
+        current_app.logger.error(f"Error getting unread count: {str(e)}", exc_info=True)
         return jsonify({'error': f'Lỗi lấy số lượng tin nhắn: {str(e)}'}), 500
+
+@chat_bp.route('/search', methods=['GET'])
+@jwt_required()
+def search_messages():
+    """Search messages by content"""
+    try:
+        current_user_id = get_jwt_identity()
+        query_text = request.args.get('q', '').strip()
+        conversation_type = request.args.get('type', 'all')  # all, direct, group
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        if not query_text:
+            return jsonify({'error': 'Thiếu từ khóa tìm kiếm'}), 400
+        
+        # Build query
+        query = Chat.query.filter(
+            Chat.message.like(f'%{query_text}%')
+        )
+        
+        # Filter by conversation type
+        if conversation_type == 'direct':
+            query = query.filter(
+                Chat.conversation_type == 'direct',
+                db.or_(
+                    Chat.sender_id == current_user_id,
+                    Chat.receiver_id == current_user_id
+                )
+            )
+        elif conversation_type == 'group':
+            # Get user's groups
+            user_groups = db.session.query(GroupChat.room_id).join(
+                GroupMember
+            ).filter(
+                GroupMember.user_id == current_user_id
+            ).all()
+            
+            group_room_ids = [g.room_id for g in user_groups]
+            
+            query = query.filter(
+                Chat.conversation_type == 'group',
+                Chat.room_id.in_(group_room_ids)
+            )
+        else:  # all
+            # Direct messages
+            direct_condition = db.and_(
+                Chat.conversation_type == 'direct',
+                db.or_(
+                    Chat.sender_id == current_user_id,
+                    Chat.receiver_id == current_user_id
+                )
+            )
+            
+            # Group messages
+            user_groups = db.session.query(GroupChat.room_id).join(
+                GroupMember
+            ).filter(
+                GroupMember.user_id == current_user_id
+            ).all()
+            
+            group_room_ids = [g.room_id for g in user_groups]
+            
+            if group_room_ids:
+                group_condition = db.and_(
+                    Chat.conversation_type == 'group',
+                    Chat.room_id.in_(group_room_ids)
+                )
+                query = query.filter(db.or_(direct_condition, group_condition))
+            else:
+                query = query.filter(direct_condition)
+        
+        # Order by most recent
+        query = query.order_by(Chat.created_at.desc())
+        
+        # Paginate
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        
+        messages = []
+        for msg in pagination.items:
+            sender = User.query.get(msg.sender_id)
+            msg_dict = msg.to_dict()
+            msg_dict['sender'] = {
+                'id': sender.id,
+                'username': sender.username,
+                'full_name': sender.full_name,
+                'avatar_url': sender.avatar_url
+            } if sender else None
+            
+            # Add context info
+            if msg.conversation_type == 'direct':
+                other_user_id = msg.receiver_id if msg.sender_id == current_user_id else msg.sender_id
+                other_user = User.query.get(other_user_id)
+                msg_dict['conversation_info'] = {
+                    'type': 'direct',
+                    'other_user': {
+                        'id': other_user.id,
+                        'username': other_user.username,
+                        'full_name': other_user.full_name,
+                        'avatar_url': other_user.avatar_url
+                    } if other_user else None
+                }
+            elif msg.conversation_type == 'group':
+                group = GroupChat.query.filter_by(room_id=msg.room_id).first()
+                msg_dict['conversation_info'] = {
+                    'type': 'group',
+                    'group': {
+                        'id': group.id,
+                        'room_id': group.room_id,
+                        'name': group.name,
+                        'avatar_url': group.avatar_url
+                    } if group else None
+                }
+            
+            messages.append(msg_dict)
+        
+        return jsonify({
+            'messages': messages,
+            'total': pagination.total,
+            'page': page,
+            'per_page': per_page,
+            'pages': pagination.pages,
+            'query': query_text
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error searching messages: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Lỗi tìm kiếm tin nhắn: {str(e)}'}), 500
+
+@chat_bp.route('/online-users', methods=['GET'])
+@jwt_required()
+def get_online_friends():
+    """Get list of online friends"""
+    try:
+        current_user_id = get_jwt_identity()
+        
+        # Get current user's friends
+        current_user = User.query.get(current_user_id)
+        if not current_user:
+            return jsonify({'error': 'Không tìm thấy người dùng'}), 404
+        
+        db.session.refresh(current_user)
+        friends = current_user.get_friends()
+        
+        # Import online_users from socket_handlers
+        from socket_handlers import online_users
+        
+        # Check which friends are online
+        online_friends = []
+        for friend in friends:
+            if friend.id in online_users:
+                online_friends.append({
+                    'id': friend.id,
+                    'username': friend.username,
+                    'full_name': friend.full_name,
+                    'avatar_url': friend.avatar_url,
+                    'last_seen': online_users[friend.id]['last_seen'].isoformat()
+                })
+        
+        return jsonify({
+            'online_friends': online_friends,
+            'count': len(online_friends)
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error getting online friends: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Lỗi lấy danh sách bạn bè online: {str(e)}'}), 500
 
 @chat_bp.route('/conversations/<int:other_user_id>', methods=['DELETE'])
 @jwt_required()

@@ -7,6 +7,12 @@ from routes.notifications import create_notification
 import json
 from datetime import datetime
 
+# Track online users: {user_id: {'socket_id': sid, 'last_seen': datetime}}
+online_users = {}
+
+# Track typing status: {conversation_key: {user_id: timestamp}}
+typing_status = {}
+
 def register_socket_handlers(socketio):
     """Register Socket.IO event handlers"""
     
@@ -50,14 +56,35 @@ def register_socket_handlers(socketio):
                     # Use consistent room naming: user_{user_id}
                     join_room(room)
                     
+                    # Track online status
+                    online_users[user_id] = {
+                        'socket_id': socket_id,
+                        'last_seen': datetime.utcnow(),
+                        'username': user.username
+                    }
+                    
+                    # Get user's friends to notify them about online status
+                    friends = user.get_friends()
+                    friend_ids = [f.id for f in friends]
+                    
                     emit('connected', {
                         'message': f'Chào mừng {user.username}!',
                         'user_id': user_id,
-                        'room': room
+                        'room': room,
+                        'online_users': list(online_users.keys())
                     })
+                    
+                    # Notify friends that this user is online
+                    for friend_id in friend_ids:
+                        socketio.emit('user_online', {
+                            'user_id': user_id,
+                            'username': user.username
+                        }, room=f'user_{friend_id}')
+                    
                     print(f'[Socket.IO] User {user.username} (ID: {user_id}) connected and joined room {room}, socket_id={socket_id}')
                     print(f'[Socket.IO] IMPORTANT: This socket should ONLY receive notifications for user_id={user_id}')
                     print(f'[Socket.IO] Room {room} should ONLY contain sockets for user_id={user_id}')
+                    print(f'[Socket.IO] User {user_id} is now ONLINE, notified {len(friend_ids)} friends')
                 else:
                     print(f'[Socket.IO] ERROR: User {user_id} not found or inactive')
                     disconnect()
@@ -75,7 +102,43 @@ def register_socket_handlers(socketio):
     @socketio.on('disconnect')
     def on_disconnect():
         """Handle client disconnection"""
-        print('User disconnected')
+        from flask import request
+        socket_id = request.sid
+        
+        # Find and remove user from online_users
+        disconnected_user_id = None
+        disconnected_username = None
+        
+        for user_id, info in list(online_users.items()):
+            if info['socket_id'] == socket_id:
+                disconnected_user_id = user_id
+                disconnected_username = info.get('username', 'Unknown')
+                del online_users[user_id]
+                break
+        
+        if disconnected_user_id:
+            print(f'[Socket.IO] User {disconnected_username} (ID: {disconnected_user_id}) disconnected, socket_id={socket_id}')
+            
+            # Get user's friends to notify them about offline status
+            try:
+                user = User.query.get(disconnected_user_id)
+                if user:
+                    friends = user.get_friends()
+                    friend_ids = [f.id for f in friends]
+                    
+                    # Notify friends that this user is offline
+                    for friend_id in friend_ids:
+                        socketio.emit('user_offline', {
+                            'user_id': disconnected_user_id,
+                            'username': disconnected_username,
+                            'last_seen': datetime.utcnow().isoformat()
+                        }, room=f'user_{friend_id}')
+                    
+                    print(f'[Socket.IO] User {disconnected_user_id} is now OFFLINE, notified {len(friend_ids)} friends')
+            except Exception as e:
+                print(f'[Socket.IO] Error notifying friends of disconnect: {str(e)}')
+        else:
+            print(f'[Socket.IO] Anonymous user disconnected, socket_id={socket_id}')
     
     @socketio.on('join_room')
     def on_join_room(data):
@@ -220,6 +283,78 @@ def register_socket_handlers(socketio):
         except Exception as e:
             emit('error', {'message': f'Lỗi tham gia cuộc trò chuyện: {str(e)}'})
     
+    @socketio.on('message_delivered')
+    def on_message_delivered(data):
+        """Handle message delivery confirmation"""
+        try:
+            message_id = data.get('message_id')
+            receiver_id = data.get('receiver_id')
+            
+            if message_id and receiver_id:
+                # Update message status in database
+                message = Chat.query.get(message_id)
+                if message and message.receiver_id == receiver_id:
+                    message.status = 'delivered'
+                    db.session.commit()
+                    
+                    # Notify sender that message was delivered
+                    socketio.emit('message_status_updated', {
+                        'message_id': message_id,
+                        'status': 'delivered',
+                        'timestamp': datetime.utcnow().isoformat()
+                    }, room=f'user_{message.sender_id}')
+                    
+                    print(f'[Socket.IO] Message {message_id} delivered to user {receiver_id}')
+        except Exception as e:
+            print(f'[Socket.IO] Error in message delivery confirmation: {str(e)}')
+    
+    @socketio.on('message_read')
+    def on_message_read(data):
+        """Handle message read confirmation"""
+        try:
+            message_id = data.get('message_id')
+            reader_id = data.get('reader_id')
+            
+            if message_id and reader_id:
+                # Update message status in database
+                message = Chat.query.get(message_id)
+                if message and message.receiver_id == reader_id:
+                    message.status = 'read'
+                    message.read_at = datetime.utcnow()
+                    db.session.commit()
+                    
+                    # Notify sender that message was read
+                    socketio.emit('message_status_updated', {
+                        'message_id': message_id,
+                        'status': 'read',
+                        'read_at': message.read_at.isoformat(),
+                        'timestamp': datetime.utcnow().isoformat()
+                    }, room=f'user_{message.sender_id}')
+                    
+                    print(f'[Socket.IO] Message {message_id} read by user {reader_id}')
+        except Exception as e:
+            print(f'[Socket.IO] Error in message read confirmation: {str(e)}')
+    
+    @socketio.on('get_online_status')
+    def on_get_online_status(data):
+        """Check online status of specific users"""
+        try:
+            user_ids = data.get('user_ids', [])
+            
+            online_status = {}
+            for uid in user_ids:
+                online_status[uid] = {
+                    'is_online': uid in online_users,
+                    'last_seen': online_users[uid]['last_seen'].isoformat() if uid in online_users else None
+                }
+            
+            emit('online_status_response', {
+                'users': online_status
+            })
+        except Exception as e:
+            print(f'[Socket.IO] Error getting online status: {str(e)}')
+            emit('error', {'message': f'Lỗi lấy trạng thái online: {str(e)}'})
+    
     @socketio.on('typing_message')
     def on_typing_message(data):
         """Handle typing indicator in direct messages"""
@@ -229,13 +364,37 @@ def register_socket_handlers(socketio):
             is_typing = data.get('is_typing', False)
             
             if sender_id and receiver_id:
+                # Create conversation key for tracking
+                conv_key = f"{min(sender_id, receiver_id)}_{max(sender_id, receiver_id)}"
+                
+                if is_typing:
+                    # User started typing
+                    if conv_key not in typing_status:
+                        typing_status[conv_key] = {}
+                    typing_status[conv_key][sender_id] = datetime.utcnow()
+                else:
+                    # User stopped typing
+                    if conv_key in typing_status and sender_id in typing_status[conv_key]:
+                        del typing_status[conv_key][sender_id]
+                        if not typing_status[conv_key]:  # Remove empty dict
+                            del typing_status[conv_key]
+                
+                # Get sender info
+                sender = User.query.get(sender_id)
+                sender_name = sender.full_name or sender.username if sender else 'Unknown'
+                
                 # Send typing indicator to receiver
-                emit('user_typing', {
+                socketio.emit('user_typing', {
                     'sender_id': sender_id,
-                    'is_typing': is_typing
+                    'sender_name': sender_name,
+                    'is_typing': is_typing,
+                    'timestamp': datetime.utcnow().isoformat()
                 }, room=f'user_{receiver_id}')
                 
+                print(f'[Socket.IO] Typing indicator: user {sender_id} {"started" if is_typing else "stopped"} typing to {receiver_id}')
+                
         except Exception as e:
+            print(f'[Socket.IO] Error in typing indicator: {str(e)}')
             emit('error', {'message': f'Lỗi typing indicator: {str(e)}'})
     
     return socketio
