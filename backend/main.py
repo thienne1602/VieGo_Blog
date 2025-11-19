@@ -270,14 +270,20 @@ def internal_error(error):
 
 @jwt.expired_token_loader
 def expired_token_callback(jwt_header, jwt_payload):
+    print(f"[JWT] Expired token: {jwt_payload}")
     return jsonify({'error': 'Token has expired'}), 401
 
 @jwt.invalid_token_loader
 def invalid_token_callback(error):
+    print(f"[JWT] Invalid token error: {error}")
     return jsonify({'error': 'Invalid token'}), 401
 
 @jwt.unauthorized_loader
 def missing_token_callback(error):
+    print(f"[JWT] Missing token error: {error}")
+    print(f"[JWT] Request path: {request.path}")
+    print(f"[JWT] Request method: {request.method}")
+    print(f"[JWT] Request headers: {dict(request.headers)}")
     return jsonify({'error': 'Authorization token is required'}), 401
 
 # Serve uploaded files
