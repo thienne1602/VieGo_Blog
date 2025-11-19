@@ -5,7 +5,7 @@ Add-Type -AssemblyName System.Drawing
 $script:backendProcess = $null
 $script:frontendProcesses = @()
 $script:isRunning = $false
-$script:projectPath = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$script:projectPath = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path))
 
 # Create Form
 $form = New-Object System.Windows.Forms.Form
