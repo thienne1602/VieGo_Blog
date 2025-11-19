@@ -26,6 +26,7 @@ import {
   BellOff,
   Palette,
   User,
+  UserMinus,
   Search,
   Moon,
   Sun,
@@ -417,6 +418,7 @@ export default function ChatPage() {
           }
 
           // Check friendship status
+          let friendshipData = null;
           if (token) {
             const friendshipResponse = await fetch(
               `${API_BASE_URL}/social/friends/check/${otherUserId}`,
@@ -426,7 +428,6 @@ export default function ChatPage() {
                 },
               }
             );
-            let friendshipData = null;
             if (friendshipResponse.ok) {
               friendshipData = await friendshipResponse.json();
               setIsFriend(friendshipData.is_friend || false);
@@ -794,6 +795,52 @@ export default function ChatPage() {
         alert("Không thể lấy vị trí. Vui lòng kiểm tra quyền truy cập vị trí.");
       }
     );
+  };
+
+  // Unfriend handler
+  const handleUnfriend = async () => {
+    if (!otherUserId || !otherUser) return;
+
+    const confirmUnfriend = window.confirm(
+      `Bạn có chắc chắn muốn hủy kết bạn với ${
+        otherUser.full_name || otherUser.username
+      }? Sau khi hủy kết bạn, bạn sẽ không thể nhắn tin với người này nữa.`
+    );
+
+    if (!confirmUnfriend) return;
+
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        alert("Vui lòng đăng nhập lại");
+        return;
+      }
+
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const response = await fetch(
+        `${API_BASE_URL}/social/friends/remove/${otherUserId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        alert("Đã hủy kết bạn thành công");
+        setIsFriend(false);
+        // Optionally redirect to messages list or profile
+        router.push("/messages");
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || "Không thể hủy kết bạn");
+      }
+    } catch (error) {
+      console.error("Error unfriending:", error);
+      alert("Có lỗi xảy ra khi hủy kết bạn");
+    }
   };
 
   // Send message function
@@ -1914,6 +1961,16 @@ export default function ChatPage() {
                       </p>
                     )}
                   </div>
+                  {/* Unfriend Button */}
+                  {isFriend && (
+                    <button
+                      onClick={handleUnfriend}
+                      className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors group"
+                      title="Hủy kết bạn"
+                    >
+                      <UserMinus className="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-400" />
+                    </button>
+                  )}
                 </>
               ) : (
                 <div className="flex-1">

@@ -64,8 +64,7 @@ def register_socket_handlers(socketio):
                     }
                     
                     # Get user's friends to notify them about online status
-                    friends = user.get_friends()
-                    friend_ids = [f.id for f in friends]
+                    friend_ids = user.get_friends()  # Returns list of friend IDs
                     
                     emit('connected', {
                         'message': f'Chào mừng {user.username}!',
@@ -123,8 +122,7 @@ def register_socket_handlers(socketio):
             try:
                 user = User.query.get(disconnected_user_id)
                 if user:
-                    friends = user.get_friends()
-                    friend_ids = [f.id for f in friends]
+                    friend_ids = user.get_friends()  # Returns list of friend IDs
                     
                     # Notify friends that this user is offline
                     for friend_id in friend_ids:

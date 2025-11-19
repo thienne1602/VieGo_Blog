@@ -97,17 +97,20 @@ export default function UserProfileNew() {
       if (viewingUserId && viewingUserId !== user.id) {
         setLoadingProfile(true);
         try {
+          // Always get fresh token from localStorage
           const token = localStorage.getItem("access_token");
           const API_BASE_URL =
             process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+          console.log("[Profile] Token check:", token ? `Yes (${token.length} chars)` : "No token found");
 
           // Fetch user info
           const userResponse = await fetch(
             `${API_BASE_URL}/users/${viewingUserId}`,
             {
-              headers: {
+              headers: token ? {
                 Authorization: `Bearer ${token}`,
-              },
+              } : {},
             }
           );
 
@@ -116,8 +119,9 @@ export default function UserProfileNew() {
             setViewingUser(userData.data || userData);
           }
 
-          // Check friendship status
-          if (token) {
+          // Check friendship status - ALWAYS send token if available
+          if (token && user) {
+            console.log("[Profile] Checking friendship with token");
             const friendshipResponse = await fetch(
               `${API_BASE_URL}/social/friends/check/${viewingUserId}`,
               {
@@ -129,6 +133,7 @@ export default function UserProfileNew() {
 
             if (friendshipResponse.ok) {
               const friendshipData = await friendshipResponse.json();
+              console.log("[Profile] Friendship data:", friendshipData);
               setFriendshipStatus({
                 is_friend: friendshipData.is_friend || false,
                 request_status: friendshipData.request_status || null,
@@ -138,7 +143,7 @@ export default function UserProfileNew() {
               console.warn("[Profile] Unauthorized - token may be invalid");
             }
           } else {
-            console.warn("[Profile] No token for friendship check");
+            console.warn("[Profile] No token or user for friendship check", { hasToken: !!token, hasUser: !!user });
           }
         } catch (error) {
           console.error("Error fetching profile:", error);
