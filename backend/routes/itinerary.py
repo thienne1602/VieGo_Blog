@@ -366,12 +366,9 @@ def upload_checkin_photo(current_user, checkin_id):
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
         
-from utils.cloudinary_helper import upload_to_cloudinary
-
-# ... existing code ...
-
         if file and allowed_file(file.filename):
             # Upload to Cloudinary
+            from utils.cloudinary_helper import upload_to_cloudinary
             photo_url = upload_to_cloudinary(file, folder="viego_blog/checkpoint_photos")
             
             if not photo_url:
