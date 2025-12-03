@@ -327,6 +327,15 @@ def serve_uploads(filename):
     
     return send_from_directory(directory, filename_only)
 
+# Temporary route to initialize database on Render (since Shell is paid)
+@app.route('/api/init-db-command', methods=['GET'])
+def init_db_command():
+    try:
+        db.create_all()
+        return jsonify({"message": "Database initialized successfully!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # Create tables
 def create_tables():
     """Create database tables if they don't exist"""
