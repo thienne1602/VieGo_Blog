@@ -33,6 +33,7 @@ import Link from "next/link";
 import apiClient from "@/lib/api";
 import PostCard from "@/components/blog/PostCard";
 import { Package } from "lucide-react";
+import FriendActionPopup from "@/components/common/FriendActionPopup";
 
 interface Post {
   id: number;
@@ -77,6 +78,13 @@ export default function UserProfileNew() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [sellerTours, setSellerTours] = useState<any[]>([]);
   const [loadingTours, setLoadingTours] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupType, setPopupType] = useState<
+    "sent" | "cancelled" | "accepted" | "rejected" | "unfriended"
+  >("sent");
+  const [popupMessage, setPopupMessage] = useState<string | undefined>(
+    undefined
+  );
 
   // Get user ID from query parameter
   useEffect(() => {
@@ -98,19 +106,24 @@ export default function UserProfileNew() {
         setLoadingProfile(true);
         try {
           // Always get fresh token from localStorage
-          const token = localStorage.getItem("access_token");
+          const token = apiClient.getToken();
           const API_BASE_URL =
             process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-          console.log("[Profile] Token check:", token ? `Yes (${token.length} chars)` : "No token found");
+          console.log(
+            "[Profile] Token check:",
+            token ? `Yes (${token.length} chars)` : "No token found"
+          );
 
           // Fetch user info
           const userResponse = await fetch(
             `${API_BASE_URL}/users/${viewingUserId}`,
             {
-              headers: token ? {
-                Authorization: `Bearer ${token}`,
-              } : {},
+              headers: token
+                ? {
+                    Authorization: `Bearer ${token}`,
+                  }
+                : {},
             }
           );
 
@@ -123,7 +136,7 @@ export default function UserProfileNew() {
           if (token && user) {
             console.log("[Profile] Checking friendship with token");
             const friendshipResponse = await fetch(
-              `${API_BASE_URL}/social/friends/check/${viewingUserId}`,
+              `${API_BASE_URL}/social/friends/check/${viewingUserId}?t=${Date.now()}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -143,7 +156,10 @@ export default function UserProfileNew() {
               console.warn("[Profile] Unauthorized - token may be invalid");
             }
           } else {
-            console.warn("[Profile] No token or user for friendship check", { hasToken: !!token, hasUser: !!user });
+            console.warn("[Profile] No token or user for friendship check", {
+              hasToken: !!token,
+              hasUser: !!user,
+            });
           }
         } catch (error) {
           console.error("Error fetching profile:", error);
@@ -170,7 +186,7 @@ export default function UserProfileNew() {
     if (!user || !viewingUserId || viewingUserId === user.id) return;
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = apiClient.getToken();
       if (!token) {
         console.warn(
           "[Profile] No token available for refreshing friendship status"
@@ -182,7 +198,7 @@ export default function UserProfileNew() {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
       const response = await fetch(
-        `${API_BASE_URL}/social/friends/check/${viewingUserId}`,
+        `${API_BASE_URL}/social/friends/check/${viewingUserId}?t=${Date.now()}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -200,6 +216,49 @@ export default function UserProfileNew() {
       }
     } catch (error) {
       console.error("Error refreshing friendship status:", error);
+    }
+  };
+
+  // Handle reject friend request
+  const handleRejectFriendRequest = async () => {
+    if (!user || !friendshipStatus?.request_id) return;
+    if (friendRequestLoading) return;
+
+    setFriendRequestLoading(true);
+    try {
+      const token = apiClient.getToken();
+      if (!token) {
+        alert("Vui lòng đăng nhập lại");
+        return;
+      }
+
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+      const response = await fetch(
+        `${API_BASE_URL}/social/friends/reject/${friendshipStatus.request_id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        await refreshFriendshipStatus();
+        setPopupType("rejected");
+        setPopupMessage("Đã từ chối lời mời kết bạn");
+        setShowPopup(true);
+      } else {
+        alert(data.error || "Có lỗi xảy ra khi từ chối lời mời");
+      }
+    } catch (error: any) {
+      console.error("Error rejecting friend request:", error);
+      alert("Có lỗi xảy ra: " + (error.message || "Unknown error"));
+    } finally {
+      setFriendRequestLoading(false);
     }
   };
 
@@ -228,7 +287,7 @@ export default function UserProfileNew() {
     setFriendRequestLoading(true);
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = apiClient.getToken();
       if (!token) {
         alert("Vui lòng đăng nhập lại");
         return;
@@ -254,7 +313,9 @@ export default function UserProfileNew() {
         if (response.ok && data.success) {
           // Refresh status after unfriend
           await refreshFriendshipStatus();
-          alert("Đã hủy kết bạn");
+          setPopupType("unfriended");
+          setPopupMessage("Đã hủy kết bạn thành công");
+          setShowPopup(true);
         } else {
           alert(data.error || "Có lỗi xảy ra khi hủy kết bạn");
         }
@@ -276,7 +337,9 @@ export default function UserProfileNew() {
           if (response.ok && data.success) {
             // Refresh status after cancel
             await refreshFriendshipStatus();
-            alert("Đã hủy lời mời kết bạn");
+            setPopupType("cancelled");
+            setPopupMessage("Đã hủy lời mời kết bạn thành công");
+            setShowPopup(true);
           } else {
             alert(data.error || "Có lỗi xảy ra khi hủy lời mời");
           }
@@ -299,7 +362,9 @@ export default function UserProfileNew() {
           if (response.ok && data.success) {
             // Refresh status after accept
             await refreshFriendshipStatus();
-            alert("Đã chấp nhận lời mời kết bạn");
+            setPopupType("accepted");
+            setPopupMessage("Đã là bạn bè");
+            setShowPopup(true);
           } else {
             alert(data.error || "Có lỗi xảy ra khi chấp nhận lời mời");
           }
@@ -322,7 +387,11 @@ export default function UserProfileNew() {
         if (response.ok && data.success) {
           // Refresh status after sending
           await refreshFriendshipStatus();
-          alert("Đã gửi lời mời kết bạn");
+          setPopupType("sent");
+          setPopupMessage(
+            "Đã gửi lời mời kết bạn thành công và đợi người kia phản hồi nhé"
+          );
+          setShowPopup(true);
         } else {
           alert(data.error || "Có lỗi xảy ra khi gửi lời mời");
         }
@@ -345,7 +414,7 @@ export default function UserProfileNew() {
       const isViewingOthers = viewingUserId && viewingUserId !== user.id;
 
       setLoadingData(true);
-      const token = localStorage.getItem("access_token");
+      const token = apiClient.getToken();
       const API_BASE_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -419,7 +488,7 @@ export default function UserProfileNew() {
       if (viewingUser.role === "seller" || viewingUser.role === "admin") {
         setLoadingTours(true);
         try {
-          const token = localStorage.getItem("access_token");
+          const token = apiClient.getToken();
           const API_BASE_URL =
             process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
           const response = await fetch(
@@ -555,7 +624,7 @@ export default function UserProfileNew() {
                     const result = await apiClient.uploadCover(file);
                     if (result.success) {
                       // Refresh user data
-                      const token = localStorage.getItem("access_token");
+                      const token = apiClient.getToken();
                       const API_BASE_URL =
                         process.env.NEXT_PUBLIC_API_URL ||
                         "http://localhost:5000/api";
@@ -673,7 +742,7 @@ export default function UserProfileNew() {
                           const result = await apiClient.uploadAvatar(file);
                           if (result.success) {
                             // Refresh user data
-                            const token = localStorage.getItem("access_token");
+                            const token = apiClient.getToken();
                             const API_BASE_URL =
                               process.env.NEXT_PUBLIC_API_URL ||
                               "http://localhost:5000/api";
@@ -875,25 +944,41 @@ export default function UserProfileNew() {
                               </span>
                             </motion.button>
                           ) : friendshipStatus.request_status === "received" ? (
-                            <motion.button
-                              onClick={handleFriendRequest}
-                              disabled={friendRequestLoading}
-                              className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-500 dark:to-primary-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                              whileHover={{
-                                scale: friendRequestLoading ? 1 : 1.05,
-                                y: friendRequestLoading ? 0 : -2,
-                              }}
-                              whileTap={{
-                                scale: friendRequestLoading ? 1 : 0.95,
-                              }}
-                            >
-                              <Check className="w-5 h-5" />
-                              <span>
-                                {friendRequestLoading
-                                  ? "Đang xử lý..."
-                                  : "Chấp nhận lời mời"}
-                              </span>
-                            </motion.button>
+                            <>
+                              <motion.button
+                                onClick={handleFriendRequest}
+                                disabled={friendRequestLoading}
+                                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-500 dark:to-primary-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                whileHover={{
+                                  scale: friendRequestLoading ? 1 : 1.05,
+                                  y: friendRequestLoading ? 0 : -2,
+                                }}
+                                whileTap={{
+                                  scale: friendRequestLoading ? 1 : 0.95,
+                                }}
+                              >
+                                <Check className="w-5 h-5" />
+                                <span>
+                                  {friendRequestLoading
+                                    ? "Đang xử lý..."
+                                    : "Chấp nhận"}
+                                </span>
+                              </motion.button>
+                              <motion.button
+                                onClick={handleRejectFriendRequest}
+                                disabled={friendRequestLoading}
+                                className="flex items-center space-x-2 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                whileHover={{
+                                  scale: friendRequestLoading ? 1 : 1.05,
+                                }}
+                                whileTap={{
+                                  scale: friendRequestLoading ? 1 : 0.95,
+                                }}
+                              >
+                                <X className="w-5 h-5" />
+                                <span>Từ chối</span>
+                              </motion.button>
+                            </>
                           ) : (
                             <motion.button
                               onClick={handleFriendRequest}
@@ -1180,10 +1265,10 @@ export default function UserProfileNew() {
 
                   // Get images array from post
                   const postImages =
-                    post.images &&
-                    Array.isArray(post.images) &&
-                    post.images.length > 0
-                      ? post.images
+                    (post as any).images &&
+                    Array.isArray((post as any).images) &&
+                    (post as any).images.length > 0
+                      ? (post as any).images
                       : post.featured_image
                       ? [post.featured_image]
                       : [];
@@ -1193,24 +1278,26 @@ export default function UserProfileNew() {
                     id: post.id,
                     slug: post.slug,
                     title: post.title || "",
-                    content: post.excerpt || post.content || "",
+                    content: post.excerpt || (post as any).content || "",
                     author_name:
                       displayUser.full_name || displayUser.username || "User",
                     author_id: displayUser.id,
-                    author_avatar: getImageUrl(displayUser.avatar_url),
+                    author_avatar:
+                      getImageUrl(displayUser.avatar_url) || undefined,
                     location: displayUser.location,
-                    featured_image: getImageUrl(post.featured_image),
+                    featured_image:
+                      getImageUrl(post.featured_image) || undefined,
                     images: postImages
-                      .map((img) => getImageUrl(img))
+                      .map((img: any) => getImageUrl(img))
                       .filter(Boolean) as string[],
                     published_at: post.published_at,
                     like_count: post.likes_count || 0,
                     comment_count: post.comments_count || 0,
                     views_count: post.views_count || 0,
                     shares_count: 0,
-                    is_liked: post.is_liked || false,
-                    is_bookmarked: post.is_bookmarked || false,
-                    tags: post.tags || [],
+                    is_liked: (post as any).is_liked || false,
+                    is_bookmarked: (post as any).is_bookmarked || false,
+                    tags: (post as any).tags || [],
                   };
                   return (
                     <motion.div
@@ -1465,6 +1552,14 @@ export default function UserProfileNew() {
           </motion.div>
         )}
       </div>
+
+      {/* Friend Action Popup - For friend requests and actions */}
+      <FriendActionPopup
+        isOpen={showPopup}
+        onClose={() => setShowPopup(false)}
+        type={popupType}
+        message={popupMessage}
+      />
     </div>
   );
 }

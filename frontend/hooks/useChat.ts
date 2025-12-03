@@ -68,6 +68,7 @@ export function useChat() {
       console.log("[Chat] Fetching conversations from:", url);
       
       const response = await fetch(url, {
+        cache: "no-store",
         headers: {
           Authorization: `Bearer ${token}`,
         },

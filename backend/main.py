@@ -29,7 +29,11 @@ app.url_map.strict_slashes = False
 
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'viego-default-secret')
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'jwt-secret')
+# JWT configuration
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'your-secret-key-change-this')
+# Set token expiry to 7 days (604800 seconds)
+from datetime import timedelta
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
 
 # Database configuration for WAMP Server
 app.config['SQLALCHEMY_DATABASE_URI'] = (

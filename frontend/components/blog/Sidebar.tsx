@@ -5,7 +5,6 @@ import {
   Users,
   Calendar,
   Bookmark,
-  MapPin,
   Camera,
   Settings,
   HelpCircle,
@@ -44,13 +43,6 @@ export default function Sidebar() {
       href: "/saved",
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
-    },
-    {
-      icon: MapPin,
-      label: "Bản đồ",
-      href: "/maps",
-      color: "text-red-600",
-      bgColor: "bg-red-50",
     },
     {
       icon: Camera,

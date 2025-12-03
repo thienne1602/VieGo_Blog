@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Animation Web</title>
+    <style>
+        /* --- CẤU HÌNH CƠ BẢN --- */
+        :root {
+            --primary-color: #00d2ff; /* Màu xanh neon */
+            --secondary-color: #3a7bd5;
+            --robot-bg: #2d3436;
+            --eye-color: #fff;
+            --bg-color: #1e272e;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+
+        /* --- CONTAINER ROBOT --- */
+        .robot-container {
+            position: relative;
+            animation: float 3s ease-in-out infinite; /* Hiệu ứng lơ lửng */
+        }
+
+        /* --- ĐẦU ROBOT --- */
+        .head {
+            width: 150px;
+            height: 100px;
+            background: var(--robot-bg);
+            border-radius: 25px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid var(--primary-color);
+            box-shadow: 0 0 15px var(--primary-color);
+            z-index: 2;
+        }
+
+        /* Anten */
+        .antenna {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 30px;
+            background: var(--primary-color);
+        }
+
+        .antenna::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -7px;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--primary-color);
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Mắt */
+        .eyes-container {
+            display: flex;
+            justify-content: space-between;
+            width: 80px;
+        }
+
+        .eye {
+            width: 25px;
+            height: 25px;
+            background: var(--eye-color);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 0 10px var(--eye-color);
+        }
+
+        .pupil {
+            width: 10px;
+            height: 10px;
+            background: #000;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.1s ease; /* Mượt mà khi di chuyển */
+        }
+
+        /* --- THÂN ROBOT --- */
+        .body {
+            width: 120px;
+            height: 100px;
+            background: var(--robot-bg);
+            margin: -10px auto 0;
+            border-radius: 0 0 40px 40px;
+            position: relative;
+            border: 3px solid var(--secondary-color);
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Lõi năng lượng */
+        .core {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--primary-color) inset;
+            border: 2px solid #fff;
+        }
+
+        /* Tay */
+        .arm {
+            width: 30px;
+            height: 80px;
+            background: var(--robot-bg);
+            position: absolute;
+            top: 10px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 20px;
+        }
+
+        .arm.left {
+            left: -40px;
+            transform-origin: top right;
+            animation: wave 3s ease-in-out infinite;
+        }
+
+        .arm.right {
+            right: -40px;
+            transform-origin: top left;
+        }
+
+        /* Bóng đổ dưới đất */
+        .shadow {
+            width: 100px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            margin: 50px auto 0;
+            animation: shadow-scale 3s ease-in-out infinite;
+            filter: blur(5px);
+        }
+
+        /* --- KEYFRAMES ANIMATION --- */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes shadow-scale {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(0.8); opacity: 0.3; }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(15deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="robot-container">
+        <div class="head">
+            <div class="antenna"></div>
+            <div class="eyes-container">
+                <div class="eye"><div class="pupil"></div></div>
+                <div class="eye"><div class="pupil"></div></div>
+            </div>
+        </div>
+
+        <div class="body">
+            <div class="core"></div>
+            <div class="arm left"></div>
+            <div class="arm right"></div>
+        </div>
+
+        <div class="shadow"></div>
+    </div>
+
+    <script>
+        // JAVASCRIPT: Logic để mắt di chuyển theo chuột
+        const pupils = document.querySelectorAll('.pupil');
+
+        document.addEventListener('mousemove', (event) => {
+            const x = event.clientX;
+            const y = event.clientY;
+
+            pupils.forEach(pupil => {
+                // Lấy vị trí của con mắt
+                const rect = pupil.parentElement.getBoundingClientRect();
+                const eyeCenterX = rect.left + rect.width / 2;
+                const eyeCenterY = rect.top + rect.height / 2;
+
+                // Tính góc giữa mắt và con trỏ chuột
+                const angle = Math.atan2(y - eyeCenterY, x - eyeCenterX);
+                
+                // Giới hạn khoảng cách di chuyển (để tròng đen không bay ra ngoài mắt)
+                const distance = Math.min(
+                    5, // Bán kính di chuyển tối đa (pixel)
+                    Math.hypot(x - eyeCenterX, y - eyeCenterY)
+                );
+
+                // Tính toán vị trí mới
+                const moveX = Math.cos(angle) * distance;
+                const moveY = Math.sin(angle) * distance;
+
+                // Cập nhật CSS
+                pupil.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+            });
+        });
+    </script>
+</body>
+</html>

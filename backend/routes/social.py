@@ -425,6 +425,9 @@ def follow_user(target_user_id):
     """Follow another user"""
     try:
         user_id = get_jwt_identity()
+        # Convert to int if it's a string
+        if isinstance(user_id, str) and user_id.isdigit():
+            user_id = int(user_id)
         
         # Can't follow yourself
         if user_id == target_user_id:
@@ -472,6 +475,9 @@ def unfollow_user(target_user_id):
     """Unfollow a user"""
     try:
         user_id = get_jwt_identity()
+        # Convert to int if it's a string
+        if isinstance(user_id, str) and user_id.isdigit():
+            user_id = int(user_id)
         
         user = User.query.get(user_id)
         target_user = User.query.get(target_user_id)
@@ -646,51 +652,84 @@ def send_friend_request(target_user_id):
             print(f'[Friend Request] Users {user_id} and {target_user_id} are already friends')
             return jsonify({'error': 'Đã là bạn bè'}), 400
         
-        # Check if request already exists
-        existing_request = FriendRequest.query.filter(
-            ((FriendRequest.requester_id == user_id) & (FriendRequest.receiver_id == target_user_id)) |
-            ((FriendRequest.requester_id == target_user_id) & (FriendRequest.receiver_id == user_id))
-        ).filter(FriendRequest.status == 'pending').first()
-        
-        if existing_request:
-            if existing_request.requester_id == user_id:
+        # Check for existing request from ME to TARGET (any status)
+        my_request = FriendRequest.query.filter_by(
+            requester_id=user_id,
+            receiver_id=target_user_id
+        ).first()
+
+        friend_request = None
+
+        if my_request:
+            if my_request.status == 'pending':
                 print(f'[Friend Request] Request already sent from {user_id} to {target_user_id}')
                 return jsonify({'error': 'Đã gửi lời mời kết bạn trước đó'}), 400
+            elif my_request.status == 'accepted':
+                print(f'[Friend Request] Request already accepted')
+                return jsonify({'error': 'Đã là bạn bè'}), 400
             else:
-                print(f'[Friend Request] Request already received from {target_user_id} to {user_id}')
-                return jsonify({'error': 'Người này đã gửi lời mời kết bạn cho bạn. Vui lòng chấp nhận hoặc từ chối.'}), 400
+                # Status is rejected or cancelled. Reactivate it.
+                print(f'[Friend Request] Reactivating {my_request.status} request {my_request.id}')
+                my_request.status = 'pending'
+                my_request.created_at = datetime.utcnow()
+                my_request.updated_at = datetime.utcnow()
+                my_request.responded_at = None
+                friend_request = my_request
         
-        # Create friend request
-        print(f'[Friend Request] Creating new friend request from {user_id} to {target_user_id}')
-        try:
-            friend_request = FriendRequest(
-                requester_id=user_id,
-                receiver_id=target_user_id,
-                status='pending'
-            )
-            db.session.add(friend_request)
-            db.session.commit()
-            print(f'[Friend Request] Friend request created with ID: {friend_request.id}')
-        except IntegrityError as e:
-            db.session.rollback()
-            # Check if it's a duplicate key error
-            if 'unique_friend_request' in str(e.orig) or 'Duplicate entry' in str(e.orig):
-                print(f'[Friend Request] Duplicate request detected (IntegrityError)')
-                # Re-check existing request
-                existing_request = FriendRequest.query.filter(
-                    ((FriendRequest.requester_id == user_id) & (FriendRequest.receiver_id == target_user_id)) |
-                    ((FriendRequest.requester_id == target_user_id) & (FriendRequest.receiver_id == user_id))
-                ).filter(FriendRequest.status == 'pending').first()
-                
-                if existing_request:
-                    if existing_request.requester_id == user_id:
-                        return jsonify({'error': 'Đã gửi lời mời kết bạn trước đó'}), 400
+        # Check for existing request from TARGET to ME
+        if not friend_request:
+            their_request = FriendRequest.query.filter_by(
+                requester_id=target_user_id,
+                receiver_id=user_id
+            ).first()
+
+            if their_request:
+                if their_request.status == 'pending':
+                    print(f'[Friend Request] Request already received from {target_user_id} to {user_id}')
+                    return jsonify({'error': 'Người này đã gửi lời mời kết bạn cho bạn. Vui lòng chấp nhận hoặc từ chối.'}), 400
+                elif their_request.status == 'accepted':
+                    return jsonify({'error': 'Đã là bạn bè'}), 400
+                # If rejected/cancelled, we can proceed to create a new request from ME to TARGET
+        
+        # Create new request if not reactivating
+        if not friend_request:
+            print(f'[Friend Request] Creating new friend request from {user_id} to {target_user_id}')
+            try:
+                friend_request = FriendRequest(
+                    requester_id=user_id,
+                    receiver_id=target_user_id,
+                    status='pending'
+                )
+                db.session.add(friend_request)
+                db.session.commit()
+                print(f'[Friend Request] Friend request created with ID: {friend_request.id}')
+            except IntegrityError as e:
+                db.session.rollback()
+                # Check if it's a duplicate key error
+                if 'unique_friend_request' in str(e.orig) or 'Duplicate entry' in str(e.orig):
+                    print(f'[Friend Request] Duplicate request detected (IntegrityError)')
+                    # Re-check existing request
+                    existing_request = FriendRequest.query.filter(
+                        ((FriendRequest.requester_id == user_id) & (FriendRequest.receiver_id == target_user_id)) |
+                        ((FriendRequest.requester_id == target_user_id) & (FriendRequest.receiver_id == user_id))
+                    ).filter(FriendRequest.status == 'pending').first()
+                    
+                    if existing_request:
+                        if existing_request.requester_id == user_id:
+                            return jsonify({'error': 'Đã gửi lời mời kết bạn trước đó'}), 400
+                        else:
+                            return jsonify({'error': 'Người này đã gửi lời mời kết bạn cho bạn. Vui lòng chấp nhận hoặc từ chối.'}), 400
                     else:
-                        return jsonify({'error': 'Người này đã gửi lời mời kết bạn cho bạn. Vui lòng chấp nhận hoặc từ chối.'}), 400
+                        # If we are here, it means there is a non-pending request that caused collision
+                        # But we should have caught it with my_request check above if it was (user_id, target_user_id)
+                        # So it must be (target_user_id, user_id) but we checked that too.
+                        # Maybe race condition?
+                        return jsonify({'error': 'Đã gửi lời mời kết bạn trước đó'}), 400
                 else:
-                    return jsonify({'error': 'Đã gửi lời mời kết bạn trước đó'}), 400
-            else:
-                raise
+                    raise
+        else:
+            # Commit the reactivation
+            db.session.commit()
         
         # Create notification for receiver
         print(f'[Friend Request] Creating notification for user {target_user_id}')
@@ -1194,6 +1233,10 @@ def remove_friend(friend_id):
     """Remove a friend and clean up any pending friend requests"""
     try:
         user_id = get_jwt_identity()
+        # Convert to int if it's a string (JWT identity might be stored as string)
+        if isinstance(user_id, str) and user_id.isdigit():
+            user_id = int(user_id)
+            
         user = User.query.get(user_id)
         friend = User.query.get(friend_id)
         
@@ -1221,12 +1264,12 @@ def remove_friend(friend_id):
         
         # Also delete any pending friend requests between these users
         # This allows them to send friend requests again after unfriending
+        # Also delete accepted/rejected/cancelled requests to allow fresh start
         FriendRequest.query.filter(
             db.or_(
                 db.and_(FriendRequest.requester_id == user_id, FriendRequest.receiver_id == friend_id),
                 db.and_(FriendRequest.requester_id == friend_id, FriendRequest.receiver_id == user_id)
-            ),
-            FriendRequest.status == 'pending'
+            )
         ).delete()
         
         db.session.commit()

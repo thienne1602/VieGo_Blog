@@ -164,8 +164,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(userData);
             setLoading(false);
             clearSafetyTimeout();
-            // Verify token in background without clearing user if fails
-            verifyToken(token, true, clearSafetyTimeout);
+            // Verify token in background - if fails, force re-login
+            verifyToken(token, false, clearSafetyTimeout); // Changed to false to clear user on invalid token
             return;
           } else {
             console.warn(
@@ -508,16 +508,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
+    // Clear user data first
     localStorage.removeItem(getStorageKey("access_token"));
     localStorage.removeItem(getStorageKey("user"));
     deleteCookie("access_token");
     setUser(null);
+
     // Clear api client auth
     try {
       api.clearAuth();
     } catch (e) {}
-    // Redirect to tours page after logout
-    window.location.href = "/tours";
+
+    // Use setTimeout to ensure state updates before redirect
+    setTimeout(() => {
+      window.location.href = "/goodbye";
+    }, 100);
   };
 
   const value = {

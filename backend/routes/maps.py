@@ -496,9 +496,58 @@ def get_weather():
         forecast_response = requests.get(forecast_url, timeout=5)
         
         if current_response.status_code != 200:
+            # If API key is invalid or error, return mock data instead of error
             error_data = current_response.json() if current_response.content else {}
-            error_msg = error_data.get('error', {}).get('message', 'Không thể lấy dữ liệu thời tiết')
-            return jsonify({'error': error_msg}), 500
+            error_msg = error_data.get('error', {}).get('message', '')
+            
+            # Check if it's an API key error - return mock data instead
+            if 'api key' in error_msg.lower() or 'invalid' in error_msg.lower() or current_response.status_code == 401:
+                return jsonify({
+                    'location': {'lat': lat, 'lng': lng, 'name': location_name or 'Chưa xác định'},
+                    'current': {
+                        'temp': 28,
+                        'feels_like': 30,
+                        'humidity': 75,
+                        'pressure': 1013,
+                        'wind_speed': 5,
+                        'wind_deg': 180,
+                        'weather': [{
+                            'main': 'Clear',
+                            'description': 'trời quang',
+                            'icon': '01d'
+                        }],
+                        'visibility': 10,
+                        'clouds': 20,
+                        'uv_index': 7
+                    },
+                    'forecast': [],
+                    'alerts': [],
+                    'warning': 'API key không hợp lệ. Đang hiển thị dữ liệu mẫu.'
+                }), 200
+            
+            # For other errors, still return mock data
+            return jsonify({
+                'location': {'lat': lat, 'lng': lng, 'name': location_name or 'Chưa xác định'},
+                'current': {
+                    'temp': 28,
+                    'feels_like': 30,
+                    'humidity': 75,
+                    'pressure': 1013,
+                    'wind_speed': 5,
+                    'wind_deg': 180,
+                    'weather': [{
+                        'main': 'Clear',
+                        'description': 'trời quang',
+                        'icon': '01d'
+                    }],
+                    'visibility': 10,
+                    'clouds': 20,
+                    'uv_index': 7
+                },
+                'forecast': [],
+                'alerts': [],
+                'warning': 'Không thể lấy dữ liệu thời tiết. Đang hiển thị dữ liệu mẫu.'
+            }), 200
         
         current_data = current_response.json()
         forecast_data = forecast_response.json() if forecast_response.status_code == 200 else None

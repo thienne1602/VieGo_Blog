@@ -183,7 +183,8 @@ def register_socket_handlers(socketio):
         """
         print('[Socket.IO] WARNING: send_message event received but handler is disabled. Use API route /api/chat/messages instead.')
         emit('error', {
-            'message': 'Vui lòng sử dụng API để gửi tin nhắn. Socket handler này đã bị vô hiệu hóa để tránh trùng lặp tin nhắn.'
+            'message': 'Vui lòng sử dụng API để gửi tin nhắn. Socket handler này đã bị vô hiệu hóa để tránh trùng lặp tin nhắn.',
+            'code': 'USE_API'
         })
         return
         
@@ -386,6 +387,7 @@ def register_socket_handlers(socketio):
                     'sender_id': sender_id,
                     'sender_name': sender_name,
                     'is_typing': is_typing,
+                    'conversation_id': conv_key,
                     'timestamp': datetime.utcnow().isoformat()
                 }, room=f'user_{receiver_id}')
                 
@@ -394,5 +396,76 @@ def register_socket_handlers(socketio):
         except Exception as e:
             print(f'[Socket.IO] Error in typing indicator: {str(e)}')
             emit('error', {'message': f'Lỗi typing indicator: {str(e)}'})
+    
+    @socketio.on('friend_request_sent')
+    def on_friend_request_sent(data):
+        """Handle friend request notification (backup for API notification)"""
+        try:
+            receiver_id = data.get('receiver_id')
+            requester_id = data.get('requester_id')
+            request_id = data.get('request_id')
+            
+            if receiver_id and requester_id:
+                requester = User.query.get(requester_id)
+                
+                # Notify receiver about new friend request
+                socketio.emit('friend_request_received', {
+                    'request_id': request_id,
+                    'requester': {
+                        'id': requester.id,
+                        'username': requester.username,
+                        'full_name': requester.full_name,
+                        'avatar_url': requester.avatar_url
+                    } if requester else None,
+                    'timestamp': datetime.utcnow().isoformat()
+                }, room=f'user_{receiver_id}')
+                
+                print(f'[Socket.IO] Friend request notification sent to user {receiver_id} from {requester_id}')
+        except Exception as e:
+            print(f'[Socket.IO] Error in friend request notification: {str(e)}')
+    
+    @socketio.on('join_direct_conversation')
+    def on_join_direct_conversation(data):
+        """Join a direct conversation room for real-time updates"""
+        try:
+            user_id = data.get('user_id')
+            other_user_id = data.get('other_user_id')
+            
+            if user_id and other_user_id:
+                # Create conversation room ID
+                conv_room = f"conversation_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
+                join_room(conv_room)
+                
+                emit('conversation_room_joined', {
+                    'room': conv_room,
+                    'user_id': user_id,
+                    'other_user_id': other_user_id
+                })
+                
+                print(f'[Socket.IO] User {user_id} joined conversation room {conv_room}')
+        except Exception as e:
+            print(f'[Socket.IO] Error joining conversation: {str(e)}')
+            emit('error', {'message': f'Lỗi tham gia cuộc trò chuyện: {str(e)}'})
+    
+    @socketio.on('leave_direct_conversation')
+    def on_leave_direct_conversation(data):
+        """Leave a direct conversation room"""
+        try:
+            user_id = data.get('user_id')
+            other_user_id = data.get('other_user_id')
+            
+            if user_id and other_user_id:
+                # Create conversation room ID
+                conv_room = f"conversation_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
+                leave_room(conv_room)
+                
+                emit('conversation_room_left', {
+                    'room': conv_room,
+                    'user_id': user_id
+                })
+                
+                print(f'[Socket.IO] User {user_id} left conversation room {conv_room}')
+        except Exception as e:
+            print(f'[Socket.IO] Error leaving conversation: {str(e)}')
     
     return socketio

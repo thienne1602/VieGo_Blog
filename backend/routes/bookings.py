@@ -4,9 +4,13 @@ from models import db
 from models.user import User
 from models.tour import Tour
 from models.booking import Booking
+from models.booking_participant import BookingParticipant
 from models.tour_assignment import TourAssignment
+from models.group_chat import GroupChat, GroupMember
+from models.chat import Chat
 from datetime import datetime, timedelta
 import re
+import uuid
 
 # Try to import email utility
 send_booking_confirmation_email = None
@@ -279,7 +283,11 @@ def get_booking(booking_id):
             }
         else:
             booking_data['assignment'] = None
-        
+
+        # Include passengers (participants)
+        participants = BookingParticipant.query.filter_by(booking_id=booking.id).all()
+        booking_data['passengers'] = [p.to_dict() for p in participants]
+
         return jsonify({'booking': booking_data}), 200
     except Exception as e:
         return jsonify({'error': f'Error fetching booking: {str(e)}'}), 500
@@ -324,6 +332,57 @@ def update_booking_status(booking_id):
 
         booking.status = new_status
         booking.updated_at = datetime.utcnow()
+        
+        # Create group chat if booking is confirmed
+        if new_status == 'confirmed':
+            try:
+                # Check if group already exists for this booking to avoid duplicates
+                # We can check if there's a group with a specific name pattern or store group_id in booking
+                # For now, let's just create it. The user can manage it.
+                
+                # Create group name
+                group_name = f"Du lịch - {tour.title}"
+                
+                # Generate unique room_id
+                room_id = f"group_{uuid.uuid4().hex[:16]}"
+                
+                # Create group
+                group = GroupChat(
+                    room_id=room_id,
+                    name=group_name,
+                    description=f"Nhóm chat cho tour {tour.title}",
+                    created_by=booking.user_id
+                )
+                db.session.add(group)
+                db.session.flush()  # Get group.id
+                
+                # Add booker as admin
+                admin_member = GroupMember(
+                    group_id=group.id,
+                    user_id=booking.user_id,
+                    role='admin'
+                )
+                db.session.add(admin_member)
+                
+                # Create system message
+                system_message = Chat(
+                    room_id=room_id,
+                    sender_id=booking.user_id, # System message from admin
+                    message=f"Nhóm chat '{group_name}' đã được tạo tự động.",
+                    message_type='system',
+                    conversation_type='group'
+                )
+                db.session.add(system_message)
+                
+                print(f"✅ Created group chat '{group_name}' for booking {booking.id}")
+                
+            except Exception as e:
+                print(f"⚠️ Failed to create group chat: {str(e)}")
+                import traceback
+                print(f"   Traceback: {traceback.format_exc()}")
+                # Don't fail the booking confirmation if chat creation fails
+                pass
+
         db.session.commit()
 
         # Send confirmation email if status changed to 'confirmed' and email is available

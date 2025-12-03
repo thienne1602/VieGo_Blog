@@ -102,19 +102,6 @@ export default function FeaturedTours() {
             </p>
           </div>
         </div>
-        
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Link
-            href="/tours"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 dark:bg-primary-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all group hover:bg-primary-700 dark:hover:bg-primary-600"
-          >
-            <span>Xem Tất Cả</span>
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </motion.div>
       </motion.div>
 
       {/* Featured Tours Grid */}
@@ -158,7 +145,7 @@ export default function FeaturedTours() {
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 </div>
-                
+
                 <TourCard tour={tour} />
               </div>
             </motion.div>
@@ -176,10 +163,26 @@ export default function FeaturedTours() {
       >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
           {[
-            { icon: <Star className="w-6 h-6" />, label: "Đánh Giá Trung Bình", value: "4.9/5" },
-            { icon: <TrendingUp className="w-6 h-6" />, label: "Tours Được Đặt", value: "2,500+" },
-            { icon: <Flame className="w-6 h-6" />, label: "Khách Hài Lòng", value: "98%" },
-            { icon: <Crown className="w-6 h-6" />, label: "Tours Nổi Bật", value: featuredTours.length.toString() },
+            {
+              icon: <Star className="w-6 h-6" />,
+              label: "Đánh Giá Trung Bình",
+              value: "4.9/5",
+            },
+            {
+              icon: <TrendingUp className="w-6 h-6" />,
+              label: "Tours Được Đặt",
+              value: "2,500+",
+            },
+            {
+              icon: <Flame className="w-6 h-6" />,
+              label: "Khách Hài Lòng",
+              value: "98%",
+            },
+            {
+              icon: <Crown className="w-6 h-6" />,
+              label: "Tours Nổi Bật",
+              value: featuredTours.length.toString(),
+            },
           ].map((stat, index) => (
             <motion.div
               key={index}

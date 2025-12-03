@@ -15,19 +15,16 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import api from "../../../../lib/api";
 import Toast from "../../../../components/common/Toast";
 import ConfirmModal from "../../../../components/common/ConfirmModal";
 import BookingSuccessModal from "../../../../components/common/BookingSuccessModal";
 
-export default function BookingPage({ params }: any) {
+export default function BookingPage() {
   const router = useRouter();
-  const id =
-    params?.id ||
-    (typeof window !== "undefined"
-      ? window.location.pathname.split("/")[2]
-      : null);
+  const params = useParams();
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const [tour, setTour] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -59,8 +56,12 @@ export default function BookingPage({ params }: any) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-blue-50 pt-20 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-teal-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải tour...</p>
+          <img
+            src="/assets/stickers/đang tải 2.gif"
+            alt="Loading"
+            className="w-24 h-24 mx-auto mb-4 object-contain"
+          />
+          <p className="text-gray-600 font-semibold">Đang tải tour...</p>
         </div>
       </div>
     );
@@ -462,7 +463,9 @@ function BookingForm({ tour }: any) {
         // Step 2: Save participant information if there are participants
         if (bookingId && participants.length > 0) {
           try {
-            console.log(`Saving ${participants.length} participants for booking ${bookingId}`);
+            console.log(
+              `Saving ${participants.length} participants for booking ${bookingId}`
+            );
             const participantsData = participants.map((p) => ({
               full_name: p.full_name,
               gender: p.gender,
@@ -495,26 +498,39 @@ function BookingForm({ tour }: any) {
             if (!participantRes.success) {
               console.error(
                 "Failed to save participant information:",
-                participantRes.error || participantRes.data?.error || participantRes
+                participantRes.error ||
+                  participantRes.data?.error ||
+                  participantRes
               );
-              setToast({ 
-                message: "Đặt tour thành công nhưng có lỗi khi lưu thông tin người tham gia. Vui lòng liên hệ admin.", 
-                type: "warning" 
+              setToast({
+                message:
+                  "Đặt tour thành công nhưng có lỗi khi lưu thông tin người tham gia. Vui lòng liên hệ admin.",
+                type: "warning",
               });
             } else {
-              const message = participantRes.data?.message || participantRes.message;
-              const savedCount = participantRes.data?.participants?.length || participantsData.length;
-              console.log(`Participants saved successfully: ${savedCount} participants`, message);
+              const message =
+                participantRes.data?.message || participantRes.message;
+              const savedCount =
+                participantRes.data?.participants?.length ||
+                participantsData.length;
+              console.log(
+                `Participants saved successfully: ${savedCount} participants`,
+                message
+              );
             }
           } catch (participantErr: any) {
             console.error("Error saving participants:", participantErr);
-            setToast({ 
-              message: "Đặt tour thành công nhưng có lỗi khi lưu thông tin người tham gia. Vui lòng liên hệ admin.", 
-              type: "warning" 
+            setToast({
+              message:
+                "Đặt tour thành công nhưng có lỗi khi lưu thông tin người tham gia. Vui lòng liên hệ admin.",
+              type: "warning",
             });
           }
         } else {
-          console.log("No participants to save or bookingId is missing", { bookingId, participantsCount: participants.length });
+          console.log("No participants to save or bookingId is missing", {
+            bookingId,
+            participantsCount: participants.length,
+          });
         }
 
         setBookingData({

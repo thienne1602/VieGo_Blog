@@ -1,53 +1,61 @@
 /* Font import - Next.js font loader handles this automatically, but keeping as fallback */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap&subset=latin,latin-ext");
+/* Leaflet CSS */
+@import "leaflet/dist/leaflet.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* VieGo Brand Styles - Soft & Elegant Color Palette */
+/* VieGo Brand Styles - Pastel Color Palette */
 :root {
-  /* Light Mode - Soft Colors */
-  --primary-teal: #5b9a8b;
-  --primary-teal-light: #7fb8aa;
-  --primary-teal-dark: #4a8275;
-  --accent-coral: #d4a5a0;
-  --accent-coral-light: #e8c4c0;
-  --neutral-gray: #f8f9fa;
-  --neutral-gray-light: #fcfcfd;
-  --neutral-gray-dark: #e9ecef;
+  /* Light Mode - Pastel Colors */
+  --primary-mint: #a8d5ba;
+  --primary-mint-light: #c8ebd7;
+  --primary-mint-dark: #88c2a0;
+  --accent-pink: #ffb6c1;
+  --accent-pink-light: #ffd4dc;
+  --accent-lavender: #b4a7d6;
+  --accent-peach: #ffd4a3;
+  --accent-sky: #a3d5ff;
+  --neutral-warm: #faf9f6;
+  --neutral-warm-light: #fdfcfa;
+  --neutral-warm-dark: #f5f3f0;
   --text-dark: #2c3e50;
   --text-light: #5a6c7d;
   --text-muted: #8b9aab;
-  
+
   /* Background colors */
   --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #f1f3f5;
-  
+  --bg-secondary: #faf9f6;
+  --bg-tertiary: #f5f3f0;
+
   /* Border colors */
-  --border-light: #e9ecef;
-  --border-medium: #dee2e6;
+  --border-light: #edeae5;
+  --border-medium: #dfdbd3;
 }
 
-/* Dark Mode - Soft Dark Colors */
+/* Dark Mode - Soft Dark Colors with Pastel Accents */
 .dark {
-  --primary-teal: #7fb8aa;
-  --primary-teal-light: #9dd5c7;
-  --primary-teal-dark: #5b9a8b;
-  --accent-coral: #e8c4c0;
-  --accent-coral-light: #f2ddd9;
-  --neutral-gray: #1a1d24;
-  --neutral-gray-light: #252832;
-  --neutral-gray-dark: #14161b;
+  --primary-mint: #88c2a0;
+  --primary-mint-light: #a8d5ba;
+  --primary-mint-dark: #6baf86;
+  --accent-pink: #ff9aaa;
+  --accent-pink-light: #ffb6c1;
+  --accent-lavender: #9b8ac7;
+  --accent-peach: #ffc084;
+  --accent-sky: #85c4ff;
+  --neutral-warm: #1a1d24;
+  --neutral-warm-light: #252832;
+  --neutral-warm-dark: #14161b;
   --text-dark: #e9ecef;
   --text-light: #cbd4db;
   --text-muted: #9ca3af;
-  
+
   /* Background colors */
   --bg-primary: #1a1d24;
   --bg-secondary: #252832;
   --bg-tertiary: #2d3139;
-  
+
   /* Border colors */
   --border-light: #2d3139;
   --border-medium: #3a3f48;
@@ -65,7 +73,9 @@ html {
 }
 
 body {
-  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+    "Helvetica Neue", sans-serif;
   font-size: 18px;
   line-height: 1.6;
   color: var(--text-dark);
@@ -104,7 +114,11 @@ body {
 .viego-logo {
   font-family: "Quicksand", sans-serif;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-teal), var(--primary-teal-light));
+  background: linear-gradient(
+    135deg,
+    var(--primary-teal),
+    var(--primary-teal-light)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -391,13 +405,21 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(236, 72, 153, 0.8));
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.8),
+    rgba(236, 72, 153, 0.8)
+  );
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 1), rgba(236, 72, 153, 1));
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 1),
+    rgba(236, 72, 153, 1)
+  );
 }
 
 /* Firefox scrollbar */
@@ -475,6 +497,21 @@ body {
   }
 }
 
+/* Float animation for GIF stickers */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
 .animate-fade-in-up {
   animation: fadeInUp 0.5s ease-out;
 }
@@ -500,4 +537,39 @@ body {
   background: rgba(26, 29, 36, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Print Styles */
+@media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only the main content area */
+  #dashboard-content,
+  #dashboard-content * {
+    visibility: visible;
+  }
+
+  /* Position the content */
+  #dashboard-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Hide specific elements that shouldn't be printed */
+  header,
+  nav,
+  .sidebar,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure charts are visible */
+  .recharts-wrapper {
+    visibility: visible !important;
+  }
 }

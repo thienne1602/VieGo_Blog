@@ -1,1 +1,0 @@
-self.__REACT_LOADABLE_MANIFEST="{\"components\\\\layout\\\\NewsFeed.tsx -> @/components/common/PostModal\":{\"id\":\"components\\\\layout\\\\NewsFeed.tsx -> @/components/common/PostModal\",\"files\":[\"static/chunks/_app-pages-browser_components_common_PostModal_tsx.js\"]}}"

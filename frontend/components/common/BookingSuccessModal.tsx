@@ -56,15 +56,19 @@ export default function BookingSuccessModal({
 
               {/* Content */}
               <div className="p-8">
-                {/* Success Icon */}
+                {/* Success Icon with GIF */}
                 <div className="flex justify-center mb-6">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", duration: 0.6 }}
-                    className="w-24 h-24 bg-gradient-to-br from-green-400 to-teal-500 rounded-full flex items-center justify-center shadow-lg"
+                    className="relative"
                   >
-                    <CheckCircle2 className="w-12 h-12 text-white" />
+                    <img
+                      src="/assets/stickers/đặt thành công.gif"
+                      alt="Success"
+                      className="w-32 h-32 object-contain"
+                    />
                   </motion.div>
                 </div>
 
@@ -85,7 +89,9 @@ export default function BookingSuccessModal({
                           <CreditCard className="w-5 h-5 text-teal-600 dark:text-teal-400" />
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Mã đặt chỗ</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Mã đặt chỗ
+                          </p>
                           <p className="font-bold text-lg text-gray-900 dark:text-white">
                             #{bookingId}
                           </p>
@@ -99,7 +105,9 @@ export default function BookingSuccessModal({
                           <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Tour</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Tour
+                          </p>
                           <p className="font-semibold text-gray-900 dark:text-white">
                             {tourTitle}
                           </p>
@@ -129,7 +137,9 @@ export default function BookingSuccessModal({
                           <CreditCard className="w-5 h-5 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Tổng tiền</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Tổng tiền
+                          </p>
                           <p className="font-bold text-xl text-gray-900 dark:text-white">
                             {formatPrice(totalPrice)} {currency}
                           </p>
@@ -148,13 +158,16 @@ export default function BookingSuccessModal({
                         📧 Kiểm tra email của bạn
                       </h3>
                       <p className="text-yellow-800 dark:text-yellow-200">
-                        Chúng tôi đã gửi email xác nhận đặt chỗ đến địa chỉ email của bạn. Vui
-                        lòng kiểm tra hộp thư đến (và cả thư mục spam) để nhận thông tin chi tiết
-                        về tour.
+                        Chúng tôi đã gửi email xác nhận đặt chỗ đến địa chỉ
+                        email của bạn. Vui lòng kiểm tra hộp thư đến (và cả thư
+                        mục spam) để nhận thông tin chi tiết về tour.
                       </p>
                       <p className="text-yellow-800 dark:text-yellow-200 mt-2">
-                        <strong>Nhà cung cấp sẽ phản hồi qua email trong vòng 24-48 giờ</strong> để
-                        xác nhận và cung cấp thông tin thanh toán chi tiết.
+                        <strong>
+                          Nhà cung cấp sẽ phản hồi qua email trong vòng 24-48
+                          giờ
+                        </strong>{" "}
+                        để xác nhận và cung cấp thông tin thanh toán chi tiết.
                       </p>
                     </div>
                   </div>
@@ -167,19 +180,27 @@ export default function BookingSuccessModal({
                   </h3>
                   <ol className="space-y-2 text-gray-700 dark:text-gray-300">
                     <li className="flex gap-3">
-                      <span className="font-bold text-teal-600 dark:text-teal-400">1.</span>
+                      <span className="font-bold text-teal-600 dark:text-teal-400">
+                        1.
+                      </span>
                       <span>Kiểm tra email xác nhận từ chúng tôi</span>
                     </li>
                     <li className="flex gap-3">
-                      <span className="font-bold text-teal-600 dark:text-teal-400">2.</span>
+                      <span className="font-bold text-teal-600 dark:text-teal-400">
+                        2.
+                      </span>
                       <span>Đợi phản hồi từ nhà cung cấp (24-48 giờ)</span>
                     </li>
                     <li className="flex gap-3">
-                      <span className="font-bold text-teal-600 dark:text-teal-400">3.</span>
+                      <span className="font-bold text-teal-600 dark:text-teal-400">
+                        3.
+                      </span>
                       <span>Thanh toán theo hướng dẫn trong email</span>
                     </li>
                     <li className="flex gap-3">
-                      <span className="font-bold text-teal-600 dark:text-teal-400">4.</span>
+                      <span className="font-bold text-teal-600 dark:text-teal-400">
+                        4.
+                      </span>
                       <span>Chuẩn bị hành lý và tận hưởng chuyến đi!</span>
                     </li>
                   </ol>
@@ -211,4 +232,3 @@ export default function BookingSuccessModal({
     </AnimatePresence>
   );
 }
-

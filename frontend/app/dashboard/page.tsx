@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
+import LoadingGif from "@/components/common/LoadingGif";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -46,8 +46,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
       <div className="text-center">
-        <Loader2 className="w-12 h-12 animate-spin text-teal-600 mx-auto mb-4" />
-        <p className="text-gray-600 dark:text-gray-400">Đang chuyển hướng...</p>
+        <LoadingGif size="xl" message="Đang chuyển hướng..." />
       </div>
     </div>
   );

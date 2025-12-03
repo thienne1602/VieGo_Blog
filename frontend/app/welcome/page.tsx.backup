@@ -1,0 +1,520 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/AuthContext";
+import {
+  Eye,
+  EyeOff,
+  MapPin,
+  Camera,
+  Users,
+  Sparkles,
+  Compass,
+  Mountain,
+  Utensils,
+  Heart,
+  Plane,
+  Map,
+} from "lucide-react";
+
+export default function WelcomePage() {
+  const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    full_name: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  const router = useRouter();
+  const {
+    user,
+    isAuthenticated,
+    login: authLogin,
+    loading: authLoading,
+  } = useAuth();
+
+  // Animation mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Check if user is already authenticated and force param is not set
+  // If authenticated without force param, they should be redirected by middleware/AuthGuard
+  // But if force=true, allow them to stay (for logout/login flow)
+  useEffect(() => {
+    const forceParam = new URLSearchParams(window.location.search).get("force");
+    if (isAuthenticated && forceParam !== "true" && !authLoading) {
+      // User is authenticated and no force param, redirect to home
+      router.replace("/");
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+    setError("");
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const success = await authLogin(formData.username, formData.password);
+      if (success) {
+        // Wait a bit for cookies to be set, then force redirect
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 100);
+      } else {
+        setError("Tên đăng nhập hoặc mật khẩu không đúng");
+        setLoading(false);
+      }
+    } catch (err) {
+      setError("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    // Validation
+    if (
+      !formData.username ||
+      !formData.email ||
+      !formData.password ||
+      !formData.full_name
+    ) {
+      setError("Vui lòng điền đầy đủ thông tin");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Mật khẩu phải có ít nhất 6 ký tự");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Auto login after successful registration
+        const loginSuccess = await authLogin(
+          formData.username,
+          formData.password
+        );
+        if (loginSuccess) {
+          // Wait a bit for cookies to be set, then force redirect
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 100);
+        } else {
+          setIsLogin(true);
+          setError("Đăng ký thành công! Vui lòng đăng nhập.");
+          setLoading(false);
+        }
+      } else {
+        setError(data.error || "Đăng ký thất bại. Vui lòng thử lại.");
+        setLoading(false);
+      }
+    } catch (err) {
+      setError("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-primary-50 via-accent-50 to-secondary-50 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Floating circles with pastel colors */}
+        <div className="absolute top-20 left-10 w-96 h-96 bg-primary-200/40 dark:bg-primary-900/20 rounded-full blur-3xl animate-pulse"></div>
+        <div
+          className="absolute bottom-20 right-10 w-[500px] h-[500px] bg-accent-200/40 dark:bg-accent-900/20 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute top-1/3 right-1/4 w-80 h-80 bg-secondary-200/30 dark:bg-secondary-900/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-tertiary-200/30 dark:bg-tertiary-900/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "3s" }}
+        ></div>
+      </div>
+
+      <div
+        className={`relative z-10 min-h-screen flex items-center justify-center transition-opacity duration-1000 ${
+          mounted ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        {/* Main Container - Split Layout with Slide Animation */}
+        <div className="w-full h-screen flex flex-col lg:flex-row overflow-hidden">
+          {/* Left Side - Always GIF for Login, Form for Register */}
+          <div
+            className={`flex-1 flex items-center justify-center p-8 transition-all duration-700 ease-in-out ${
+              isLogin 
+                ? "translate-x-0 opacity-100" 
+                : "-translate-x-full lg:translate-x-0 opacity-0 lg:opacity-100"
+            }`}
+          >
+            {isLogin ? (
+              /* Login: Show Large GIF on Left */
+              <div className="w-full h-full flex flex-col items-center justify-center space-y-8">
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-primary-300/30 dark:bg-primary-600/20 rounded-full blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
+                  <img
+                    src="/assets/stickers/đăng nhập.gif"
+                    alt="Đăng nhập"
+                    className="relative w-full max-w-2xl h-auto object-contain drop-shadow-2xl animate-float"
+                  />
+                </div>
+                <div className="text-center space-y-4 max-w-xl">
+                  <h1 className="text-6xl font-black text-gray-900 dark:text-white">
+                    Vie
+                    <span className="text-primary-600 dark:text-primary-400">
+                      Go
+                    </span>
+                  </h1>
+                  <p className="text-2xl text-gray-700 dark:text-gray-300 font-medium">
+                    Chào mừng trở lại! 🎉
+                  </p>
+                  <p className="text-lg text-gray-600 dark:text-gray-400">
+                    Tiếp tục hành trình khám phá Việt Nam cùng chúng tôi
+                  </p>
+                </div>
+              </div>
+            ) : (
+              /* Register: Show Form on Left */
+              <div className="w-full max-w-xl">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-2xl rounded-3xl shadow-2xl p-10 border-2 border-accent-200/50 dark:border-accent-700/50">
+                  <div className="text-center mb-8">
+                    <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                      Đăng ký tài khoản
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Tạo tài khoản để bắt đầu khám phá
+                    </p>
+                  </div>
+
+                  {/* Error Message */}
+                  {error && (
+                    <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6 animate-shake">
+                      <div className="flex items-center">
+                        <svg
+                          className="w-5 h-5 mr-3"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span>{error}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleRegister} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Họ và tên
+                      </label>
+                      <input
+                        type="text"
+                        name="full_name"
+                        value={formData.full_name}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                        placeholder="Nguyễn Văn A"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Tên đăng nhập
+                      </label>
+                      <input
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                        placeholder="traveler123"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                        placeholder="example@email.com"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Mật khẩu
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          name="password"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                          placeholder="Tối thiểu 6 ký tự"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                        >
+                          {showPassword ? (
+                            <EyeOff size={22} />
+                          ) : (
+                            <Eye size={22} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-accent-500 hover:bg-accent-600 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? (
+                        <span className="flex items-center justify-center">
+                          <img
+                            src="/assets/stickers/đang tải 2.gif"
+                            alt="Loading"
+                            className="w-8 h-8 mr-3"
+                          />
+                          Đang xử lý...
+                        </span>
+                      ) : (
+                        "Tạo tài khoản"
+                      )}
+                    </button>
+                  </form>
+
+                  <div className="mt-6 text-center">
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Đã có tài khoản?{" "}
+                      <button
+                        onClick={() => {
+                          setIsLogin(true);
+                          setError("");
+                          setFormData({
+                            username: "",
+                            email: "",
+                            password: "",
+                            full_name: "",
+                          });
+                        }}
+                        className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-bold hover:underline transition"
+                      >
+                        Đăng nhập ngay
+                      </button>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Side - Form for Login, GIF for Register */}
+          <div
+            className={`flex-1 flex items-center justify-center p-8 transition-all duration-700 ease-in-out ${
+              isLogin 
+                ? "translate-x-0 opacity-100" 
+                : "translate-x-full lg:translate-x-0 opacity-0 lg:opacity-100"
+            }`}
+          >
+            {isLogin ? (
+              /* Login: Show Form on Right */
+              <div className="w-full max-w-xl">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-2xl rounded-3xl shadow-2xl p-10 border-2 border-primary-200/50 dark:border-primary-700/50">
+                  <div className="text-center mb-8">
+                    <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                      Đăng nhập
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Chào mừng bạn trở lại với VieGo
+                    </p>
+                  </div>
+
+                  {/* Error Message */}
+                  {error && (
+                    <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6 animate-shake">
+                      <div className="flex items-center">
+                        <svg
+                          className="w-5 h-5 mr-3"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span>{error}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleLogin} className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Tên đăng nhập hoặc Email
+                      </label>
+                      <input
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                        placeholder="example@email.com"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Mật khẩu
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          name="password"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                          placeholder="••••••••"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                        >
+                          {showPassword ? (
+                            <EyeOff size={22} />
+                          ) : (
+                            <Eye size={22} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-primary-500 hover:bg-primary-600 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? (
+                        <span className="flex items-center justify-center">
+                          <img
+                            src="/assets/stickers/đang tải 2.gif"
+                            alt="Loading"
+                            className="w-8 h-8 mr-3"
+                          />
+                          Đang xử lý...
+                        </span>
+                      ) : (
+                        "Đăng nhập ngay"
+                      )}
+                    </button>
+                  </form>
+
+                  <div className="mt-6 text-center">
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Chưa có tài khoản?{" "}
+                      <button
+                        onClick={() => {
+                          setIsLogin(false);
+                          setError("");
+                          setFormData({
+                            username: "",
+                            email: "",
+                            password: "",
+                            full_name: "",
+                          });
+                        }}
+                        className="text-accent-600 dark:text-accent-400 hover:text-accent-700 font-bold hover:underline transition"
+                      >
+                        Đăng ký miễn phí
+                      </button>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Register: Show Large GIF on Right */
+              <div className="w-full h-full flex flex-col items-center justify-center space-y-8">
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-accent-300/30 dark:bg-accent-600/20 rounded-full blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
+                  <img
+                    src="/assets/stickers/đăng kí.gif"
+                    alt="Đăng ký"
+                    className="relative w-full max-w-2xl h-auto object-contain drop-shadow-2xl animate-float"
+                  />
+                </div>
+                <div className="text-center space-y-4 max-w-xl">
+                  <h1 className="text-6xl font-black text-gray-900 dark:text-white">
+                    Vie
+                    <span className="text-accent-600 dark:text-accent-400">
+                      Go
+                    </span>
+                  </h1>
+                  <p className="text-2xl text-gray-700 dark:text-gray-300 font-medium">
+                    Tham gia cộng đồng! 🚀
+                  </p>
+                  <p className="text-lg text-gray-600 dark:text-gray-400">
+                    Khám phá Việt Nam cùng hàng ngàn du khách đam mê
+                  </p>
+                </div>
+              </div>
+            )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -56,7 +56,7 @@ function getCurrentPort() {
 }
 
 // Get storage key with port suffix to ensure isolation between clients
-function getStorageKey(baseKey) {
+export function getStorageKey(baseKey) {
   const port = getCurrentPort();
   return `${baseKey}_${port}`;
 }
@@ -148,6 +148,43 @@ class ApiClient {
     return cached && this.isValidCache(cached, timeout) ? cached.data : null;
   }
 
+  // Download file helper
+  async downloadFile(endpoint, filename, options = {}) {
+    const url = `${this.baseURL}${endpoint}`;
+    const token = this.getToken();
+
+    const config = {
+      headers: {
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    try {
+      const response = await fetch(url, config);
+      if (!response.ok) throw new Error("Download failed");
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+      document.body.removeChild(a);
+
+      return { success: true };
+    } catch (error) {
+      console.error("Download error:", error);
+      return { success: false, error: error.message };
+    }
+  }
+
   // Make API request with automatic error handling and caching
   async request(endpoint, options = {}) {
     const cacheKey = this.getCacheKey(endpoint, options);
@@ -216,6 +253,22 @@ class ApiClient {
       }
 
       if (!response.ok) {
+        // Handle 401 Unauthorized - token expired or invalid
+        if (response.status === 401) {
+          console.warn(
+            "[API] 🚫 401 Unauthorized - clearing auth and redirecting to login"
+          );
+          this.clearAuth();
+
+          // Only redirect if we're in the browser and not already on login page
+          if (
+            typeof window !== "undefined" &&
+            !window.location.pathname.includes("/login")
+          ) {
+            window.location.href = "/login?expired=true";
+          }
+        }
+
         throw new Error(
           data.error ||
             data.message ||
@@ -538,35 +591,92 @@ class ApiClient {
     return this.get("/tours", filters, options);
   }
 
-  async getTour(tourId) {
-    return this.get(`/tours/${tourId}`);
+  async getTour(tourId, options = {}) {
+    return this.get(`/tours/${tourId}`, {}, options);
   }
 
   async getTourCategories() {
-    return this.get("/tours/categories");
-  }
-
-  async createTour(tourData) {
-    return this.post("/tours", tourData);
-  }
-
-  async updateTour(tourId, tourData) {
-    return this.put(`/tours/${tourId}`, tourData);
-  }
-
-  async deleteTour(tourId) {
-    return this.delete(`/tours/${tourId}`);
+    return this.request("/tours/categories");
   }
 
   async bookTour(tourId, bookingData) {
     return this.post(`/tours/${tourId}/book`, bookingData);
   }
 
-  async getMyTours() {
-    return this.get("/tours/mine");
+  async getTourReviews(tourId) {
+    // Mock data for now as backend endpoint is missing
+    // In a real implementation, this would call this.request(`/tours/${tourId}/reviews`)
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          success: true,
+          data: [
+            {
+              id: 1,
+              user: {
+                full_name: "Nguyễn Văn A",
+                avatar_url: null,
+              },
+              rating: 5,
+              content:
+                "Tour rất tuyệt vời, hướng dẫn viên nhiệt tình! Cảnh quan Hạ Long thực sự hùng vĩ, đồ ăn trên tàu cũng rất ngon.",
+              created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+            },
+            {
+              id: 2,
+              user: {
+                full_name: "Trần Thị B",
+                avatar_url: null,
+              },
+              rating: 4,
+              content:
+                "Trải nghiệm đáng nhớ. Tuy nhiên thời gian di chuyển hơi nhiều. Nên mang theo thuốc say xe nếu bạn không quen đi tàu.",
+              created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+            },
+            {
+              id: 3,
+              user: {
+                full_name: "Le Van C",
+                avatar_url: null,
+              },
+              rating: 5,
+              content: "Dịch vụ tốt, giá cả hợp lý. Sẽ quay lại lần sau.",
+              created_at: new Date(Date.now() - 86400000 * 10).toISOString(),
+            },
+          ],
+        });
+      }, 800);
+    });
+  }
+
+  async createTourReview(tourId, reviewData) {
+    // Mock implementation for creating a review
+    // In a real implementation, this would call this.post(`/tours/${tourId}/reviews`, reviewData)
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          success: true,
+          data: {
+            id: Math.floor(Math.random() * 1000) + 100,
+            tour_id: tourId,
+            ...reviewData,
+            created_at: new Date().toISOString(),
+            user: this.getCurrentUser() || {
+              full_name: "Người dùng",
+              avatar_url: null,
+            },
+          },
+          message: "Đánh giá của bạn đã được gửi thành công!",
+        });
+      }, 1000);
+    });
   }
 
   // Bookings methods
+  async createBooking(bookingData) {
+    return this.post("/bookings", bookingData);
+  }
+
   async getSellerBookings() {
     return this.get("/bookings/mine");
   }
@@ -841,6 +951,10 @@ class ApiClient {
   // Admin Global Search
   async adminSearch(query) {
     return this.get("/admin/search", { q: query });
+  }
+
+  async getDestinationRanking() {
+    return this.get("/tours/destinations/ranking");
   }
 }
 

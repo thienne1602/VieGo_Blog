@@ -421,7 +421,9 @@ export default function TourGuideDashboardPage() {
                       <span>
                         Khởi hành:{" "}
                         {assignment.booking?.date
-                          ? new Date(assignment.booking.date).toLocaleDateString("vi-VN")
+                          ? new Date(
+                              assignment.booking.date
+                            ).toLocaleDateString("vi-VN")
                           : "N/A"}
                       </span>
                     </div>
@@ -445,9 +447,9 @@ export default function TourGuideDashboardPage() {
                       <span>
                         {assignment.booking?.adults || 0} người lớn
                         {(assignment.booking?.children || 0) > 0 &&
-                          `, ${assignment.booking.children} trẻ em`}
+                          `, ${assignment.booking?.children} trẻ em`}
                         {(assignment.booking?.infants || 0) > 0 &&
-                          `, ${assignment.booking.infants} em bé`}
+                          `, ${assignment.booking?.infants} em bé`}
                       </span>
                     </div>
                   </div>

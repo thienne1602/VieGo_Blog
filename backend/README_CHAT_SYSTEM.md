@@ -7,6 +7,7 @@
 ### ✅ Các Tính Năng Đã Implement
 
 #### Chat System
+
 - ✅ **Direct Messaging**: Chat 1-1 giữa các users (chỉ với bạn bè)
 - ✅ **Group Chat**: Tạo và quản lý nhóm chat
 - ✅ **Online/Offline Status**: Theo dõi trạng thái online real-time
@@ -18,7 +19,8 @@
 - ✅ **Conversation Management**: Quản lý cuộc trò chuyện
 - ✅ **Unread Count**: Đếm tin nhắn chưa đọc
 
-#### Notification System  
+#### Notification System
+
 - ✅ **Real-time Notifications**: Thông báo tức thì qua Socket.IO
 - ✅ **Notification Types**: Message, Like, Comment, Follow, Friend Request, Booking, System
 - ✅ **Filtering**: Lọc theo loại, trạng thái đọc
@@ -27,6 +29,7 @@
 - ✅ **Unread Count by Category**: Đếm theo từng loại
 
 #### Performance & Optimization
+
 - ✅ **Rate Limiting**: Giới hạn số request
 - ✅ **Message Queue**: Queue tin nhắn cho offline users
 - ✅ **Connection Management**: Quản lý kết nối với heartbeat
@@ -63,6 +66,7 @@ docs/
 ### 1. Socket.IO Handlers (`socket_handlers.py`)
 
 **Thêm mới:**
+
 - ✅ Online users tracking với `online_users` dictionary
 - ✅ Typing status tracking với `typing_status` dictionary
 - ✅ Enhanced `connect` handler: Track online status và notify friends
@@ -73,6 +77,7 @@ docs/
 - ✅ Improved `typing_message` handler: Better tracking và sender info
 
 **Tính năng:**
+
 ```python
 # Track online users
 online_users = {user_id: {'socket_id', 'last_seen', 'username'}}
@@ -91,11 +96,13 @@ def on_message_delivered(data):
 ### 2. Chat API Routes (`routes/chat.py`)
 
 **Endpoints mới:**
+
 - ✅ `GET /api/chat/search` - Tìm kiếm tin nhắn
 - ✅ `GET /api/chat/online-users` - Danh sách bạn bè online
 - ✅ Enhanced `GET /api/chat/unread-count` - Bao gồm cả group chats
 
 **Cải tiến:**
+
 - ✅ Better filtering và validation
 - ✅ Enhanced error handling
 - ✅ Improved query performance
@@ -104,11 +111,13 @@ def on_message_delivered(data):
 ### 3. Notification API Routes (`routes/notifications.py`)
 
 **Endpoints mới:**
+
 - ✅ `DELETE /api/notifications/delete-all` - Xóa tất cả
 - ✅ `DELETE /api/notifications/delete-read` - Xóa đã đọc
 - ✅ `GET /api/notifications/stats` - Thống kê
 
 **Cải tiến:**
+
 - ✅ Type filtering: `?type=message`
 - ✅ Unread stats by category
 - ✅ Better pagination
@@ -117,6 +126,7 @@ def on_message_delivered(data):
 ### 4. Performance Optimization (`utils/chat_optimization.py`)
 
 **Tính năng mới:**
+
 ```python
 # Rate limiting
 @rate_limit(max_requests=10, window=60)
@@ -139,6 +149,7 @@ cleanup_old_data()  # Delete messages > 6 months, notifications > 30 days
 ### 5. Testing (`tests/test_chat_realtime.py`)
 
 **Test cases:**
+
 - ✅ User connection and online status
 - ✅ Direct messaging between users
 - ✅ Typing indicators
@@ -152,35 +163,35 @@ cleanup_old_data()  # Delete messages > 6 months, notifications > 30 days
 ### 1. Kết Nối Socket.IO (Client)
 
 ```javascript
-import io from 'socket.io-client';
+import io from "socket.io-client";
 
-const socket = io('http://localhost:5000', {
+const socket = io("http://localhost:5000", {
   auth: { token: accessToken },
-  transports: ['websocket', 'polling']
+  transports: ["websocket", "polling"],
 });
 
 // Lắng nghe events
-socket.on('connected', (data) => {
-  console.log('Connected:', data.user_id, data.online_users);
+socket.on("connected", (data) => {
+  console.log("Connected:", data.user_id, data.online_users);
 });
 
-socket.on('user_online', (data) => {
+socket.on("user_online", (data) => {
   // Friend came online
   updateUIOnline(data.user_id);
 });
 
-socket.on('new_message', (data) => {
+socket.on("new_message", (data) => {
   // New message received
   displayMessage(data);
-  
+
   // Send delivery confirmation
-  socket.emit('message_delivered', {
+  socket.emit("message_delivered", {
     message_id: data.id,
-    receiver_id: currentUserId
+    receiver_id: currentUserId,
   });
 });
 
-socket.on('user_typing', (data) => {
+socket.on("user_typing", (data) => {
   if (data.is_typing) {
     showTypingIndicator(data.sender_name);
   } else {
@@ -194,17 +205,17 @@ socket.on('user_typing', (data) => {
 ```javascript
 // Via API (recommended)
 async function sendMessage(receiverId, message) {
-  const response = await fetch('/api/chat/messages', {
-    method: 'POST',
+  const response = await fetch("/api/chat/messages", {
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       receiver_id: receiverId,
       message: message,
-      message_type: 'text'
-    })
+      message_type: "text",
+    }),
   });
   return await response.json();
 }
@@ -216,18 +227,18 @@ async function sendMessage(receiverId, message) {
 let typingTimeout;
 
 function onInputChange(receiverId) {
-  socket.emit('typing_message', {
+  socket.emit("typing_message", {
     sender_id: currentUserId,
     receiver_id: receiverId,
-    is_typing: true
+    is_typing: true,
   });
-  
+
   clearTimeout(typingTimeout);
   typingTimeout = setTimeout(() => {
-    socket.emit('typing_message', {
+    socket.emit("typing_message", {
       sender_id: currentUserId,
       receiver_id: receiverId,
-      is_typing: false
+      is_typing: false,
     });
   }, 3000);
 }
@@ -236,16 +247,18 @@ function onInputChange(receiverId) {
 ### 4. Notifications
 
 ```javascript
-socket.on('new_notification', (data) => {
+socket.on("new_notification", (data) => {
   // Update badge
   updateNotificationBadge(data.unread_count);
-  
+
   // Show popup
   showNotificationPopup(data.title, data.message);
 });
 
 // Fetch notifications
-const response = await fetch('/api/notifications?type=message&unread_only=true');
+const response = await fetch(
+  "/api/notifications?type=message&unread_only=true"
+);
 const { notifications, unread_stats } = await response.json();
 ```
 
@@ -279,49 +292,51 @@ python -m pytest tests/test_chat_realtime.py::TestRealtimeChat::test_01_user_con
 
 ### Chat Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/chat/conversations` | Lấy danh sách cuộc trò chuyện |
-| GET | `/api/chat/messages/<user_id>` | Lấy tin nhắn với user |
-| POST | `/api/chat/messages` | Gửi tin nhắn mới |
-| PUT | `/api/chat/messages/<id>/read` | Đánh dấu đã đọc |
-| GET | `/api/chat/unread-count` | Số tin nhắn chưa đọc |
-| GET | `/api/chat/search` | Tìm kiếm tin nhắn |
-| GET | `/api/chat/online-users` | Bạn bè online |
-| DELETE | `/api/chat/conversations/<user_id>` | Xóa cuộc trò chuyện |
+| Method | Endpoint                            | Description                   |
+| ------ | ----------------------------------- | ----------------------------- |
+| GET    | `/api/chat/conversations`           | Lấy danh sách cuộc trò chuyện |
+| GET    | `/api/chat/messages/<user_id>`      | Lấy tin nhắn với user         |
+| POST   | `/api/chat/messages`                | Gửi tin nhắn mới              |
+| PUT    | `/api/chat/messages/<id>/read`      | Đánh dấu đã đọc               |
+| GET    | `/api/chat/unread-count`            | Số tin nhắn chưa đọc          |
+| GET    | `/api/chat/search`                  | Tìm kiếm tin nhắn             |
+| GET    | `/api/chat/online-users`            | Bạn bè online                 |
+| DELETE | `/api/chat/conversations/<user_id>` | Xóa cuộc trò chuyện           |
 
 ### Group Chat Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/chat/groups` | Tạo nhóm |
-| GET | `/api/chat/groups` | Danh sách nhóm |
-| GET | `/api/chat/groups/<room_id>` | Chi tiết nhóm |
-| GET | `/api/chat/groups/<room_id>/messages` | Tin nhắn nhóm |
-| POST | `/api/chat/groups/<room_id>/messages` | Gửi tin nhắn nhóm |
+| Method | Endpoint                              | Description       |
+| ------ | ------------------------------------- | ----------------- |
+| POST   | `/api/chat/groups`                    | Tạo nhóm          |
+| GET    | `/api/chat/groups`                    | Danh sách nhóm    |
+| GET    | `/api/chat/groups/<room_id>`          | Chi tiết nhóm     |
+| GET    | `/api/chat/groups/<room_id>/messages` | Tin nhắn nhóm     |
+| POST   | `/api/chat/groups/<room_id>/messages` | Gửi tin nhắn nhóm |
 
 ### Notification Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/notifications` | Lấy thông báo |
-| GET | `/api/notifications/unread-count` | Số thông báo chưa đọc |
-| PUT | `/api/notifications/<id>/read` | Đánh dấu đã đọc |
-| PUT | `/api/notifications/read-all` | Đánh dấu tất cả |
-| DELETE | `/api/notifications/<id>` | Xóa thông báo |
-| DELETE | `/api/notifications/delete-all` | Xóa tất cả |
-| DELETE | `/api/notifications/delete-read` | Xóa đã đọc |
-| GET | `/api/notifications/stats` | Thống kê |
+| Method | Endpoint                          | Description           |
+| ------ | --------------------------------- | --------------------- |
+| GET    | `/api/notifications`              | Lấy thông báo         |
+| GET    | `/api/notifications/unread-count` | Số thông báo chưa đọc |
+| PUT    | `/api/notifications/<id>/read`    | Đánh dấu đã đọc       |
+| PUT    | `/api/notifications/read-all`     | Đánh dấu tất cả       |
+| DELETE | `/api/notifications/<id>`         | Xóa thông báo         |
+| DELETE | `/api/notifications/delete-all`   | Xóa tất cả            |
+| DELETE | `/api/notifications/delete-read`  | Xóa đã đọc            |
+| GET    | `/api/notifications/stats`        | Thống kê              |
 
 ### Socket.IO Events
 
 **Client → Server:**
+
 - `typing_message` - User đang gõ
 - `message_delivered` - Xác nhận đã nhận
 - `message_read` - Xác nhận đã đọc
 - `get_online_status` - Query online status
 
 **Server → Client:**
+
 - `connected` - Kết nối thành công
 - `user_online` - User online
 - `user_offline` - User offline
@@ -345,16 +360,19 @@ python -m pytest tests/test_chat_realtime.py::TestRealtimeChat::test_01_user_con
 ## 🎯 Best Practices Implemented
 
 1. **Connection Management**
+
    - Auto-reconnect on disconnect
    - Heartbeat tracking
    - Stale connection cleanup
 
 2. **Message Queuing**
+
    - Queue messages for offline users
    - Retry failed messages
    - Max queue size limit
 
 3. **Performance**
+
    - Pagination for large datasets
    - Lazy loading conversations
    - Debounced typing indicators
@@ -380,16 +398,19 @@ python -m pytest tests/test_chat_realtime.py::TestRealtimeChat::test_01_user_con
 ## 🐛 Troubleshooting
 
 ### Messages không gửi được
+
 - ✅ Kiểm tra users có phải bạn bè không
 - ✅ Verify JWT token hợp lệ
 - ✅ Check Socket.IO connection status
 
 ### Typing indicator không hoạt động
+
 - ✅ Verify sender_id và receiver_id correct
 - ✅ Check Socket.IO connected
 - ✅ Ensure users are friends
 
 ### Notifications không hiển thị
+
 - ✅ Check `emit_realtime=True` in create_notification
 - ✅ Verify user joined room `user_{user_id}`
 - ✅ Check browser console for errors
@@ -424,7 +445,7 @@ Hệ thống chat và notification đã được hoàn thiện với đầy đ�
 
 1. **Real-time messaging** với Socket.IO
 2. **Online/offline status** tracking
-3. **Typing indicators** 
+3. **Typing indicators**
 4. **Message delivery confirmations**
 5. **Group chat** support
 6. **Rich notifications** với filtering

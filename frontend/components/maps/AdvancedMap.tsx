@@ -1,19 +1,28 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
+// Declare google as a global variable to avoid TypeScript errors
+declare var google: any;
+
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import { Loader } from "@googlemaps/js-api-loader";
-import { 
-  Search, 
-  MapPin, 
-  Map as MapIcon, 
-  Satellite, 
-  Circle, 
-  Train, 
+import {
+  Search,
+  MapPin,
+  Map as MapIcon,
+  Satellite,
+  Circle,
+  Train,
   Navigation,
   Route,
   X,
   Play,
-  MapPin as MapPinIcon
+  MapPin as MapPinIcon,
 } from "lucide-react";
 
 interface Location {
@@ -31,59 +40,77 @@ interface Props {
   initialZoom?: number;
 }
 
-const AdvancedMap = ({ 
+const AdvancedMap = ({
   onLocationSelect,
   initialCenter = { lat: 10.762622, lng: 106.660172 }, // Ho Chi Minh City
-  initialZoom = 13
+  initialZoom = 13,
 }: Props) => {
-  const mapRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<HTMLDivElement | null>(null);
   const [mapContainerReady, setMapContainerReady] = useState(false);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
-  const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null);
-  const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null);
-  const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
-  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
-  const [trafficLayer, setTrafficLayer] = useState<google.maps.TrafficLayer | null>(null);
-  const [transitLayer, setTransitLayer] = useState<google.maps.TransitLayer | null>(null);
+  const [map, setMap] = useState<any | null>(null);
+  const [markers, setMarkers] = useState<any[]>([]);
+  const [searchBox, setSearchBox] = useState<any | null>(null);
+  const [placesService, setPlacesService] = useState<any | null>(null);
+  const [directionsService, setDirectionsService] = useState<any | null>(null);
+  const [directionsRenderer, setDirectionsRenderer] = useState<any | null>(
+    null
+  );
+  const [trafficLayer, setTrafficLayer] = useState<any | null>(null);
+  const [transitLayer, setTransitLayer] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [errorType, setErrorType] = useState<"api-key" | "domain" | "api-not-activated" | "general" | null>(null);
+  const [errorType, setErrorType] = useState<
+    "api-key" | "domain" | "api-not-activated" | "general" | null
+  >(null);
   const [mapType, setMapType] = useState<"roadmap" | "satellite">("roadmap");
   const [showTraffic, setShowTraffic] = useState(false);
   const [showTransit, setShowTransit] = useState(false);
-  
+
   // Directions state
   const [showDirections, setShowDirections] = useState(false);
   const [origin, setOrigin] = useState<string>("");
   const [destination, setDestination] = useState<string>("");
-  const [originLocation, setOriginLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [destinationLocation, setDestinationLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [routeInfo, setRouteInfo] = useState<{ distance: string; duration: string } | null>(null);
+  const [originLocation, setOriginLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [destinationLocation, setDestinationLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [routeInfo, setRouteInfo] = useState<{
+    distance: string;
+    duration: string;
+  } | null>(null);
   const [travelMode, setTravelMode] = useState<string>("DRIVING");
-  
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const originInputRef = useRef<HTMLInputElement>(null);
   const destinationInputRef = useRef<HTMLInputElement>(null);
-  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
+  const infoWindowRef = useRef<any | null>(null);
 
   // Use the new API key (fallback to provided key)
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyA7gWv2sQWonQMvSsWIOB00Sxcxgrf5lx0";
+  const apiKey =
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
+    "AIzaSyA7gWv2sQWonQMvSsWIOB00Sxcxgrf5lx0";
 
   // Use callback ref to ensure container is ready
   const mapContainerRef = useCallback((node: HTMLDivElement | null) => {
     if (node) {
-      mapRef.current = node;
-      console.log("[AdvancedMap] Container ref attached:", !!node, "Element:", node);
+      console.log(
+        "[AdvancedMap] Container ref attached:",
+        !!node,
+        "Element:",
+        node
+      );
       // Use requestAnimationFrame to ensure DOM is fully ready
       requestAnimationFrame(() => {
-        if (mapRef.current && mapRef.current.isConnected) {
+        if (node && node.isConnected) {
           setMapContainerReady(true);
           console.log("[AdvancedMap] Container ready and connected to DOM");
         }
       });
     } else {
-      mapRef.current = null;
       setMapContainerReady(false);
     }
   }, []);
@@ -109,7 +136,7 @@ const AdvancedMap = ({
       mapContainerReady,
       hasRef: !!mapRef.current,
       hasMap: !!map,
-      apiKeyExists: !!apiKey
+      apiKeyExists: !!apiKey,
     });
 
     if (!apiKey) {
@@ -135,43 +162,55 @@ const AdvancedMap = ({
     const initMap = async () => {
       // Wait for DOM to be ready - use multiple frames
       for (let i = 0; i < 3; i++) {
-        await new Promise(resolve => requestAnimationFrame(resolve));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
       }
-      
+
       let retries = 0;
       const maxRetries = 20;
-      
+
       // Check container availability
       while (retries < maxRetries) {
-        const container = mapRef.current || document.getElementById('google-map-container') as HTMLDivElement;
-        
+        const container =
+          mapRef.current ||
+          (document.getElementById("google-map-container") as HTMLDivElement);
+
         if (container && container.isConnected) {
           if (!mapRef.current) {
             mapRef.current = container;
             setMapContainerReady(true);
           }
-          console.log("[AdvancedMap] Container verified, proceeding with initialization");
+          console.log(
+            "[AdvancedMap] Container verified, proceeding with initialization"
+          );
           break;
         }
-        
+
         if (retries < maxRetries - 1) {
-          console.log(`[AdvancedMap] Container not ready, waiting... (retry ${retries + 1}/${maxRetries})`, {
-            hasRef: !!mapRef.current,
-            foundById: !!document.getElementById('google-map-container')
-          });
-          await new Promise(resolve => setTimeout(resolve, 100));
+          console.log(
+            `[AdvancedMap] Container not ready, waiting... (retry ${
+              retries + 1
+            }/${maxRetries})`,
+            {
+              hasRef: !!mapRef.current,
+              foundById: !!document.getElementById("google-map-container"),
+            }
+          );
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
         retries++;
       }
 
       // Final check before initialization
-      const container = mapRef.current || document.getElementById('google-map-container') as HTMLDivElement;
+      const container =
+        mapRef.current ||
+        (document.getElementById("google-map-container") as HTMLDivElement);
       if (!container || !container.isConnected) {
-        const errorMsg = "Không thể tìm thấy container bản đồ sau nhiều lần thử";
+        const errorMsg =
+          "Không thể tìm thấy container bản đồ sau nhiều lần thử";
         console.error("[AdvancedMap]", errorMsg, {
           mapContainerReady,
           hasRef: !!mapRef.current,
-          foundById: !!document.getElementById('google-map-container')
+          foundById: !!document.getElementById("google-map-container"),
         });
         setError(errorMsg);
         setIsLoading(false);
@@ -187,11 +226,7 @@ const AdvancedMap = ({
         const loader = new Loader({
           apiKey: apiKey,
           version: "weekly",
-          libraries: [
-            "places",
-            "geometry",
-            "routes"
-          ],
+          libraries: ["places", "geometry", "routes"],
           language: "vi",
           region: "VN",
         });
@@ -233,16 +268,21 @@ const AdvancedMap = ({
         });
 
         // Initialize services (with deprecated API handling)
-        let places: google.maps.places.PlacesService | null = null;
+        let places: any | null = null;
         try {
           // Check if PlacesService is available (may be deprecated for new customers)
-          if (typeof google.maps.places.PlacesService !== 'undefined') {
+          if (typeof google.maps.places.PlacesService !== "undefined") {
             places = new google.maps.places.PlacesService(mapInstance);
           } else {
-            console.warn("[AdvancedMap] PlacesService is not available - may be deprecated for new customers.");
+            console.warn(
+              "[AdvancedMap] PlacesService is not available - may be deprecated for new customers."
+            );
           }
         } catch (error) {
-          console.warn("[AdvancedMap] Could not initialize PlacesService:", error);
+          console.warn(
+            "[AdvancedMap] Could not initialize PlacesService:",
+            error
+          );
         }
         const directions = new google.maps.DirectionsService();
         const renderer = new google.maps.DirectionsRenderer({
@@ -270,34 +310,42 @@ const AdvancedMap = ({
         if (input) {
           try {
             // Check if SearchBox is available (may be deprecated for new customers)
-            if (typeof google.maps.places.SearchBox === 'undefined') {
-              console.warn("[AdvancedMap] SearchBox is not available - may be deprecated. Using basic search.");
+            if (typeof google.maps.places.SearchBox === "undefined") {
+              console.warn(
+                "[AdvancedMap] SearchBox is not available - may be deprecated. Using basic search."
+              );
               // Fallback: Create a basic search input handler
               input.addEventListener("keypress", async (e: KeyboardEvent) => {
                 if (e.key === "Enter" && input.value.trim()) {
                   // Use Geocoding API as fallback
                   const geocoder = new google.maps.Geocoder();
-                  geocoder.geocode({ address: input.value }, (results, status) => {
-                    if (status === "OK" && results && results[0]) {
-                      const place = results[0];
-                      const location = place.geometry.location;
-                      if (location && mapInstance) {
-                        mapInstance.setCenter(location);
-                        mapInstance.setZoom(15);
-                        const marker = new google.maps.Marker({
-                          map: mapInstance,
-                          position: location,
-                          title: place.formatted_address,
-                        });
-                        if (onLocationSelect) {
-                          onLocationSelect({
-                            name: place.formatted_address || input.value,
-                            coordinates: { lat: location.lat(), lng: location.lng() },
+                  geocoder.geocode(
+                    { address: input.value },
+                    (results: any, status: any) => {
+                      if (status === "OK" && results && results[0]) {
+                        const place = results[0];
+                        const location = place.geometry.location;
+                        if (location && mapInstance) {
+                          mapInstance.setCenter(location);
+                          mapInstance.setZoom(15);
+                          const marker = new google.maps.Marker({
+                            map: mapInstance,
+                            position: location,
+                            title: place.formatted_address,
                           });
+                          if (onLocationSelect) {
+                            onLocationSelect({
+                              name: place.formatted_address || input.value,
+                              coordinates: {
+                                lat: location.lat(),
+                                lng: location.lng(),
+                              },
+                            });
+                          }
                         }
                       }
                     }
-                  });
+                  );
                 }
               });
             } else {
@@ -306,7 +354,7 @@ const AdvancedMap = ({
 
               // Bias the SearchBox results towards current map's viewport
               mapInstance.addListener("bounds_changed", () => {
-                searchBox.setBounds(mapInstance.getBounds() as google.maps.LatLngBounds);
+                searchBox.setBounds(mapInstance.getBounds() as any);
               });
 
               // Listen for the event fired when the user selects a prediction
@@ -315,13 +363,13 @@ const AdvancedMap = ({
                 if (!places || places.length === 0) return;
 
                 // Clear existing markers
-                markers.forEach(marker => marker.setMap(null));
+                markers.forEach((marker) => marker.setMap(null));
 
                 // For each place, get the icon, name and location
                 const bounds = new google.maps.LatLngBounds();
-                const newMarkers: google.maps.Marker[] = [];
+                const newMarkers: any[] = [];
 
-                places.forEach((place) => {
+                places.forEach((place: any) => {
                   if (!place.geometry || !place.geometry.location) {
                     console.log("Returned place contains no geometry");
                     return;
@@ -347,17 +395,33 @@ const AdvancedMap = ({
                   const infoWindow = new google.maps.InfoWindow();
                   let content = `
                     <div style="padding: 8px; min-width: 200px;">
-                      <h3 style="margin: 0 0 8px 0; font-weight: 600; font-size: 16px;">${place.name || ""}</h3>
-                      ${place.formatted_address ? `<p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">${place.formatted_address}</p>` : ""}
-                      ${place.rating ? `<p style="margin: 0; font-size: 12px;">⭐ ${place.rating} (${place.user_ratings_total || 0} đánh giá)</p>` : ""}
-                      ${place.website ? `<a href="${place.website}" target="_blank" style="color: #3b82f6; text-decoration: none; font-size: 12px;">Xem website →</a>` : ""}
+                      <h3 style="margin: 0 0 8px 0; font-weight: 600; font-size: 16px;">${
+                        place.name || ""
+                      }</h3>
+                      ${
+                        place.formatted_address
+                          ? `<p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">${place.formatted_address}</p>`
+                          : ""
+                      }
+                      ${
+                        place.rating
+                          ? `<p style="margin: 0; font-size: 12px;">⭐ ${
+                              place.rating
+                            } (${place.user_ratings_total || 0} đánh giá)</p>`
+                          : ""
+                      }
+                      ${
+                        place.website
+                          ? `<a href="${place.website}" target="_blank" style="color: #3b82f6; text-decoration: none; font-size: 12px;">Xem website →</a>`
+                          : ""
+                      }
                     </div>
                   `;
 
                   marker.addListener("click", () => {
                     infoWindow.setContent(content);
                     infoWindow.open(mapInstance, marker);
-                    
+
                     if (onLocationSelect) {
                       onLocationSelect({
                         name: place.name || "",
@@ -384,15 +448,21 @@ const AdvancedMap = ({
           } catch (error: any) {
             console.error("[AdvancedMap] Places API Error:", error);
             const errorMessage = error?.message || String(error);
-            if (errorMessage.includes("REQUEST_DENIED") || errorMessage.includes("Places")) {
-              console.warn("[AdvancedMap] Places API (SearchBox) không khả dụng. Sử dụng chế độ fallback.");
+            if (
+              errorMessage.includes("REQUEST_DENIED") ||
+              errorMessage.includes("Places")
+            ) {
+              console.warn(
+                "[AdvancedMap] Places API (SearchBox) không khả dụng. Sử dụng chế độ fallback."
+              );
               // Don't set error, just use fallback
             } else {
-              console.warn(`[AdvancedMap] Lỗi khởi tạo Places API: ${errorMessage}. Sử dụng chế độ fallback.`);
+              console.warn(
+                `[AdvancedMap] Lỗi khởi tạo Places API: ${errorMessage}. Sử dụng chế độ fallback.`
+              );
             }
           }
         }
-
 
         // Initialize Traffic Layer
         const traffic = new google.maps.TrafficLayer();
@@ -412,40 +482,44 @@ const AdvancedMap = ({
         setPlacesService(places);
         setDirectionsService(directions);
         setDirectionsRenderer(renderer);
-        
+
         // Check for "For development purposes only" watermark (billing issue)
         // This usually appears when API key doesn't have billing enabled
         setTimeout(() => {
           const mapContainer = mapRef.current;
           if (mapContainer) {
-            const canvas = mapContainer.querySelector('canvas');
+            const canvas = mapContainer.querySelector("canvas");
             if (canvas) {
               // Check if there's an overlay with "development" text
-              const overlays = mapContainer.querySelectorAll('div');
+              const overlays = mapContainer.querySelectorAll("div");
               let hasDevelopmentOverlay = false;
               overlays.forEach((overlay) => {
-                const text = overlay.textContent || overlay.innerText || '';
-                if (text.toLowerCase().includes('development purposes') || 
-                    text.toLowerCase().includes('for development')) {
+                const text = overlay.textContent || overlay.innerText || "";
+                if (
+                  text.toLowerCase().includes("development purposes") ||
+                  text.toLowerCase().includes("for development")
+                ) {
                   hasDevelopmentOverlay = true;
                 }
               });
-              
+
               if (hasDevelopmentOverlay) {
-                console.warn("[AdvancedMap] Detected 'For development purposes only' watermark. This usually means:");
+                console.warn(
+                  "[AdvancedMap] Detected 'For development purposes only' watermark. This usually means:"
+                );
                 console.warn("1. API key needs billing account enabled");
                 console.warn("2. API restrictions may be incorrect");
                 console.warn("3. Check Google Cloud Console billing settings");
                 setError(
                   "API Key cần được kết nối với Billing account. " +
-                  "Vui lòng vào Google Cloud Console và thêm Billing account để sử dụng Maps API đầy đủ."
+                    "Vui lòng vào Google Cloud Console và thêm Billing account để sử dụng Maps API đầy đủ."
                 );
                 setErrorType("api-key");
               }
             }
           }
         }, 2000); // Check after map loads
-        
+
         setError(null);
         setErrorType(null);
         setIsLoading(false);
@@ -457,31 +531,55 @@ const AdvancedMap = ({
           stack: err.stack,
           name: err.name,
         });
-        
+
         // More detailed error messages
         let errorMessage = `Lỗi tải bản đồ: ${err.message || err}`;
-        let errorType: "api-key" | "domain" | "api-not-activated" | "general" | null = null;
-        
+        let errorType:
+          | "api-key"
+          | "domain"
+          | "api-not-activated"
+          | "general"
+          | null = null;
+
         const errMsg = err.message || err.toString() || "";
         const errStr = errMsg.toLowerCase();
-        
+
         if (errStr.includes("invalidkey") || errStr.includes("invalid key")) {
-          errorMessage = "API Key không hợp lệ hoặc chưa được cấu hình đúng cách";
+          errorMessage =
+            "API Key không hợp lệ hoặc chưa được cấu hình đúng cách";
           errorType = "api-key";
-        } else if (errStr.includes("referer") || errStr.includes("referrer") || errStr.includes("not allowed")) {
-          errorMessage = "API Key bị giới hạn domain. Vui lòng thêm localhost vào Application restrictions";
+        } else if (
+          errStr.includes("referer") ||
+          errStr.includes("referrer") ||
+          errStr.includes("not allowed")
+        ) {
+          errorMessage =
+            "API Key bị giới hạn domain. Vui lòng thêm localhost vào Application restrictions";
           errorType = "domain";
-        } else if (errStr.includes("not activated") || errStr.includes("notactivated")) {
-          errorMessage = "Maps JavaScript API chưa được kích hoạt trong Google Cloud Console";
+        } else if (
+          errStr.includes("not activated") ||
+          errStr.includes("notactivated")
+        ) {
+          errorMessage =
+            "Maps JavaScript API chưa được kích hoạt trong Google Cloud Console";
           errorType = "api-not-activated";
-        } else if (errStr.includes("can't load") || errStr.includes("sở hữu trang web") || errStr.includes("development purposes")) {
-          errorMessage = "API Key cần được cấu hình với Billing account hoặc có vấn đề về restrictions";
+        } else if (
+          errStr.includes("can't load") ||
+          errStr.includes("sở hữu trang web") ||
+          errStr.includes("development purposes")
+        ) {
+          errorMessage =
+            "API Key cần được cấu hình với Billing account hoặc có vấn đề về restrictions";
           errorType = "api-key";
-        } else if (errStr.includes("billing") || errStr.includes("quota") || errStr.includes("exceeded")) {
+        } else if (
+          errStr.includes("billing") ||
+          errStr.includes("quota") ||
+          errStr.includes("exceeded")
+        ) {
           errorMessage = "API Key cần Billing account hoặc đã vượt quota";
           errorType = "api-key";
         }
-        
+
         setError(errorMessage);
         setErrorType(errorType);
         setIsLoading(false);
@@ -534,12 +632,15 @@ const AdvancedMap = ({
 
     try {
       // Initialize Autocomplete for origin
-      const originAutocomplete = new google.maps.places.Autocomplete(originInputRef.current, {
-        fields: ['formatted_address', 'geometry', 'name'],
-        componentRestrictions: { country: 'vn' },
-      });
+      const originAutocomplete = new google.maps.places.Autocomplete(
+        originInputRef.current,
+        {
+          fields: ["formatted_address", "geometry", "name"],
+          componentRestrictions: { country: "vn" },
+        }
+      );
 
-      originAutocomplete.addListener('place_changed', () => {
+      originAutocomplete.addListener("place_changed", () => {
         const place = originAutocomplete.getPlace();
         if (place.geometry?.location) {
           setOrigin(place.formatted_address || place.name || origin);
@@ -551,12 +652,15 @@ const AdvancedMap = ({
       });
 
       // Initialize Autocomplete for destination
-      const destinationAutocomplete = new google.maps.places.Autocomplete(destinationInputRef.current, {
-        fields: ['formatted_address', 'geometry', 'name'],
-        componentRestrictions: { country: 'vn' },
-      });
+      const destinationAutocomplete = new google.maps.places.Autocomplete(
+        destinationInputRef.current,
+        {
+          fields: ["formatted_address", "geometry", "name"],
+          componentRestrictions: { country: "vn" },
+        }
+      );
 
-      destinationAutocomplete.addListener('place_changed', () => {
+      destinationAutocomplete.addListener("place_changed", () => {
         const place = destinationAutocomplete.getPlace();
         if (place.geometry?.location) {
           setDestination(place.formatted_address || place.name || destination);
@@ -573,18 +677,24 @@ const AdvancedMap = ({
 
   // Calculate route
   const calculateRoute = () => {
-    if (!directionsService || !directionsRenderer || !map || !origin || !destination) {
+    if (
+      !directionsService ||
+      !directionsRenderer ||
+      !map ||
+      !origin ||
+      !destination
+    ) {
       return;
     }
 
-    const mode = travelMode as google.maps.TravelMode;
+    const mode = travelMode as any;
     directionsService.route(
       {
         origin: origin,
         destination: destination,
         travelMode: mode,
       },
-      (result, status) => {
+      (result: any, status: any) => {
         if (status === "OK" && result) {
           directionsRenderer.setMap(map);
           directionsRenderer.setDirections(result);
@@ -599,8 +709,8 @@ const AdvancedMap = ({
 
           // Fit map to show entire route
           const bounds = new google.maps.LatLngBounds();
-          route.legs.forEach((leg) => {
-            leg.steps.forEach((step) => {
+          route.legs.forEach((leg: any) => {
+            leg.steps.forEach((step: any) => {
               bounds.extend(step.start_location);
               bounds.extend(step.end_location);
             });
@@ -679,13 +789,18 @@ const AdvancedMap = ({
   };
 
   return (
-    <div className="relative w-full h-full rounded-xl overflow-hidden" style={{ minHeight: '100%' }}>
+    <div
+      className="relative w-full h-full rounded-xl overflow-hidden"
+      style={{ minHeight: "100%" }}
+    >
       {/* Loading Overlay */}
       {isLoading && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-xl">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 dark:border-gray-700 border-t-primary-600 dark:border-t-primary-400 mx-auto mb-4"></div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Đang tải bản đồ...</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Đang tải bản đồ...
+            </p>
           </div>
         </div>
       )}
@@ -694,52 +809,101 @@ const AdvancedMap = ({
       {error && !isLoading && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-red-50 dark:bg-red-900/20 rounded-xl border-2 border-red-200 dark:border-red-800">
           <div className="text-center p-8 max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
-            <div className="text-red-500 dark:text-red-400 text-6xl mb-4">⚠️</div>
-            <h3 className="text-red-700 dark:text-red-400 font-bold text-xl mb-3">Lỗi tải bản đồ</h3>
-            <p className="text-red-600 dark:text-red-400 font-semibold mb-4">{error}</p>
-            {errorType && (errorType === "api-key" || errorType === "domain" || errorType === "api-not-activated") && (
-              <div className="text-left bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mt-4">
-                <p className="text-yellow-800 text-sm font-semibold mb-2">🔧 Cách sửa:</p>
-                {errorType === "api-key" ? (
-                  <ol className="text-yellow-700 text-xs space-y-2 list-decimal list-inside mb-3">
-                    <li><strong>QUAN TRỌNG:</strong> Thêm Billing account vào Google Cloud Console</li>
-                    <li>Kiểm tra API Key trong Google Cloud Console</li>
-                    <li>Enable <strong>Maps JavaScript API</strong> và <strong>Places API</strong></li>
-                    <li>Kiểm tra API restrictions có đúng APIs không</li>
-                    <li>Kiểm tra Application restrictions có cho phép localhost không</li>
-                    <li>Nếu thấy "For development purposes only", cần kết nối Billing account</li>
-                    <li>Xem file <code className="bg-yellow-100 px-1 rounded">FIX_API_ERRORS.md</code> để biết chi tiết</li>
-                  </ol>
-                ) : errorType === "domain" ? (
-                  <ol className="text-yellow-700 text-xs space-y-2 list-decimal list-inside mb-3">
-                    <li>Vào Google Cloud Console → API Key settings</li>
-                    <li>Phần "Application restrictions" → Chọn "HTTP referrers"</li>
-                    <li>Thêm các domain sau:</li>
-                    <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
-                      <li><code className="bg-yellow-100 px-1 rounded">http://localhost:*/*</code></li>
-                      <li><code className="bg-yellow-100 px-1 rounded">http://127.0.0.1:*/*</code></li>
-                      <li><code className="bg-yellow-100 px-1 rounded">http://localhost:3000/*</code></li>
-                    </ul>
-                    <li>Click "SAVE" và đợi 1-2 phút</li>
-                  </ol>
-                ) : errorType === "api-not-activated" ? (
-                  <ol className="text-yellow-700 text-xs space-y-2 list-decimal list-inside mb-3">
-                    <li>Vào Google Cloud Console → APIs & Services → Library</li>
-                    <li>Enable <strong>Maps JavaScript API</strong></li>
-                    <li>Enable <strong>Places API</strong> (hoặc Places API New)</li>
-                    <li>Đợi vài phút để APIs được kích hoạt</li>
-                  </ol>
-                ) : null}
-                <a 
-                  href="https://console.cloud.google.com/apis/credentials?project=vivutour" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors"
-                >
-                  🔗 Mở Google Cloud Console
-                </a>
-              </div>
-            )}
+            <div className="text-red-500 dark:text-red-400 text-6xl mb-4">
+              ⚠️
+            </div>
+            <h3 className="text-red-700 dark:text-red-400 font-bold text-xl mb-3">
+              Lỗi tải bản đồ
+            </h3>
+            <p className="text-red-600 dark:text-red-400 font-semibold mb-4">
+              {error}
+            </p>
+            {errorType &&
+              (errorType === "api-key" ||
+                errorType === "domain" ||
+                errorType === "api-not-activated") && (
+                <div className="text-left bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mt-4">
+                  <p className="text-yellow-800 text-sm font-semibold mb-2">
+                    🔧 Cách sửa:
+                  </p>
+                  {errorType === "api-key" ? (
+                    <ol className="text-yellow-700 text-xs space-y-2 list-decimal list-inside mb-3">
+                      <li>
+                        <strong>QUAN TRỌNG:</strong> Thêm Billing account vào
+                        Google Cloud Console
+                      </li>
+                      <li>Kiểm tra API Key trong Google Cloud Console</li>
+                      <li>
+                        Enable <strong>Maps JavaScript API</strong> và{" "}
+                        <strong>Places API</strong>
+                      </li>
+                      <li>Kiểm tra API restrictions có đúng APIs không</li>
+                      <li>
+                        Kiểm tra Application restrictions có cho phép localhost
+                        không
+                      </li>
+                      <li>
+                        Nếu thấy "For development purposes only", cần kết nối
+                        Billing account
+                      </li>
+                      <li>
+                        Xem file{" "}
+                        <code className="bg-yellow-100 px-1 rounded">
+                          FIX_API_ERRORS.md
+                        </code>{" "}
+                        để biết chi tiết
+                      </li>
+                    </ol>
+                  ) : errorType === "domain" ? (
+                    <ol className="text-yellow-700 text-xs space-y-2 list-decimal list-inside mb-3">
+                      <li>Vào Google Cloud Console → API Key settings</li>
+                      <li>
+                        Phần "Application restrictions" → Chọn "HTTP referrers"
+                      </li>
+                      <li>Thêm các domain sau:</li>
+                      <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
+                        <li>
+                          <code className="bg-yellow-100 px-1 rounded">
+                            http://localhost:*/*
+                          </code>
+                        </li>
+                        <li>
+                          <code className="bg-yellow-100 px-1 rounded">
+                            http://127.0.0.1:*/*
+                          </code>
+                        </li>
+                        <li>
+                          <code className="bg-yellow-100 px-1 rounded">
+                            http://localhost:3000/*
+                          </code>
+                        </li>
+                      </ul>
+                      <li>Click "SAVE" và đợi 1-2 phút</li>
+                    </ol>
+                  ) : errorType === "api-not-activated" ? (
+                    <ol className="text-yellow-700 text-xs space-y-2 list-decimal list-inside mb-3">
+                      <li>
+                        Vào Google Cloud Console → APIs & Services → Library
+                      </li>
+                      <li>
+                        Enable <strong>Maps JavaScript API</strong>
+                      </li>
+                      <li>
+                        Enable <strong>Places API</strong> (hoặc Places API New)
+                      </li>
+                      <li>Đợi vài phút để APIs được kích hoạt</li>
+                    </ol>
+                  ) : null}
+                  <a
+                    href="https://console.cloud.google.com/apis/credentials?project=vivutour"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors"
+                  >
+                    🔗 Mở Google Cloud Console
+                  </a>
+                </div>
+              )}
           </div>
         </div>
       )}
@@ -764,11 +928,11 @@ const AdvancedMap = ({
       </div>
 
       {/* Map Container */}
-      <div 
+      <div
         id="google-map-container"
-        ref={mapContainerRef} 
-        className="w-full h-full" 
-        style={{ minHeight: '400px', height: '100%' }}
+        ref={mapContainerRef}
+        className="w-full h-full"
+        style={{ minHeight: "400px", height: "100%" }}
       />
 
       {/* Directions Panel */}
@@ -777,7 +941,9 @@ const AdvancedMap = ({
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Route className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-              <h3 className="font-bold text-lg text-gray-900 dark:text-white">Tìm đường đi</h3>
+              <h3 className="font-bold text-lg text-gray-900 dark:text-white">
+                Tìm đường đi
+              </h3>
             </div>
             <button
               onClick={() => {
@@ -789,7 +955,7 @@ const AdvancedMap = ({
               <X className="w-5 h-5 text-gray-500" />
             </button>
           </div>
-          
+
           <div className="p-4 space-y-3">
             {/* Origin */}
             <div className="space-y-2">
@@ -834,7 +1000,9 @@ const AdvancedMap = ({
 
             {/* Travel Mode */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Phương tiện</label>
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Phương tiện
+              </label>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { mode: "DRIVING", label: "🚗 Xe hơi" },
@@ -862,12 +1030,20 @@ const AdvancedMap = ({
               <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg p-3">
                 <div className="flex items-center justify-between text-sm">
                   <div>
-                    <span className="text-gray-600 dark:text-gray-400">Khoảng cách:</span>
-                    <span className="font-bold text-primary-700 dark:text-primary-300 ml-2">{routeInfo.distance}</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Khoảng cách:
+                    </span>
+                    <span className="font-bold text-primary-700 dark:text-primary-300 ml-2">
+                      {routeInfo.distance}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-gray-600 dark:text-gray-400">Thời gian:</span>
-                    <span className="font-bold text-primary-700 dark:text-primary-300 ml-2">{routeInfo.duration}</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Thời gian:
+                    </span>
+                    <span className="font-bold text-primary-700 dark:text-primary-300 ml-2">
+                      {routeInfo.duration}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -942,7 +1118,9 @@ const AdvancedMap = ({
           <button
             onClick={() => setShowTraffic(!showTraffic)}
             className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
-              showTraffic ? "bg-primary-600 dark:bg-primary-500 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+              showTraffic
+                ? "bg-primary-600 dark:bg-primary-500 text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
             title="Giao thông"
           >
@@ -952,7 +1130,9 @@ const AdvancedMap = ({
           <button
             onClick={() => setShowTransit(!showTransit)}
             className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
-              showTransit ? "bg-primary-600 dark:bg-primary-500 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+              showTransit
+                ? "bg-primary-600 dark:bg-primary-500 text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
             title="Giao thông công cộng"
           >
@@ -966,4 +1146,3 @@ const AdvancedMap = ({
 };
 
 export default AdvancedMap;
-

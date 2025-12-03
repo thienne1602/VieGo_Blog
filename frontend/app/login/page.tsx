@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../lib/AuthContext";
 
 const LoginPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -18,6 +19,19 @@ const LoginPage = () => {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [expiredMessage, setExpiredMessage] = useState<string | null>(null);
+
+  // Check if redirected due to expired token
+  useEffect(() => {
+    const expired = searchParams.get("expired");
+    if (expired === "true") {
+      setExpiredMessage("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+      // Clear the query parameter after showing message
+      setTimeout(() => {
+        window.history.replaceState({}, "", "/login");
+      }, 100);
+    }
+  }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -136,6 +150,30 @@ const LoginPage = () => {
                   : "Tham gia cộng đồng VieGo ngay hôm nay!"}
               </p>
             </div>
+
+            {/* Expired Session Message */}
+            {expiredMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
+              >
+                <p className="text-sm text-yellow-800 text-center flex items-center justify-center gap-2">
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  {expiredMessage}
+                </p>
+              </motion.div>
+            )}
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">

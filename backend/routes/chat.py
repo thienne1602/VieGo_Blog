@@ -6,6 +6,7 @@ from models import db
 from models.notification import Notification
 from models.group_chat import GroupChat, GroupMember
 from routes.notifications import create_notification
+from routes.group_chat_extra import register_extra_group_routes
 from utils.socket_utils import emit_to_user
 from datetime import datetime
 from werkzeug.utils import secure_filename
@@ -14,6 +15,9 @@ import os
 import uuid
 
 chat_bp = Blueprint('chat', __name__, url_prefix='/api/chat')
+
+# Register extra group routes (disband group, remove member, etc.)
+register_extra_group_routes(chat_bp)
 
 @chat_bp.route('/conversations', methods=['GET'])
 @jwt_required()
@@ -981,6 +985,61 @@ def get_group(room_id):
         return jsonify({'error': f'Lỗi lấy thông tin nhóm: {str(e)}'}), 500
 
 
+@chat_bp.route('/groups/<room_id>', methods=['PATCH'])
+@jwt_required()
+def update_group(room_id):
+    """Update group information (name, description, avatar) - admin/creator only"""
+    try:
+        current_user_id = get_jwt_identity()
+        data = request.get_json() or {}
+
+        group = GroupChat.query.filter_by(room_id=room_id).first()
+        if not group:
+            return jsonify({'error': 'Không tìm thấy nhóm'}), 404
+
+        # Check if current user is admin/creator
+        is_admin = GroupMember.query.filter_by(
+            group_id=group.id,
+            user_id=current_user_id,
+            role='admin'
+        ).first()
+
+        if not is_admin and group.created_by != current_user_id:
+            return jsonify({'error': 'Chỉ quản trị viên mới có thể chỉnh sửa nhóm'}), 403
+
+        updated = False
+
+        name = data.get('name')
+        if name is not None:
+            name = name.strip()
+            if not name:
+                return jsonify({'error': 'Tên nhóm không được để trống'}), 400
+            group.name = name
+            updated = True
+
+        description = data.get('description')
+        if description is not None:
+            group.description = description.strip()
+            updated = True
+
+        avatar_url = data.get('avatar_url')
+        if avatar_url is not None:
+            group.avatar_url = avatar_url.strip() or None
+            updated = True
+
+        if updated:
+            db.session.commit()
+
+        return jsonify({
+            'message': 'Cập nhật nhóm thành công',
+            'group': group.to_dict(include_members=True)
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi cập nhật nhóm: {str(e)}'}), 500
+
+
 @chat_bp.route('/groups/<room_id>/messages', methods=['GET'])
 @jwt_required()
 def get_group_messages(room_id):
@@ -1231,4 +1290,92 @@ def get_group_members(room_id):
         
     except Exception as e:
         return jsonify({'error': f'Lỗi lấy danh sách thành viên: {str(e)}'}), 500
+
+
+@chat_bp.route('/groups/<room_id>/members', methods=['POST'])
+@jwt_required()
+def add_group_members(room_id):
+    """Add members to a group"""
+    try:
+        current_user_id = get_jwt_identity()
+        data = request.get_json()
+        member_ids = data.get('member_ids', [])
+        
+        if not member_ids:
+            return jsonify({'error': 'Danh sách thành viên không được để trống'}), 400
+            
+        group = GroupChat.query.filter_by(room_id=room_id).first()
+        if not group:
+            return jsonify({'error': 'Không tìm thấy nhóm'}), 404
+            
+        # Check if user is a member
+        is_member = GroupMember.query.filter_by(
+            group_id=group.id,
+            user_id=current_user_id
+        ).first()
+        
+        if not is_member:
+            return jsonify({'error': 'Bạn không phải thành viên của nhóm này'}), 403
+            
+        # Add members
+        added_count = 0
+        current_user = User.query.get(current_user_id)
+        
+        for user_id in member_ids:
+            # Check if already a member
+            existing = GroupMember.query.filter_by(
+                group_id=group.id,
+                user_id=user_id
+            ).first()
+            
+            if not existing:
+                # Check if user exists
+                new_member_user = User.query.get(user_id)
+                if new_member_user:
+                    new_member = GroupMember(
+                        group_id=group.id,
+                        user_id=user_id,
+                        role='member'
+                    )
+                    db.session.add(new_member)
+                    added_count += 1
+                    
+                    # Notification
+                    create_notification(
+                        user_id=user_id,
+                        type='message',
+                        message=f'{current_user.full_name or current_user.username} đã thêm bạn vào nhóm "{group.name}"',
+                        title='Đã thêm vào nhóm chat',
+                        actor_id=current_user_id,
+                        related_type='group_chat',
+                        related_id=group.id,
+                        action_url=f'/messages/group/{room_id}',
+                        emit_realtime=True
+                    )
+                    
+                    # System message
+                    sys_msg = Chat(
+                        message=f"{current_user.full_name or current_user.username} đã thêm {new_member_user.full_name or new_member_user.username} vào nhóm",
+                        message_type='system',
+                        sender_id=current_user_id,
+                        room_id=room_id,
+                        conversation_type='group',
+                        status='sent'
+                    )
+                    db.session.add(sys_msg)
+
+        if added_count > 0:
+            group.updated_at = datetime.utcnow()
+            db.session.commit()
+            
+            # Emit update to group members
+            # We should emit a 'group_updated' event or similar, but for now just rely on messages
+            
+            return jsonify({'message': f'Đã thêm {added_count} thành viên'}), 200
+        else:
+            return jsonify({'message': 'Không có thành viên nào được thêm (có thể đã tồn tại)'}), 200
+            
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi thêm thành viên: {str(e)}'}), 500
 

@@ -2,6 +2,7 @@
 
 import { useAuth } from "../lib/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
+import Image from "next/image";
 import {
   LayoutDashboard,
   User,
@@ -83,8 +84,12 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
             {/* Logo & Breadcrumb */}
             <div className="flex items-center space-x-6">
               <Link href="/" className="flex items-center space-x-3 group">
-                <div className="w-10 h-10 bg-white/20 dark:bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/30 dark:group-hover:bg-white/20 transition-all duration-300">
-                  <span className="text-2xl font-bold text-white">V</span>
+                <div className="relative w-10 h-10 rounded-xl flex items-center justify-center group-hover:opacity-90 transition-all duration-300 overflow-hidden">
+                  <img
+                    src="/images/Logo_viego.svg"
+                    alt="VieGo Logo"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div className="text-white">
                   <div className="text-xl font-bold">VieGo</div>

@@ -37,6 +37,7 @@ export default function TourJourneyListPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<any | null>(null);
+  const backgroundImageUrl = "/images/backround_tour.jpg";
 
   useEffect(() => {
     // Wait for auth to finish loading before checking user
@@ -128,20 +129,85 @@ export default function TourJourneyListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen relative overflow-hidden bg-slate-50 dark:bg-slate-950 text-gray-900 dark:text-white">
+      {/* Cinematic Background */}
+      <div className="fixed inset-0 z-0">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-50 dark:opacity-70"
+          style={{ backgroundImage: `url('${backgroundImageUrl}')` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-slate-50/40 to-white/50 dark:from-slate-950/95 dark:via-slate-900/85 dark:to-slate-950/95" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),_transparent_45%)] dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_45%)]" />
+      </div>
+
+      <div className="relative z-10 max-w-6xl mx-auto px-4 pt-24 pb-10 space-y-10">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            {user?.role === "tour_guide"
-              ? "Hành Trình Tour Được Phân Công"
-              : "Hành Trình Du Lịch"}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            {user?.role === "tour_guide"
-              ? "Quản lý và cập nhật tiến trình các tour bạn được phân công"
-              : "Theo dõi hành trình các tour bạn đã đặt"}
-          </p>
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.35em] text-gray-500 dark:text-white/60">
+                {user?.role === "tour_guide" ? "Planner" : "Timeline"}
+              </p>
+              <h1 className="text-4xl font-black tracking-tight mt-2 text-gray-900 dark:text-white">
+                {user?.role === "tour_guide"
+                  ? "Tour được phân công"
+                  : "Hành trình của bạn"}
+              </h1>
+              <p className="text-gray-600 dark:text-white/70 mt-3 max-w-2xl">
+                {user?.role === "tour_guide"
+                  ? "Xem nhanh các tour đang chờ bạn cập nhật tiến độ."
+                  : "Tiếp tục cuộc hành trình cùng VieGo với trải nghiệm mới hiện đại."}
+              </p>
+            </div>
+            {user?.role !== "tour_guide" && (
+              <button
+                onClick={() => router.push("/tours")}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold bg-teal-600 dark:bg-white/10 text-white dark:text-white border border-teal-700 dark:border-white/20 hover:bg-teal-700 dark:hover:bg-white/20 transition"
+              >
+                Khám phá thêm tour
+              </button>
+            )}
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl p-5 shadow-lg dark:shadow-none">
+              <p className="text-sm text-gray-600 dark:text-white/70">Tổng tour</p>
+              <p className="text-4xl font-bold mt-2 text-gray-900 dark:text-white">{bookings.length}</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-gray-500 dark:text-white/50 mt-2">
+                Đang hoạt động
+              </p>
+            </div>
+            <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl p-5 shadow-lg dark:shadow-none">
+              <p className="text-sm text-gray-600 dark:text-white/70">
+                {user?.role === "tour_guide" ? "Chờ cập nhật" : "Sắp khởi hành"}
+              </p>
+              <p className="text-4xl font-bold mt-2 text-gray-900 dark:text-white">
+                {
+                  bookings.filter((b) =>
+                    user?.role === "tour_guide"
+                      ? (b as any).assignment?.status !== "completed"
+                      : new Date(b.booking_date) >= new Date()
+                  ).length
+                }
+              </p>
+              <p className="text-xs uppercase tracking-[0.35em] text-gray-500 dark:text-white/50 mt-2">
+                Ưu tiên hôm nay
+              </p>
+            </div>
+            <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl p-5 shadow-lg dark:shadow-none">
+              <p className="text-sm text-gray-600 dark:text-white/70">Địa điểm nổi bật</p>
+              <p className="text-4xl font-bold mt-2 text-gray-900 dark:text-white">
+                {
+                  new Set(
+                    bookings.map((b) => b.tour.starting_location || "Khác")
+                  ).size
+                }
+              </p>
+              <p className="text-xs uppercase tracking-[0.35em] text-gray-500 dark:text-white/50 mt-2">
+                Thành phố
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Bookings List */}
@@ -149,25 +215,25 @@ export default function TourJourneyListPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl p-12 text-center border border-white/50 dark:border-gray-700/50"
+            className="rounded-3xl border border-gray-200 dark:border-white/15 bg-white/90 dark:bg-white/5 backdrop-blur-2xl shadow-xl dark:shadow-[0_20px_70px_rgba(15,23,42,0.45)] p-12 text-center"
           >
-            <Navigation className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            <Navigation className="w-16 h-16 text-gray-400 dark:text-white/40 mx-auto mb-4" />
+            <h3 className="text-2xl font-semibold mb-3 text-gray-900 dark:text-white">
               {user?.role === "tour_guide"
                 ? "Chưa có tour nào được phân công"
                 : "Chưa có hành trình nào"}
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-gray-600 dark:text-white/70 mb-6">
               {user?.role === "tour_guide"
-                ? "Bạn chưa được phân công tour nào. Vui lòng liên hệ người bán để được phân công."
-                : "Bạn chưa có booking nào được xác nhận"}
+                ? "Liên hệ điều phối để nhận tour đầu tiên của bạn."
+                : "Hãy đặt tour để bắt đầu trải nghiệm hành trình sống động."}
             </p>
             {user?.role !== "tour_guide" && (
               <button
                 onClick={() => router.push("/tours")}
-                className="px-6 py-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors font-semibold"
+                className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl font-semibold hover:shadow-lg transition"
               >
-                Khám phá Tours
+                Đặt tour ngay
               </button>
             )}
           </motion.div>
@@ -178,83 +244,86 @@ export default function TourJourneyListPage() {
                 key={booking.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.05 }}
                 onClick={() => router.push(`/tour-journey/${booking.id}`)}
-                className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden border border-white/50 dark:border-gray-700/50 hover:shadow-2xl transition-all cursor-pointer group"
+                className="group relative overflow-hidden rounded-3xl border border-gray-200 dark:border-white/10 bg-white/90 dark:bg-white/5 backdrop-blur-2xl shadow-xl dark:shadow-[0_20px_60px_rgba(15,23,42,0.35)] hover:-translate-y-1 hover:border-teal-300 dark:hover:border-white/30 transition cursor-pointer"
               >
-                {/* Tour Image */}
                 <div className="relative h-48 overflow-hidden">
                   <img
                     src={
                       booking.tour.featured_image || "/images/tours/default.svg"
                     }
                     alt={booking.tour.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent dark:from-slate-900/80 dark:via-slate-900/20" />
 
-                  {/* Status Badge for Tour Guide */}
-                  {user?.role === "tour_guide" && booking.assignment && (
-                    <div className="absolute top-3 right-3">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          booking.assignment.status === "in_progress"
-                            ? "bg-blue-500 text-white"
-                            : booking.assignment.status === "completed"
-                            ? "bg-green-500 text-white"
-                            : booking.assignment.status === "accepted"
-                            ? "bg-purple-500 text-white"
-                            : "bg-yellow-500 text-white"
-                        }`}
-                      >
-                        {booking.assignment.status === "in_progress"
-                          ? "Đang thực hiện"
-                          : booking.assignment.status === "completed"
-                          ? "Hoàn thành"
-                          : booking.assignment.status === "accepted"
-                          ? "Đã chấp nhận"
-                          : "Mới"}
-                      </span>
-                    </div>
-                  )}
+                  {user?.role === "tour_guide" &&
+                    (booking as any).assignment && (
+                      <div className="absolute top-3 right-3">
+                        <span
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide text-white ${
+                            (booking as any).assignment.status === "in_progress"
+                              ? "bg-blue-500/90"
+                              : (booking as any).assignment.status ===
+                                "completed"
+                              ? "bg-green-500/90"
+                              : (booking as any).assignment.status === "accepted"
+                              ? "bg-purple-500/90"
+                              : "bg-amber-500/90"
+                          }`}
+                        >
+                          {(booking as any).assignment.status === "in_progress"
+                            ? "Đang thực hiện"
+                            : (booking as any).assignment.status === "completed"
+                            ? "Hoàn thành"
+                            : (booking as any).assignment.status === "accepted"
+                            ? "Đã nhận"
+                            : "Mới"}
+                        </span>
+                      </div>
+                    )}
 
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="text-white font-bold text-lg line-clamp-2">
+                  <div className="absolute bottom-3 left-4 right-4">
+                    <h3 className="text-lg font-semibold leading-tight text-white">
                       {booking.tour.title}
                     </h3>
                   </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 space-y-3">
-                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-sm">
-                    <Calendar className="w-4 h-4" />
+                <div className="p-6 space-y-3 text-gray-700 dark:text-white/80">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="w-4 h-4 text-teal-600 dark:text-emerald-300" />
                     <span>
-                      Khởi hành:{" "}
                       {new Date(booking.booking_date).toLocaleDateString(
-                        "vi-VN"
+                        "vi-VN",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        }
                       )}
                     </span>
                   </div>
-
-                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-sm">
-                    <MapPin className="w-4 h-4" />
-                    <span>{booking.tour.starting_location || "N/A"}</span>
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="w-4 h-4 text-teal-600 dark:text-emerald-300" />
+                    <span>{booking.tour.starting_location || "Đang cập nhật"}</span>
                   </div>
-
-                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 text-sm">
-                    <Users className="w-4 h-4" />
+                  <div className="flex items-center gap-2 text-sm">
+                    <Users className="w-4 h-4 text-teal-600 dark:text-emerald-300" />
                     <span>
                       {booking.adults} người lớn
-                      {booking.children > 0 && `, ${booking.children} trẻ em`}
-                      {booking.infants > 0 && `, ${booking.infants} em bé`}
+                      {booking.children > 0 && ` • ${booking.children} trẻ em`}
+                      {booking.infants > 0 && ` • ${booking.infants} em bé`}
                     </span>
                   </div>
 
-                  <button className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-semibold">
-                    <Navigation className="w-5 h-5" />
-                    Xem Hành Trình
-                  </button>
+                  <div className="pt-4">
+                    <div className="inline-flex items-center gap-2 rounded-2xl border border-teal-600 dark:border-white/20 px-4 py-2 text-sm font-semibold text-teal-700 dark:text-white transition group-hover:bg-teal-600 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-slate-900">
+                      <Navigation className="w-4 h-4" />
+                      Xem hành trình
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             ))}

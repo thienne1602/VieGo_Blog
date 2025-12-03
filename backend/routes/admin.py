@@ -4,18 +4,23 @@ Handles all administrative operations including user management, content moderat
 analytics, reports, and system settings.
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from functools import wraps
 from datetime import datetime, timedelta
 from sqlalchemy import func, desc, and_, or_
 import json
+import pandas as pd
+import io
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
 from models import db
 from models.user import User
 from models.post import Post
 from models.comment import Comment
 from models.report import Report, ActivityLog
+from models.booking import Booking
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 
@@ -93,6 +98,12 @@ def get_dashboard_stats():
             )
         ).count()
         
+        # Calculate revenue
+        total_revenue = db.session.query(func.sum(Booking.total_price)).scalar() or 0
+        today_revenue = db.session.query(func.sum(Booking.total_price)).filter(
+            Booking.created_at >= today_start
+        ).scalar() or 0
+        
         stats = {
             'totalUsers': total_users,
             'totalPosts': total_posts,
@@ -104,6 +115,8 @@ def get_dashboard_stats():
             'todayViews': int(today_views),
             'pendingReports': pending_reports,
             'activeUsers': active_users,
+            'totalRevenue': float(total_revenue),
+            'todayRevenue': float(today_revenue),
             'systemStatus': 99.8  # Placeholder for system health
         }
         
@@ -630,9 +643,20 @@ def get_analytics_overview():
             func.count(Post.id).label('count')
         ).group_by(Post.category).all()
         
+        # Revenue growth (5% of successful bookings)
+        revenue_growth = db.session.query(
+            func.date(Booking.created_at).label('date'),
+            func.sum(Booking.total_price).label('total_revenue')
+        ).filter(
+            Booking.created_at >= start_date,
+            Booking.status == 'confirmed',
+            Booking.payment_status == 'paid'
+        ).group_by(func.date(Booking.created_at)).all()
+        
         analytics = {
             'userGrowth': [{'date': str(row.date), 'count': row.count} for row in user_growth],
             'postGrowth': [{'date': str(row.date), 'count': row.count} for row in post_growth],
+            'revenueGrowth': [{'date': str(row.date), 'revenue': float(row.total_revenue or 0) * 0.05} for row in revenue_growth],
             'topAuthors': [{
                 'id': row.id,
                 'username': row.username,
@@ -650,6 +674,171 @@ def get_analytics_overview():
         
         return jsonify(analytics), 200
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/analytics/export-excel', methods=['GET'])
+@admin_required
+def export_analytics_excel():
+    """Export comprehensive analytics data to Excel with formatting"""
+    try:
+        # Helper function to format worksheet
+        def format_worksheet(worksheet, title):
+            # Define styles
+            header_font = Font(name='Arial', size=12, bold=True, color='FFFFFF')
+            header_fill = PatternFill(start_color='1F4E78', end_color='1F4E78', fill_type='solid')
+            header_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+            border_style = Side(style='thin', color='000000')
+            border = Border(left=border_style, right=border_style, top=border_style, bottom=border_style)
+            
+            # Add title
+            worksheet.merge_cells('A1:E1')
+            title_cell = worksheet['A1']
+            title_cell.value = title
+            title_cell.font = Font(name='Arial', size=16, bold=True, color='1F4E78')
+            title_cell.alignment = Alignment(horizontal='center')
+            
+            # Format headers (Row 3)
+            for cell in worksheet[3]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+                cell.border = border
+                
+            # Auto-adjust column widths
+            for column in worksheet.columns:
+                max_length = 0
+                column = [cell for cell in column]
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = (max_length + 2)
+                worksheet.column_dimensions[get_column_letter(column[0].column)].width = min(adjusted_width, 50)
+
+        # 1. Summary Data
+        total_users = User.query.count()
+        total_posts = Post.query.count()
+        total_bookings = Booking.query.count()
+        total_revenue = db.session.query(func.sum(Booking.total_price)).filter(
+            Booking.status == 'confirmed', Booking.payment_status == 'paid'
+        ).scalar() or 0
+        
+        summary_data = [{
+            'Metric': 'Total Users', 'Value': total_users
+        }, {
+            'Metric': 'Total Posts', 'Value': total_posts
+        }, {
+            'Metric': 'Total Bookings', 'Value': total_bookings
+        }, {
+            'Metric': 'Total Revenue', 'Value': total_revenue
+        }, {
+            'Metric': 'Generated At', 'Value': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }]
+        df_summary = pd.DataFrame(summary_data)
+
+        # 2. Revenue Data (Comprehensive)
+        revenue_data = db.session.query(
+            Booking
+        ).join(User, Booking.user_id == User.id).order_by(desc(Booking.created_at)).all()
+        
+        revenue_list = []
+        for r in revenue_data:
+            revenue_list.append({
+                'Booking ID': r.id,
+                'Date': r.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'Customer Name': r.full_name or r.user.full_name,
+                'Email': r.email or r.user.email,
+                'Tour ID': r.tour_id,
+                'Participants': r.participants,
+                'Total Amount': float(r.total_price),
+                'Commission (5%)': float(r.total_price) * 0.05 if r.status == 'confirmed' and r.payment_status == 'paid' else 0,
+                'Payment Method': r.payment_method,
+                'Payment Status': r.payment_status,
+                'Booking Status': r.status
+            })
+        df_revenue = pd.DataFrame(revenue_list)
+        
+        # 3. User Data (Comprehensive)
+        users = User.query.order_by(desc(User.created_at)).all()
+        users_list = []
+        for u in users:
+            users_list.append({
+                'ID': u.id,
+                'Username': u.username,
+                'Full Name': u.full_name,
+                'Email': u.email,
+                'Role': u.role,
+                'Status': 'Active' if u.is_active else 'Inactive',
+                'Joined Date': u.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            })
+        df_users = pd.DataFrame(users_list)
+        
+        # 4. Content Data (Posts)
+        posts = Post.query.order_by(desc(Post.views_count)).all()
+        posts_list = []
+        for p in posts:
+            posts_list.append({
+                'ID': p.id,
+                'Title': p.title,
+                'Author': p.author.username if p.author else 'Unknown',
+                'Category': p.category,
+                'Views': p.views_count,
+                'Likes': p.likes_count,
+                'Status': p.status,
+                'Created At': p.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            })
+        df_posts = pd.DataFrame(posts_list)
+
+        # 5. Reports Data
+        reports = Report.query.order_by(desc(Report.created_at)).all()
+        reports_list = []
+        for r in reports:
+            reports_list.append({
+                'ID': r.id,
+                'Type': r.report_type,
+                'Reason': r.reason,
+                'Status': r.status,
+                'Priority': r.priority,
+                'Created At': r.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'Resolved At': r.resolved_at.strftime('%Y-%m-%d %H:%M:%S') if r.resolved_at else ''
+            })
+        df_reports = pd.DataFrame(reports_list)
+
+        # Create Excel file in memory
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            # Write sheets starting from row 3 (leaving space for title)
+            df_summary.to_excel(writer, sheet_name='Overview', index=False, startrow=2)
+            df_revenue.to_excel(writer, sheet_name='Revenue', index=False, startrow=2)
+            df_users.to_excel(writer, sheet_name='Users', index=False, startrow=2)
+            df_posts.to_excel(writer, sheet_name='Content', index=False, startrow=2)
+            df_reports.to_excel(writer, sheet_name='Reports', index=False, startrow=2)
+            
+            # Apply formatting
+            workbook = writer.book
+            format_worksheet(workbook['Overview'], 'System Overview')
+            format_worksheet(workbook['Revenue'], 'Revenue & Bookings Report')
+            format_worksheet(workbook['Users'], 'User Management Report')
+            format_worksheet(workbook['Content'], 'Content Performance Report')
+            format_worksheet(workbook['Reports'], 'Moderation Reports')
+
+        output.seek(0)
+        
+        filename = f"VieGo_Full_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename
+        )
+
+    except Exception as e:
+        print(f"Export error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 # ============================================================================

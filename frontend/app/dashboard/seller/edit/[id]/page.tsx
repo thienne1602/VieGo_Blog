@@ -2,12 +2,25 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Image as ImageIcon, Upload, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Image as ImageIcon,
+  Upload,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "../../../../../lib/api";
 import Toast from "../../../../../components/common/Toast";
 
-export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; onSuccess?: any }) {
+function EditTourForm({
+  tourId,
+  onSuccess,
+}: {
+  tourId: string | number;
+  onSuccess?: any;
+}) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -66,27 +79,35 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
         if (res.success && res.data) {
           // Handle nested data structure: res.data may be {success, data} or direct data
           const tour = res.data?.data || res.data;
-          
+
           if (!tour || !tour.title) {
-            setToast({ message: "Không tìm thấy thông tin tour hoặc dữ liệu không hợp lệ", type: "error" });
+            setToast({
+              message:
+                "Không tìm thấy thông tin tour hoặc dữ liệu không hợp lệ",
+              type: "error",
+            });
             setLoading(false);
             return;
           }
-          
+
           // Format available_dates if they exist
           let availableDates: string[] = [];
           if (tour.available_dates && Array.isArray(tour.available_dates)) {
             availableDates = tour.available_dates.map((date: string) => {
               // Ensure date is in YYYY-MM-DD format
-              if (date.includes('T')) {
-                return date.split('T')[0];
+              if (date.includes("T")) {
+                return date.split("T")[0];
               }
               return date;
             });
           }
 
           // Format itinerary if it exists
-          let itinerary: Array<{ day: number; title: string; description: string }> = [];
+          let itinerary: Array<{
+            day: number;
+            title: string;
+            description: string;
+          }> = [];
           if (tour.itinerary && Array.isArray(tour.itinerary)) {
             itinerary = tour.itinerary.map((item: any, index: number) => ({
               day: item.day || index + 1,
@@ -122,30 +143,36 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
           });
 
           // Set images with proper URL formatting
-          const baseURL = api.baseURL.replace('/api', '');
+          const baseURL = api.baseURL.replace("/api", "");
           const formatImageUrl = (url: string) => {
-            if (!url) return '';
-            if (url.startsWith('http')) return url;
+            if (!url) return "";
+            if (url.startsWith("http")) return url;
             return `${baseURL}${url}`;
           };
-          
+
           const galleryImages = (tour.gallery_images || []).map(formatImageUrl);
-          const featuredImg = tour.featured_image ? formatImageUrl(tour.featured_image) : '';
-          
+          const featuredImg = tour.featured_image
+            ? formatImageUrl(tour.featured_image)
+            : "";
+
           if (featuredImg && !galleryImages.includes(featuredImg)) {
             setImages([featuredImg, ...galleryImages]);
           } else {
             setImages(galleryImages.filter(Boolean));
           }
         } else {
-          setToast({ message: "Không tìm thấy tour hoặc bạn không có quyền truy cập", type: "error" });
+          setToast({
+            message: "Không tìm thấy tour hoặc bạn không có quyền truy cập",
+            type: "error",
+          });
           setTimeout(() => {
             router.push("/dashboard/seller");
           }, 2000);
         }
       } catch (error: any) {
         console.error("Error loading tour:", error);
-        const errorMsg = error?.message || error?.error || "Lỗi khi tải thông tin tour";
+        const errorMsg =
+          error?.message || error?.error || "Lỗi khi tải thông tin tour";
         setToast({ message: errorMsg, type: "error" });
         setTimeout(() => {
           router.push("/dashboard/seller");
@@ -164,15 +191,15 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
   const saveTour = async (showSuccessMessage = true) => {
     setSaving(true);
     // Normalize image URLs - convert full URLs to relative paths for backend
-    const baseURL = api.baseURL.replace('/api', '');
+    const baseURL = api.baseURL.replace("/api", "");
     const normalizeImageUrl = (url: string) => {
       if (!url) return null;
       if (url.startsWith(baseURL)) {
-        return url.replace(baseURL, '');
+        return url.replace(baseURL, "");
       }
       return url;
     };
-    
+
     const payload = {
       ...form,
       featured_image: images[0] ? normalizeImageUrl(images[0]) : null,
@@ -181,7 +208,8 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
       itinerary: form.itinerary.length > 0 ? form.itinerary : undefined,
       inclusions: form.inclusions.length > 0 ? form.inclusions : undefined,
       exclusions: form.exclusions.length > 0 ? form.exclusions : undefined,
-      available_dates: form.available_dates.length > 0 ? form.available_dates : undefined,
+      available_dates:
+        form.available_dates.length > 0 ? form.available_dates : undefined,
       tags: form.tags.length > 0 ? form.tags : undefined,
       // Remove empty strings
       ending_location: form.ending_location || undefined,
@@ -189,7 +217,7 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
       video_url: form.video_url || undefined,
       age_requirement: form.age_requirement || undefined,
     };
-    
+
     try {
       // Clear cache before updating
       api.clearCacheFor(`/tours/${tourId}`);
@@ -198,16 +226,20 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
         // Clear cache after successful update
         api.clearCacheFor(`/tours/${tourId}`);
         if (showSuccessMessage) {
-          setToast({ 
-            message: "✅ Cập nhật tour thành công! Tất cả các thay đổi đã được lưu.", 
-            type: "success" 
+          setToast({
+            message:
+              "✅ Cập nhật tour thành công! Tất cả các thay đổi đã được lưu.",
+            type: "success",
           });
           setTimeout(() => {
             if (onSuccess) onSuccess(res.data);
             else router.push("/dashboard/seller");
           }, 2000);
         } else {
-          setToast({ message: "💾 Đã lưu thay đổi tạm thời!", type: "success" });
+          setToast({
+            message: "💾 Đã lưu thay đổi tạm thời!",
+            type: "success",
+          });
         }
         return true;
       } else {
@@ -217,7 +249,10 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
         return false;
       }
     } catch (error: any) {
-      const errorMsg = error?.response?.data?.error || error?.message || "Lỗi khi cập nhật tour";
+      const errorMsg =
+        error?.response?.data?.error ||
+        error?.message ||
+        "Lỗi khi cập nhật tour";
       setToast({ message: errorMsg, type: "error" });
       console.error("Update tour error:", error);
       return false;
@@ -252,7 +287,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
       formData.append("file", file);
 
       xhr.upload.onprogress = (e) => {
-        const perc = e.lengthComputable ? Math.round((e.loaded / e.total) * 100) : 0;
+        const perc = e.lengthComputable
+          ? Math.round((e.loaded / e.total) * 100)
+          : 0;
         setFileStates((prev) => {
           const copy = [...prev];
           copy[index] = { ...(copy[index] || {}), progress: perc };
@@ -266,35 +303,51 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
             const data = JSON.parse(xhr.responseText);
             if (data && data.url) {
               // Format image URL with full base URL
-              const baseURL = api.baseURL.replace('/api', ''); // Remove /api to get base server URL
-              const fullImageUrl = data.url.startsWith('http') 
-                ? data.url 
+              const baseURL = api.baseURL.replace("/api", ""); // Remove /api to get base server URL
+              const fullImageUrl = data.url.startsWith("http")
+                ? data.url
                 : `${baseURL}${data.url}`;
-              
+
               setFileStates((prev) => {
                 const copy = [...prev];
-                copy[index] = { ...(copy[index] || {}), status: "done", url: fullImageUrl };
+                copy[index] = {
+                  ...(copy[index] || {}),
+                  status: "done",
+                  url: fullImageUrl,
+                };
                 return copy;
               });
               setImages((prev) => [...prev, fullImageUrl]);
             } else {
               setFileStates((prev) => {
                 const copy = [...prev];
-                copy[index] = { ...(copy[index] || {}), status: "error", error: data.error || "Upload failed" };
+                copy[index] = {
+                  ...(copy[index] || {}),
+                  status: "error",
+                  error: data.error || "Upload failed",
+                };
                 return copy;
               });
             }
           } catch (err) {
             setFileStates((prev) => {
               const copy = [...prev];
-              copy[index] = { ...(copy[index] || {}), status: "error", error: "Invalid response" };
+              copy[index] = {
+                ...(copy[index] || {}),
+                status: "error",
+                error: "Invalid response",
+              };
               return copy;
             });
           }
         } else {
           setFileStates((prev) => {
             const copy = [...prev];
-            copy[index] = { ...(copy[index] || {}), status: "error", error: `HTTP ${xhr.status}` };
+            copy[index] = {
+              ...(copy[index] || {}),
+              status: "error",
+              error: `HTTP ${xhr.status}`,
+            };
             return copy;
           });
         }
@@ -304,7 +357,11 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
       xhr.onerror = () => {
         setFileStates((prev) => {
           const copy = [...prev];
-          copy[index] = { ...(copy[index] || {}), status: "error", error: "Network error" };
+          copy[index] = {
+            ...(copy[index] || {}),
+            status: "error",
+            error: "Network error",
+          };
           return copy;
         });
         resolve();
@@ -361,24 +418,36 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
 
   const addInclusion = () => {
     if (newInclusion.trim()) {
-      setForm({ ...form, inclusions: [...form.inclusions, newInclusion.trim()] });
+      setForm({
+        ...form,
+        inclusions: [...form.inclusions, newInclusion.trim()],
+      });
       setNewInclusion("");
     }
   };
 
   const removeInclusion = (index: number) => {
-    setForm({ ...form, inclusions: form.inclusions.filter((_, i) => i !== index) });
+    setForm({
+      ...form,
+      inclusions: form.inclusions.filter((_, i) => i !== index),
+    });
   };
 
   const addExclusion = () => {
     if (newExclusion.trim()) {
-      setForm({ ...form, exclusions: [...form.exclusions, newExclusion.trim()] });
+      setForm({
+        ...form,
+        exclusions: [...form.exclusions, newExclusion.trim()],
+      });
       setNewExclusion("");
     }
   };
 
   const removeExclusion = (index: number) => {
-    setForm({ ...form, exclusions: form.exclusions.filter((_, i) => i !== index) });
+    setForm({
+      ...form,
+      exclusions: form.exclusions.filter((_, i) => i !== index),
+    });
   };
 
   const addTag = () => {
@@ -394,20 +463,29 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
 
   const addAvailableDate = () => {
     if (newAvailableDate) {
-      setForm({ ...form, available_dates: [...form.available_dates, newAvailableDate] });
+      setForm({
+        ...form,
+        available_dates: [...form.available_dates, newAvailableDate],
+      });
       setNewAvailableDate("");
     }
   };
 
   const removeAvailableDate = (index: number) => {
-    setForm({ ...form, available_dates: form.available_dates.filter((_, i) => i !== index) });
+    setForm({
+      ...form,
+      available_dates: form.available_dates.filter((_, i) => i !== index),
+    });
   };
 
   const addItineraryDay = () => {
     const dayNumber = form.itinerary.length + 1;
     setForm({
       ...form,
-      itinerary: [...form.itinerary, { day: dayNumber, title: "", description: "" }],
+      itinerary: [
+        ...form.itinerary,
+        { day: dayNumber, title: "", description: "" },
+      ],
     });
   };
 
@@ -420,10 +498,12 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
   const removeItineraryDay = (index: number) => {
     setForm({
       ...form,
-      itinerary: form.itinerary.filter((_, i) => i !== index).map((item, i) => ({
-        ...item,
-        day: i + 1,
-      })),
+      itinerary: form.itinerary
+        .filter((_, i) => i !== index)
+        .map((item, i) => ({
+          ...item,
+          day: i + 1,
+        })),
     });
   };
 
@@ -452,7 +532,10 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
               <div key={step.id} className="flex items-center flex-1">
-                <div className="flex flex-col items-center flex-1 cursor-pointer group" onClick={() => setCurrentStep(step.id)}>
+                <div
+                  className="flex flex-col items-center flex-1 cursor-pointer group"
+                  onClick={() => setCurrentStep(step.id)}
+                >
                   <div
                     className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all ${
                       currentStep === step.id
@@ -462,18 +545,28 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                         : "bg-gray-200 text-gray-600 group-hover:bg-gray-300"
                     }`}
                   >
-                    {currentStep > step.id ? <Check className="w-6 h-6" /> : <span>{step.icon}</span>}
+                    {currentStep > step.id ? (
+                      <Check className="w-6 h-6" />
+                    ) : (
+                      <span>{step.icon}</span>
+                    )}
                   </div>
-                  <span className={`mt-2 text-sm font-medium text-center ${
-                    currentStep === step.id ? "text-teal-600 font-bold" : "text-gray-600"
-                  }`}>
+                  <span
+                    className={`mt-2 text-sm font-medium text-center ${
+                      currentStep === step.id
+                        ? "text-teal-600 font-bold"
+                        : "text-gray-600"
+                    }`}
+                  >
                     {step.label}
                   </span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`flex-1 h-1 mx-2 rounded ${
-                    currentStep > step.id ? "bg-green-500" : "bg-gray-200"
-                  }`} />
+                  <div
+                    className={`flex-1 h-1 mx-2 rounded ${
+                      currentStep > step.id ? "bg-green-500" : "bg-gray-200"
+                    }`}
+                  />
                 )}
               </div>
             ))}
@@ -495,8 +588,10 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                 exit={{ opacity: 0, x: -20 }}
                 className="bg-white rounded-2xl shadow-xl p-8 space-y-6"
               >
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Thông Tin Cơ Bản</h2>
-                
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Thông Tin Cơ Bản
+                </h2>
+
                 <div>
                   <label className="block text-sm font-semibold mb-2 text-gray-700">
                     Tiêu đề tour *
@@ -504,7 +599,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                   <input
                     type="text"
                     value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, title: e.target.value })
+                    }
                     placeholder="Ví dụ: Tour khám phá Sapa 3 ngày 2 đêm"
                     className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                     required
@@ -517,7 +614,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                   </label>
                   <textarea
                     value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, description: e.target.value })
+                    }
                     placeholder="Mô tả chi tiết về tour..."
                     rows={6}
                     className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors resize-none"
@@ -531,7 +630,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                   </label>
                   <select
                     value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, category: e.target.value })
+                    }
                     className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                   >
                     <option value="adventure">🏔️ Phiêu Lưu</option>
@@ -553,8 +654,10 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                 exit={{ opacity: 0, x: -20 }}
                 className="bg-white rounded-2xl shadow-xl p-8 space-y-6"
               >
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Chi Tiết Tour</h2>
-                
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Chi Tiết Tour
+                </h2>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-gray-700">
@@ -564,7 +667,12 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                       type="number"
                       min="1"
                       value={form.duration_days}
-                      onChange={(e) => setForm({ ...form, duration_days: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          duration_days: Number(e.target.value),
+                        })
+                      }
                       className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                       required
                     />
@@ -577,7 +685,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                     <input
                       type="text"
                       value={form.starting_location}
-                      onChange={(e) => setForm({ ...form, starting_location: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, starting_location: e.target.value })
+                      }
                       placeholder="Ví dụ: Hà Nội"
                       className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                       required
@@ -592,7 +702,12 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                       type="number"
                       min="0"
                       value={form.price_per_person}
-                      onChange={(e) => setForm({ ...form, price_per_person: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          price_per_person: Number(e.target.value),
+                        })
+                      }
                       className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                       required
                     />
@@ -604,7 +719,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                     </label>
                     <select
                       value={form.difficulty_level}
-                      onChange={(e) => setForm({ ...form, difficulty_level: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, difficulty_level: e.target.value })
+                      }
                       className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                     >
                       <option value="easy">Dễ</option>
@@ -621,7 +738,12 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                       type="number"
                       min="1"
                       value={form.min_participants}
-                      onChange={(e) => setForm({ ...form, min_participants: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          min_participants: Number(e.target.value),
+                        })
+                      }
                       className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                     />
                   </div>
@@ -634,7 +756,12 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                       type="number"
                       min="1"
                       value={form.max_participants}
-                      onChange={(e) => setForm({ ...form, max_participants: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          max_participants: Number(e.target.value),
+                        })
+                      }
                       className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                     />
                   </div>
@@ -646,7 +773,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                     <input
                       type="text"
                       value={form.ending_location}
-                      onChange={(e) => setForm({ ...form, ending_location: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, ending_location: e.target.value })
+                      }
                       placeholder="Ví dụ: Hà Nội (để trống nếu giống điểm xuất phát)"
                       className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                     />
@@ -661,7 +790,12 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                       min="0"
                       max="100"
                       value={form.discount_percentage}
-                      onChange={(e) => setForm({ ...form, discount_percentage: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          discount_percentage: Number(e.target.value),
+                        })
+                      }
                       className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                     />
                   </div>
@@ -673,7 +807,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                     <input
                       type="text"
                       value={form.age_requirement}
-                      onChange={(e) => setForm({ ...form, age_requirement: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, age_requirement: e.target.value })
+                      }
                       placeholder="Ví dụ: 18+, All ages"
                       className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                     />
@@ -691,7 +827,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                 exit={{ opacity: 0, x: -20 }}
                 className="bg-white rounded-2xl shadow-xl p-8 space-y-6"
               >
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Lịch Trình & Chính Sách</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Lịch Trình & Chính Sách
+                </h2>
 
                 {/* Itinerary */}
                 <div>
@@ -709,9 +847,14 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                   </div>
                   <div className="space-y-4">
                     {form.itinerary.map((day, idx) => (
-                      <div key={idx} className="border-2 border-gray-200 rounded-xl p-4 space-y-3">
+                      <div
+                        key={idx}
+                        className="border-2 border-gray-200 rounded-xl p-4 space-y-3"
+                      >
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-teal-600">Ngày {day.day}</span>
+                          <span className="font-semibold text-teal-600">
+                            Ngày {day.day}
+                          </span>
                           <button
                             type="button"
                             onClick={() => removeItineraryDay(idx)}
@@ -723,13 +866,21 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                         <input
                           type="text"
                           value={day.title}
-                          onChange={(e) => updateItineraryDay(idx, "title", e.target.value)}
+                          onChange={(e) =>
+                            updateItineraryDay(idx, "title", e.target.value)
+                          }
                           placeholder="Tiêu đề ngày (ví dụ: Khám phá Sapa)"
                           className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:border-teal-600 focus:outline-none"
                         />
                         <textarea
                           value={day.description}
-                          onChange={(e) => updateItineraryDay(idx, "description", e.target.value)}
+                          onChange={(e) =>
+                            updateItineraryDay(
+                              idx,
+                              "description",
+                              e.target.value
+                            )
+                          }
                           placeholder="Mô tả chi tiết hoạt động trong ngày..."
                           rows={3}
                           className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:border-teal-600 focus:outline-none resize-none"
@@ -792,7 +943,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                   </label>
                   <textarea
                     value={form.cancellation_policy}
-                    onChange={(e) => setForm({ ...form, cancellation_policy: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, cancellation_policy: e.target.value })
+                    }
                     placeholder="Ví dụ: Hủy trước 7 ngày: hoàn 100%, trước 3 ngày: hoàn 50%, sau 3 ngày: không hoàn"
                     rows={4}
                     className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors resize-none"
@@ -808,7 +961,12 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                     type="number"
                     min="1"
                     value={form.booking_deadline_days}
-                    onChange={(e) => setForm({ ...form, booking_deadline_days: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        booking_deadline_days: Number(e.target.value),
+                      })
+                    }
                     className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                   />
                 </div>
@@ -821,7 +979,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                   <input
                     type="url"
                     value={form.video_url}
-                    onChange={(e) => setForm({ ...form, video_url: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, video_url: e.target.value })
+                    }
                     placeholder="https://www.youtube.com/watch?v=..."
                     className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                   />
@@ -834,15 +994,20 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                   </label>
                   <select
                     value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, status: e.target.value })
+                    }
                     className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                   >
                     <option value="draft">📝 Nháp (chưa công khai)</option>
-                    <option value="active">✅ Hoạt động (hiển thị công khai)</option>
+                    <option value="active">
+                      ✅ Hoạt động (hiển thị công khai)
+                    </option>
                     <option value="inactive">⏸️ Tạm dừng</option>
                   </select>
                   <p className="text-xs text-gray-500 mt-1">
-                    Chọn "Nháp" để lưu và chỉnh sửa sau, hoặc "Hoạt động" để tour hiển thị công khai ngay.
+                    Chọn "Nháp" để lưu và chỉnh sửa sau, hoặc "Hoạt động" để
+                    tour hiển thị công khai ngay.
                   </p>
                 </div>
               </motion.div>
@@ -857,7 +1022,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                 exit={{ opacity: 0, x: -20 }}
                 className="bg-white rounded-2xl shadow-xl p-8 space-y-6"
               >
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Bao Gồm / Không Bao Gồm</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Bao Gồm / Không Bao Gồm
+                </h2>
 
                 {/* Inclusions */}
                 <div>
@@ -869,7 +1036,10 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                       type="text"
                       value={newInclusion}
                       onChange={(e) => setNewInclusion(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addInclusion())}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" &&
+                        (e.preventDefault(), addInclusion())
+                      }
                       placeholder="Ví dụ: Xe đưa đón, Hướng dẫn viên, Bữa sáng"
                       className="flex-1 border-2 border-gray-200 px-4 py-2 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                     />
@@ -910,7 +1080,10 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                       type="text"
                       value={newExclusion}
                       onChange={(e) => setNewExclusion(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addExclusion())}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" &&
+                        (e.preventDefault(), addExclusion())
+                      }
                       placeholder="Ví dụ: Bữa trưa, Bảo hiểm, Chi phí cá nhân"
                       className="flex-1 border-2 border-gray-200 px-4 py-2 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                     />
@@ -951,7 +1124,9 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                       type="text"
                       value={newTag}
                       onChange={(e) => setNewTag(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && (e.preventDefault(), addTag())
+                      }
                       placeholder="Ví dụ: sapa, trekking, mùa xuân"
                       className="flex-1 border-2 border-gray-200 px-4 py-2 rounded-xl focus:border-teal-600 focus:outline-none transition-colors"
                     />
@@ -993,8 +1168,10 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                 exit={{ opacity: 0, x: -20 }}
                 className="bg-white rounded-2xl shadow-xl p-8 space-y-6"
               >
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Hình Ảnh Tour</h2>
-                
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Hình Ảnh Tour
+                </h2>
+
                 <div>
                   <label className="block text-sm font-semibold mb-3 text-gray-700">
                     Tải lên hình ảnh (Ảnh đầu tiên sẽ là ảnh đại diện) *
@@ -1053,22 +1230,27 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                 {/* Upload Progress */}
                 {fileStates.some((f) => f.status === "uploading") && (
                   <div className="space-y-2">
-                    {fileStates.map((file, idx) => (
-                      file.status === "uploading" && (
-                        <div key={idx} className="bg-gray-50 rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm text-gray-700">{file.name}</span>
-                            <span className="text-sm font-semibold text-teal-600">{file.progress}%</span>
+                    {fileStates.map(
+                      (file, idx) =>
+                        file.status === "uploading" && (
+                          <div key={idx} className="bg-gray-50 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm text-gray-700">
+                                {file.name}
+                              </span>
+                              <span className="text-sm font-semibold text-teal-600">
+                                {file.progress}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-teal-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${file.progress}%` }}
+                              />
+                            </div>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-teal-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${file.progress}%` }}
-                            />
-                          </div>
-                        </div>
-                      )
-                    ))}
+                        )
+                    )}
                   </div>
                 )}
               </motion.div>
@@ -1083,8 +1265,10 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                 exit={{ opacity: 0, x: -20 }}
                 className="bg-white rounded-2xl shadow-xl p-8 space-y-6"
               >
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Xem Trước Tour</h2>
-                
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Xem Trước Tour
+                </h2>
+
                 <div className="border-2 border-gray-200 rounded-xl p-6 space-y-4">
                   {images[0] && (
                     <img
@@ -1094,27 +1278,38 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
                     />
                   )}
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">{form.title}</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {form.title}
+                    </h3>
                     <p className="text-gray-600 mt-2">{form.description}</p>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
                     <div>
                       <div className="text-sm text-gray-500">Thời lượng</div>
-                      <div className="font-semibold">{form.duration_days} ngày</div>
+                      <div className="font-semibold">
+                        {form.duration_days} ngày
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Địa điểm</div>
-                      <div className="font-semibold">{form.starting_location}</div>
+                      <div className="font-semibold">
+                        {form.starting_location}
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Giá</div>
                       <div className="font-semibold text-teal-600">
-                        {new Intl.NumberFormat("vi-VN").format(form.price_per_person)} VND
+                        {new Intl.NumberFormat("vi-VN").format(
+                          form.price_per_person
+                        )}{" "}
+                        VND
                       </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Độ khó</div>
-                      <div className="font-semibold capitalize">{form.difficulty_level}</div>
+                      <div className="font-semibold capitalize">
+                        {form.difficulty_level}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1168,7 +1363,11 @@ export function EditTourForm({ tourId, onSuccess }: { tourId: string | number; o
         </form>
 
         {toast && (
-          <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
         )}
       </div>
     </div>

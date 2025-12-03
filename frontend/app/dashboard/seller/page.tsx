@@ -120,7 +120,7 @@ export default function SellerDashboard() {
     setIsClient(true);
 
     let mounted = true;
-    async function load() {
+    const load = async () => {
       setLoading(true);
       try {
         const res = await api.get("/tours/mine");
@@ -212,7 +212,7 @@ export default function SellerDashboard() {
         // ignore
       }
       setLoading(false);
-    }
+    };
     load();
     return () => {
       mounted = false;
@@ -223,7 +223,7 @@ export default function SellerDashboard() {
   useEffect(() => {
     if (activeTab === "bookings") {
       let mounted = true;
-      async function loadBookings() {
+      const loadBookings = async () => {
         setBookingsLoading(true);
         try {
           const res = await api.getSellerBookings();
@@ -234,7 +234,7 @@ export default function SellerDashboard() {
           // ignore
         }
         setBookingsLoading(false);
-      }
+      };
       loadBookings();
       return () => {
         mounted = false;
@@ -246,7 +246,7 @@ export default function SellerDashboard() {
   useEffect(() => {
     if (activeTab === "profile") {
       let mounted = true;
-      async function loadRevenueStats() {
+      const loadRevenueStats = async () => {
         setRevenueLoading(true);
         try {
           const res = await api.getRevenueStats(revenuePeriod);
@@ -257,7 +257,7 @@ export default function SellerDashboard() {
           // ignore
         }
         setRevenueLoading(false);
-      }
+      };
       loadRevenueStats();
       return () => {
         mounted = false;
@@ -269,7 +269,7 @@ export default function SellerDashboard() {
   useEffect(() => {
     if (activeTab === "assignments") {
       let mounted = true;
-      async function loadTourGuides() {
+      const loadTourGuides = async () => {
         setTourGuidesLoading(true);
         try {
           // Load tour guides from seller's saved list
@@ -281,7 +281,7 @@ export default function SellerDashboard() {
           // ignore
         }
         setTourGuidesLoading(false);
-      }
+      };
       loadTourGuides();
       return () => {
         mounted = false;
@@ -293,7 +293,7 @@ export default function SellerDashboard() {
   useEffect(() => {
     if (activeTab === "assignments") {
       let mounted = true;
-      async function loadConfirmedBookings() {
+      const loadConfirmedBookings = async () => {
         setConfirmedBookingsLoading(true);
         try {
           const res = await api.getSellerBookings();
@@ -307,7 +307,7 @@ export default function SellerDashboard() {
           // ignore
         }
         setConfirmedBookingsLoading(false);
-      }
+      };
       loadConfirmedBookings();
       return () => {
         mounted = false;

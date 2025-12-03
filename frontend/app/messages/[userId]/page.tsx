@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useSocket } from "@/lib/SocketContext";
 import { useChat } from "@/hooks/useChat";
 import { useTheme } from "@/lib/ThemeContext";
+import { getStorageKey } from "@/lib/api";
 import {
   ArrowLeft,
   Send,
@@ -37,6 +38,9 @@ import {
   Pin,
   Trash2,
   MoreVertical,
+  UserPlus,
+  LogOut,
+  UserX,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -79,6 +83,8 @@ export default function ChatPage() {
   const [otherUser, setOtherUser] = useState<any>(null);
   const [group, setGroup] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [groupNameEdit, setGroupNameEdit] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
   const [friendshipChecked, setFriendshipChecked] = useState(false);
@@ -119,6 +125,14 @@ export default function ChatPage() {
     Set<number>
   >(new Set());
   const [groupModalSearch, setGroupModalSearch] = useState("");
+  // Add Member modal states
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [addMemberSearch, setAddMemberSearch] = useState("");
+  const [selectedFriendsToAdd, setSelectedFriendsToAdd] = useState<Set<number>>(
+    new Set()
+  );
+  // Disband group modal state
+  const [showDisbandModal, setShowDisbandModal] = useState(false);
   const [isSettingsHovered, setIsSettingsHovered] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -210,7 +224,7 @@ export default function ChatPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const token = localStorage.getItem("access_token");
+      const token = localStorage.getItem(getStorageKey("access_token"));
       const API_BASE_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -320,7 +334,7 @@ export default function ChatPage() {
     if (user) {
       const fetchFriends = async () => {
         try {
-          const token = localStorage.getItem("access_token");
+          const token = localStorage.getItem(getStorageKey("access_token"));
           if (!token) {
             console.warn("[Messages] No token available for fetching friends");
             return;
@@ -362,7 +376,7 @@ export default function ChatPage() {
 
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("access_token");
+        const token = localStorage.getItem(getStorageKey("access_token"));
         const API_BASE_URL =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -379,6 +393,7 @@ export default function ChatPage() {
           if (groupResponse.ok) {
             const groupData = await groupResponse.json();
             setGroup(groupData.group);
+            setGroupNameEdit(groupData.group?.name || "");
             setMembers(groupData.group.members || []);
             setIsFriend(true); // Group chat doesn't need friendship check
             setFriendshipChecked(true);
@@ -465,73 +480,155 @@ export default function ChatPage() {
     fetchData();
   }, [user, otherUserId, isGroupChat, roomId, router]);
 
+  // Debug: Log messages state changes
+  useEffect(() => {
+    console.log(
+      `[Chat Page] 🔄 Messages state updated: ${messages.length} messages`,
+      messages.map((m) => m.id)
+    );
+  }, [messages]);
+
+  // Debug: Log component mount/unmount
+  useEffect(() => {
+    console.log(
+      `[Chat Page] 🟢 Component mounted for chat with user/room: ${chatId}`
+    );
+    return () => {
+      console.log(
+        `[Chat Page] 🔴 Component unmounting for chat with user/room: ${chatId}`
+      );
+    };
+  }, [chatId]);
+
   // Listen for new messages via Socket.IO
   useEffect(() => {
-    if (!socket || !isConnected || !user) return;
+    if (!socket || !isConnected || !user?.id) return;
+
+    console.log(
+      `[Chat Page] Setting up socket listeners for user ${user.id}, otherUser=${otherUserId}, isGroup=${isGroupChat}, room=${roomId}`
+    );
 
     const handleNewMessage = (data: ChatMessage) => {
       console.log("[Chat Page] New message received via Socket.IO:", data);
-      // IMPORTANT: Only process messages where current user is the RECEIVER
-      // This event is for messages FROM other users TO current user
-      if (!user || data.receiver_id !== user.id) {
-        console.log(
-          "[Chat Page] Ignoring new_message - current user is not receiver"
-        );
+
+      if (!user) {
+        console.log("[Chat Page] Ignoring new_message - no user logged in");
         return;
       }
 
-      if (isGroupChat && roomId) {
+      // Process message if it belongs to the current conversation
+      // For 1-1 chat: message is part of conversation if sender/receiver matches otherUserId
+      if (!isGroupChat && otherUserId) {
+        // Ensure all IDs are numbers for comparison
+        const otherUserIdNum =
+          typeof otherUserId === "number" && !isNaN(otherUserId)
+            ? otherUserId
+            : typeof otherUserId === "string"
+            ? parseInt(otherUserId, 10)
+            : null;
+
+        // Convert sender_id and receiver_id to numbers (backend may send as strings)
+        const senderId =
+          typeof data.sender_id === "string"
+            ? parseInt(data.sender_id, 10)
+            : data.sender_id;
+        const receiverId =
+          typeof data.receiver_id === "string"
+            ? parseInt(data.receiver_id, 10)
+            : data.receiver_id;
+
+        console.log(
+          `[Chat Page] Checking conversation: user.id=${user.id}, otherUserId=${otherUserIdNum}, sender=${senderId}, receiver=${receiverId}`
+        );
+
+        if (!otherUserIdNum || isNaN(otherUserIdNum)) {
+          console.log("[Chat Page] Invalid otherUserId:", otherUserId);
+          return;
+        }
+
+        const isInThisConversation =
+          (senderId === user.id && receiverId === otherUserIdNum) ||
+          (senderId === otherUserIdNum && receiverId === user.id);
+
+        console.log(`[Chat Page] isInThisConversation=${isInThisConversation}`);
+
+        if (!isInThisConversation) {
+          console.log(
+            "[Chat Page] Ignoring new_message - not part of this conversation"
+          );
+          return;
+        }
+
+        console.log(
+          "[Chat Page] Message IS part of this conversation, adding to list"
+        );
+        setMessages((prev) => {
+          console.log(
+            `[Chat Page] Current messages before add: ${prev.length} messages`
+          );
+          const exists = prev.some((msg) => msg.id === data.id);
+          if (exists) {
+            console.log(
+              "[Chat Page] Message already exists, skipping duplicate"
+            );
+            return prev;
+          }
+          console.log("[Chat Page] Adding new message to list");
+          console.log(
+            `[Chat Page] New message ID: ${data.id}, created_at: ${data.created_at}`
+          );
+          // Create completely new array to force re-render
+          const updated = [...prev, { ...data }];
+
+          // Sort by ID instead of timestamp for reliability
+          // Higher ID = newer message
+          updated.sort((a, b) => a.id - b.id);
+
+          console.log(
+            `[Chat Page] New messages array: ${updated.length} messages`,
+            updated.map((m) => m.id)
+          );
+          return updated;
+        });
+
+        // Update conversations list to reflect new message
+        fetchConversations();
+        setTimeout(() => {
+          console.log(
+            `[Chat Page] 📜 Scrolling to bottom after new message. Ref exists: ${!!messagesEndRef.current}`
+          );
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      } else if (isGroupChat && roomId) {
         // Group chat: check room_id
-        if (data.room_id === roomId) {
-          setMessages((prev) => {
-            const exists = prev.some((msg) => msg.id === data.id);
-            if (exists) {
-              console.log(
-                "[Chat Page] Message already exists, skipping duplicate"
-              );
-              return prev;
-            }
-            console.log("[Chat Page] Adding new message to list");
-            const updated = [...prev, data];
-            updated.sort((a, b) => {
-              const timeA = new Date(a.created_at).getTime();
-              const timeB = new Date(b.created_at).getTime();
-              return timeA - timeB;
-            });
-            return updated;
-          });
-          // Update conversations list to reflect new message
-          fetchConversations();
-          setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-          }, 100);
+        if (data.room_id !== roomId) {
+          console.log("[Chat Page] Ignoring new_message - different room");
+          return;
         }
-      } else if (!isGroupChat && otherUserId) {
-        // 1-1 chat: only process if sender is the other user and receiver is current user
-        if (data.sender_id === otherUserId && data.receiver_id === user.id) {
-          setMessages((prev) => {
-            const exists = prev.some((msg) => msg.id === data.id);
-            if (exists) {
-              console.log(
-                "[Chat Page] Message already exists, skipping duplicate"
-              );
-              return prev;
-            }
-            console.log("[Chat Page] Adding new message to list");
-            const updated = [...prev, data];
-            updated.sort((a, b) => {
-              const timeA = new Date(a.created_at).getTime();
-              const timeB = new Date(b.created_at).getTime();
-              return timeA - timeB;
-            });
-            return updated;
+
+        setMessages((prev) => {
+          const exists = prev.some((msg) => msg.id === data.id);
+          if (exists) {
+            console.log(
+              "[Chat Page] Message already exists, skipping duplicate"
+            );
+            return prev;
+          }
+          console.log("[Chat Page] Adding new message to list");
+          const updated = [...prev, data];
+          updated.sort((a, b) => {
+            const timeA = new Date(a.created_at).getTime();
+            const timeB = new Date(b.created_at).getTime();
+            return timeA - timeB;
           });
-          // Update conversations list to reflect new message
-          fetchConversations();
-          setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-          }, 100);
-        }
+          return updated;
+        });
+
+        // Update conversations list to reflect new message
+        fetchConversations();
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
       }
     };
 
@@ -622,12 +719,17 @@ export default function ChatPage() {
     socket.on("new_group_message", handleNewGroupMessage);
     socket.on("message_sent", handleMessageSent);
 
+    console.log(`[Chat Page] Socket listeners registered for user ${user.id}`);
+
     return () => {
+      console.log(
+        `[Chat Page] Cleaning up socket listeners for user ${user.id}`
+      );
       socket.off("new_message", handleNewMessage);
       socket.off("new_group_message", handleNewGroupMessage);
       socket.off("message_sent", handleMessageSent);
     };
-  }, [socket, isConnected, user, otherUserId, isGroupChat, roomId]);
+  }, [socket, isConnected, user?.id, otherUserId, isGroupChat, roomId]);
 
   // Listen for typing indicator
   useEffect(() => {
@@ -810,7 +912,7 @@ export default function ChatPage() {
     if (!confirmUnfriend) return;
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = localStorage.getItem(getStorageKey("access_token"));
       if (!token) {
         alert("Vui lòng đăng nhập lại");
         return;
@@ -866,7 +968,7 @@ export default function ChatPage() {
     setSending(true);
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = localStorage.getItem(getStorageKey("access_token"));
       const API_BASE_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -1247,8 +1349,8 @@ export default function ChatPage() {
 
   // Filter and sort conversations
   const filteredConversations = conversations
-    .filter((conv) => {
-      const isGroup = conv.type === "group";
+    .filter((conv: any) => {
+      const isGroup = conv.group !== undefined && conv.group !== null;
       // Filter out deleted conversations
       if (isGroup) {
         if (deletedConversations.has(conv.group?.room_id)) {
@@ -1274,9 +1376,9 @@ export default function ChatPage() {
         return name.includes(query);
       }
     })
-    .sort((a, b) => {
-      const aIsGroup = a.type === "group";
-      const bIsGroup = b.type === "group";
+    .sort((a: any, b: any) => {
+      const aIsGroup = a.group !== undefined && a.group !== null;
+      const bIsGroup = b.group !== undefined && b.group !== null;
       // Pinned conversations first
       const aPinned = aIsGroup
         ? pinnedConversations.has(a.group?.room_id)
@@ -1319,9 +1421,12 @@ export default function ChatPage() {
     if (!user) return;
 
     try {
-      const token = localStorage.getItem("token");
+      // Use the same storage key helper as other auth parts
+      const token = localStorage.getItem(getStorageKey("access_token"));
       if (!token) return;
 
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
       const response = await fetch(
         `${API_BASE_URL}/chat/conversations/${userId}`,
         {
@@ -1531,8 +1636,8 @@ export default function ChatPage() {
                   Cuộc trò chuyện
                 </div>
               )}
-              {filteredConversations.map((conv) => {
-                const isGroup = conv.type === "group";
+              {filteredConversations.map((conv: any) => {
+                const isGroup = conv.group !== undefined && conv.group !== null;
                 const isSelected = isGroup
                   ? roomId === conv.group?.room_id
                   : otherUserId === conv.other_user?.id;
@@ -1927,6 +2032,7 @@ export default function ChatPage() {
                       {members.length} thành viên
                     </p>
                   </div>
+                  {/* Group action buttons moved to right sidebar; modals rendered at root-level to avoid header overlap */}
                 </>
               ) : otherUser ? (
                 <>
@@ -2300,6 +2406,416 @@ export default function ChatPage() {
             </div>
           )}
 
+          {/* Group Modals (rendered at root-level so header won't cover them) */}
+          <AnimatePresence>
+            {showDisbandModal && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/60"
+                onClick={() => setShowDisbandModal(false)}
+              >
+                <div
+                  className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 w-full max-w-md relative mx-4"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                    onClick={() => setShowDisbandModal(false)}
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                  <h3 className="text-xl font-bold mb-4 text-red-700 dark:text-red-400 flex items-center gap-2">
+                    <Trash2 className="w-6 h-6 text-red-600" /> Giải tán nhóm
+                  </h3>
+                  <p className="mb-6 text-gray-700 dark:text-gray-300">
+                    Bạn có chắc chắn muốn giải tán nhóm này? Tất cả thành viên
+                    sẽ bị xóa khỏi nhóm và lịch sử tin nhắn sẽ bị xóa.
+                  </p>
+                  <button
+                    className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
+                    onClick={async () => {
+                      // Call API to disband group
+                        const token = localStorage.getItem(
+                          getStorageKey("access_token")
+                        );
+                      const API_BASE_URL =
+                        process.env.NEXT_PUBLIC_API_URL ||
+                        "http://localhost:5000/api";
+                      try {
+                        const response = await fetch(
+                          `${API_BASE_URL}/chat/groups/${roomId}`,
+                          {
+                            method: "DELETE",
+                            headers: {
+                              Authorization: `Bearer ${token}`,
+                            },
+                          }
+                        );
+                        if (response.ok) {
+                          setShowDisbandModal(false);
+                          // refresh list hội thoại để ẩn nhóm ngay lập tức
+                          if (fetchConversations) {
+                            fetchConversations();
+                          }
+                          router.push("/messages");
+                        } else {
+                          const error = await response.json();
+                          alert(error.error || "Lỗi khi giải tán nhóm");
+                        }
+                      } catch (err) {
+                        alert("Lỗi khi giải tán nhóm");
+                      }
+                    }}
+                  >
+                    Xác nhận giải tán nhóm
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {showAddMemberModal && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/60"
+                onClick={() => setShowAddMemberModal(false)}
+              >
+                <div
+                  className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 w-full max-w-lg relative mx-4"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                    onClick={() => setShowAddMemberModal(false)}
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                  <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                    <UserPlus className="w-6 h-6 text-green-600" /> Thêm thành
+                    viên vào nhóm
+                  </h3>
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm bạn bè..."
+                    value={addMemberSearch}
+                    onChange={(e) => setAddMemberSearch(e.target.value)}
+                    className="w-full mb-4 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                  <div className="max-h-64 overflow-y-auto space-y-2">
+                    {friends
+                      .filter((friend) => {
+                        // Only show friends not already in group
+                        if (members.some((m) => m.user_id === friend.id))
+                          return false;
+                        if (!addMemberSearch.trim()) return true;
+                        const query = addMemberSearch.toLowerCase();
+                        const name = (
+                          friend.full_name ||
+                          friend.username ||
+                          ""
+                        ).toLowerCase();
+                        return name.includes(query);
+                      })
+                      .map((friend) => (
+                        <div
+                          key={friend.id}
+                          className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                            selectedFriendsToAdd.has(friend.id)
+                              ? "bg-green-100 dark:bg-green-900/30"
+                              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                          }`}
+                          onClick={() => {
+                            setSelectedFriendsToAdd((prev) => {
+                              const newSet = new Set(prev);
+                              if (newSet.has(friend.id)) {
+                                newSet.delete(friend.id);
+                              } else {
+                                newSet.add(friend.id);
+                              }
+                              return newSet;
+                            });
+                          }}
+                        >
+                          {friend.avatar_url ? (
+                            <img
+                              src={friend.avatar_url}
+                              alt={friend.full_name || friend.username}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold">
+                              {(friend.full_name ||
+                                friend.username ||
+                                "?")[0].toUpperCase()}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <span className="font-semibold text-gray-900 dark:text-white">
+                              {friend.full_name || friend.username}
+                            </span>
+                          </div>
+                          {selectedFriendsToAdd.has(friend.id) && (
+                            <Check className="w-5 h-5 text-green-600" />
+                          )}
+                        </div>
+                      ))}
+                    {friends.filter(
+                      (friend) => !members.some((m) => m.user_id === friend.id)
+                    ).length === 0 && (
+                      <div className="text-gray-500 dark:text-gray-400 text-center py-4">
+                        Không còn bạn bè nào để thêm
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    className="mt-6 w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
+                    disabled={selectedFriendsToAdd.size === 0}
+                    onClick={async () => {
+                      // Call API to add members
+                      const token = localStorage.getItem(
+                        getStorageKey("access_token")
+                      );
+                      const API_BASE_URL =
+                        process.env.NEXT_PUBLIC_API_URL ||
+                        "http://localhost:5000/api";
+                      try {
+                        const response = await fetch(
+                          `${API_BASE_URL}/chat/groups/${roomId}/members`,
+                          {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                              member_ids: Array.from(selectedFriendsToAdd),
+                            }),
+                          }
+                        );
+                        if (response.ok) {
+                          setShowAddMemberModal(false);
+                          setSelectedFriendsToAdd(new Set());
+                          setAddMemberSearch("");
+                          // Refresh group info
+                          const groupRes = await fetch(
+                            `${API_BASE_URL}/chat/groups/${roomId}`,
+                            {
+                              headers: { Authorization: `Bearer ${token}` },
+                            }
+                          );
+                          if (groupRes.ok) {
+                            const groupData = await groupRes.json();
+                            setGroup(groupData.group);
+                            setGroupNameEdit(groupData.group?.name || "");
+                            setMembers(groupData.group.members || []);
+                          }
+                        } else {
+                          const error = await response.json();
+                          alert(error.error || "Lỗi khi thêm thành viên");
+                        }
+                      } catch (err) {
+                        alert("Lỗi khi thêm thành viên vào nhóm");
+                      }
+                    }}
+                  >
+                    Thêm thành viên ({selectedFriendsToAdd.size})
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Group Members Modal */}
+          <AnimatePresence>
+            {showMembersModal && group && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/60"
+                onClick={() => setShowMembersModal(false)}
+              >
+                <div
+                  className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 w-full max-w-lg relative mx-4 max-h-[80vh] overflow-hidden flex flex-col"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <Users className="w-5 h-5 text-primary-500" />
+                        Thành viên nhóm
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {group.name}
+                      </p>
+                    </div>
+                    <button
+                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                      onClick={() => setShowMembersModal(false)}
+                    >
+                      <X className="w-4 h-4 text-gray-500" />
+                    </button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto pr-1 space-y-2">
+                    {members.length === 0 ? (
+                      <div className="py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                        Nhóm chưa có thành viên.
+                      </div>
+                    ) : (
+                      members.map((member) => {
+                        const mUser = member.user || {};
+                        const isCurrentUser = mUser.id === user?.id;
+                        const isAdmin = member.role === "admin";
+                        const canKick =
+                          user &&
+                          group &&
+                          // current user is admin and target is not admin
+                          group.created_by === user.id ||
+                          members.some(
+                            (m) =>
+                              m.user_id === user.id && m.role === "admin"
+                          );
+
+                        const showKickButton =
+                          // admin kicking others
+                          (!isCurrentUser && canKick) ||
+                          // user can leave group (kick self)
+                          isCurrentUser;
+
+                        return (
+                          <div
+                            key={member.id}
+                            className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              {mUser.avatar_url ? (
+                                <img
+                                  src={mUser.avatar_url}
+                                  alt={mUser.full_name || mUser.username}
+                                  className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold flex-shrink-0 text-xs">
+                                  {(mUser.full_name || mUser.username || "?")
+                                    .charAt(0)
+                                    .toUpperCase()}
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                    {mUser.full_name || mUser.username}
+                                  </span>
+                                  {isCurrentUser && (
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+                                      Bạn
+                                    </span>
+                                  )}
+                                  {isAdmin && (
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                                      Quản trị viên
+                                    </span>
+                                  )}
+                                </div>
+                                {member.joined_at && (
+                                  <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                                    Tham gia:{" "}
+                                    {new Date(
+                                      member.joined_at
+                                    ).toLocaleDateString("vi-VN")}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {showKickButton && (
+                              <button
+                                onClick={async () => {
+                                  const isLeave = isCurrentUser;
+                                  const confirmed = confirm(
+                                    isLeave
+                                      ? "Bạn có chắc muốn rời khỏi nhóm này?"
+                                      : `Bạn có chắc muốn xóa ${mUser.full_name ||
+                                          mUser.username ||
+                                          "thành viên"} khỏi nhóm?`
+                                  );
+                                  if (!confirmed) return;
+
+                                  try {
+                                    const token = localStorage.getItem(
+                                      getStorageKey("access_token")
+                                    );
+                                    if (!token) return;
+                                    const API_BASE_URL =
+                                      process.env.NEXT_PUBLIC_API_URL ||
+                                      "http://localhost:5000/api";
+                                    const response = await fetch(
+                                      `${API_BASE_URL}/chat/groups/${roomId}/members/${mUser.id}`,
+                                      {
+                                        method: "DELETE",
+                                        headers: {
+                                          Authorization: `Bearer ${token}`,
+                                        },
+                                      }
+                                    );
+                                    if (response.ok) {
+                                      // Cập nhật lại danh sách members trên UI
+                                      setMembers((prev) =>
+                                        prev.filter(
+                                          (m) => m.user_id !== mUser.id
+                                        )
+                                      );
+
+                                      if (isLeave) {
+                                        setShowMembersModal(false);
+                                        router.push("/messages");
+                                      }
+                                    } else {
+                                      const error = await response.json();
+                                      alert(
+                                        error.error ||
+                                          "Lỗi khi xóa thành viên khỏi nhóm"
+                                      );
+                                    }
+                                  } catch (err) {
+                                    alert("Lỗi khi xóa thành viên khỏi nhóm");
+                                  }
+                                }}
+                                className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 ${
+                                  isCurrentUser
+                                    ? "bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                                }`}
+                              >
+                                {isCurrentUser ? (
+                                  <>
+                                    <LogOut className="w-3 h-3" />
+                                    <span>Rời nhóm</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <UserX className="w-3 h-3" />
+                                    <span>Xóa</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Message Input */}
           {friendshipChecked && isFriend && (
             <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-t border-gray-200/50 dark:border-gray-700/50 sticky bottom-0 z-20">
@@ -2482,6 +2998,98 @@ export default function ChatPage() {
                 />
               </div>
 
+              {/* Conversation Header: avatar + name */}
+              {otherUser && (
+                <div className="flex items-center gap-3 pb-3 mb-3 border-b border-gray-200 dark:border-gray-700">
+                  {otherUser.avatar_url ? (
+                    <img
+                      src={otherUser.avatar_url}
+                      alt={otherUser.full_name || otherUser.username}
+                      className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold flex-shrink-0 text-sm">
+                      {(otherUser.full_name || otherUser.username || "?")
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                      {otherUser.full_name || otherUser.username}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Đoạn chat riêng
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Group name edit */}
+              {group && (
+                <div>
+                  <label className="flex items-center gap-2 mb-2 text-xs font-medium text-gray-600 dark:text-gray-400">
+                    <User className="w-3 h-3" />
+                    Tên nhóm
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={groupNameEdit}
+                      onChange={(e) => setGroupNameEdit(e.target.value)}
+                      className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-xs text-gray-900 dark:text-white"
+                      placeholder="Nhập tên nhóm"
+                    />
+                    <button
+                      onClick={async () => {
+                        const newName = groupNameEdit.trim();
+                        if (!newName) {
+                          alert("Tên nhóm không được để trống");
+                          return;
+                        }
+                        try {
+                          const token = localStorage.getItem(
+                            getStorageKey("access_token")
+                          );
+                          if (!token) return;
+                          const API_BASE_URL =
+                            process.env.NEXT_PUBLIC_API_URL ||
+                            "http://localhost:5000/api";
+                          const response = await fetch(
+                            `${API_BASE_URL}/chat/groups/${roomId}`,
+                            {
+                              method: "PATCH",
+                              headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                              },
+                              body: JSON.stringify({ name: newName }),
+                            }
+                          );
+                          if (response.ok) {
+                            const data = await response.json();
+                            setGroup(data.group);
+                            setGroupNameEdit(data.group?.name || "");
+                            // Refresh conversations list so name updates everywhere
+                            if (fetchConversations) {
+                              fetchConversations();
+                            }
+                          } else {
+                            const error = await response.json();
+                            alert(error.error || "Lỗi khi cập nhật tên nhóm");
+                          }
+                        } catch (err) {
+                          alert("Lỗi khi cập nhật tên nhóm");
+                        }
+                      }}
+                      className="px-3 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Lưu
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Background */}
               <div>
                 <label className="flex items-center gap-2 mb-2 text-xs font-medium text-gray-600 dark:text-gray-400">
@@ -2616,6 +3224,33 @@ export default function ChatPage() {
                 </button>
               </div>
 
+              {/* Group Management Buttons (Add Member / View Members / Disband) - placed under Notifications */}
+              {group && (
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => setShowAddMemberModal(true)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 shadow-sm font-medium text-xs"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>Thêm thành viên</span>
+                  </button>
+                  <button
+                    onClick={() => setShowMembersModal(true)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 shadow-sm font-medium text-xs"
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Xem thành viên</span>
+                  </button>
+                  <button
+                    onClick={() => setShowDisbandModal(true)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-200 shadow-sm font-medium text-xs"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Giải tán nhóm</span>
+                  </button>
+                </div>
+              )}
+
               {/* Save Button */}
               <button
                 onClick={saveChatSettings}
@@ -2623,6 +3258,28 @@ export default function ChatPage() {
               >
                 Lưu cài đặt
               </button>
+
+              {/* Delete Conversation (1-1 chat) */}
+              {otherUserId && (
+                <button
+                  onClick={() => {
+                    if (
+                      confirm(
+                        "Bạn có chắc muốn xóa toàn bộ cuộc trò chuyện này? Hành động này không thể hoàn tác."
+                      )
+                    ) {
+                      deleteConversation(
+                        typeof otherUserId === "string"
+                          ? parseInt(otherUserId, 10)
+                          : (otherUserId as number)
+                      );
+                    }
+                  }}
+                  className="w-full mt-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors text-xs font-medium"
+                >
+                  Xóa trò chuyện
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -2673,6 +3330,95 @@ export default function ChatPage() {
             }`}
           >
             <div className="space-y-4">
+              {/* Conversation Header: group avatar + name */}
+              {group && (
+                <div className="flex items-center gap-3 pb-3 mb-3 border-b border-gray-200 dark:border-gray-700">
+                  {group.avatar_url ? (
+                    <img
+                      src={group.avatar_url}
+                      alt={group.name}
+                      className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold flex-shrink-0 text-sm">
+                      {(group.name || "?").charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                      {group.name}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Nhóm chat
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Group name edit */}
+              {group && (
+                <div>
+                  <label className="flex items-center gap-2 mb-2 text-xs font-medium text-gray-600 dark:text-gray-400">
+                    <User className="w-3 h-3" />
+                    Tên nhóm
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={groupNameEdit}
+                      onChange={(e) => setGroupNameEdit(e.target.value)}
+                      className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-xs text-gray-900 dark:text-white"
+                      placeholder="Nhập tên nhóm"
+                    />
+                    <button
+                      onClick={async () => {
+                        const newName = groupNameEdit.trim();
+                        if (!newName) {
+                          alert("Tên nhóm không được để trống");
+                          return;
+                        }
+                        try {
+                          const token = localStorage.getItem(
+                            getStorageKey("access_token")
+                          );
+                          if (!token) return;
+                          const API_BASE_URL =
+                            process.env.NEXT_PUBLIC_API_URL ||
+                            "http://localhost:5000/api";
+                          const response = await fetch(
+                            `${API_BASE_URL}/chat/groups/${roomId}`,
+                            {
+                              method: "PATCH",
+                              headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                              },
+                              body: JSON.stringify({ name: newName }),
+                            }
+                          );
+                          if (response.ok) {
+                            const data = await response.json();
+                            setGroup(data.group);
+                            setGroupNameEdit(data.group?.name || "");
+                            if (fetchConversations) {
+                              fetchConversations();
+                            }
+                          } else {
+                            const error = await response.json();
+                            alert(error.error || "Lỗi khi cập nhật tên nhóm");
+                          }
+                        } catch (err) {
+                          alert("Lỗi khi cập nhật tên nhóm");
+                        }
+                      }}
+                      className="px-3 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Lưu
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Background */}
               <div>
                 <label className="flex items-center gap-2 mb-2 text-xs font-medium text-gray-600 dark:text-gray-400">
@@ -2806,6 +3552,32 @@ export default function ChatPage() {
                   )}
                 </button>
               </div>
+              {/* Group Management Buttons (Add Member / View Members / Disband) - placed under Notifications */}
+              {group && (
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => setShowAddMemberModal(true)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 shadow-sm font-medium text-xs"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>Thêm thành viên</span>
+                  </button>
+                  <button
+                    onClick={() => setShowMembersModal(true)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 shadow-sm font-medium text-xs"
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Xem thành viên</span>
+                  </button>
+                  <button
+                    onClick={() => setShowDisbandModal(true)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-200 shadow-sm font-medium text-xs"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Giải tán nhóm</span>
+                  </button>
+                </div>
+              )}
 
               {/* Save Button */}
               <button
@@ -3117,7 +3889,9 @@ export default function ChatPage() {
                     }
 
                     try {
-                      const token = localStorage.getItem("access_token");
+                      const token = localStorage.getItem(
+                        getStorageKey("access_token")
+                      );
                       const API_BASE_URL =
                         process.env.NEXT_PUBLIC_API_URL ||
                         "http://localhost:5000/api";

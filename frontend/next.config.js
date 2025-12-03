@@ -10,13 +10,17 @@ const nextConfig = {
   poweredByHeader: false,
 
   // Output optimization
-  swcMinify: true, // Use SWC minification for faster builds
+  // swcMinify: true, // Removed: Not supported in Next.js 16
+
+  // Turbopack config for Next.js 16
+  turbopack: {},
 
   // Optimize production builds
   productionBrowserSourceMaps: false, // Disable source maps in production for faster load
 
-  // React strict mode (can disable for performance if needed)
-  reactStrictMode: true,
+  // React strict mode - TEMPORARILY DISABLED for Socket.IO debugging
+  // StrictMode causes double render in dev which creates duplicate socket listeners
+  reactStrictMode: false,
 
   // Webpack optimizations for faster dev builds
   webpack: (config, { dev, isServer }) => {

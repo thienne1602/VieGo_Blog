@@ -33,8 +33,10 @@ import {
 } from "lucide-react";
 import PostModal from "@/components/common/PostModal";
 import SuccessPopup from "@/components/common/SuccessPopup";
+import { getStorageKey } from "@/lib/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 // Toast Component
 const Toast = ({ message, type = "success", onClose }: any) => (
@@ -88,36 +90,44 @@ export default function ModeratorDashboard() {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<any>(null);
   const [confirmModal, setConfirmModal] = useState<any>(null);
-  const [successPopup, setSuccessPopup] = useState<{isOpen: boolean; message: string; type?: "success" | "error" | "info" | "warning"}>({
+  const [successPopup, setSuccessPopup] = useState<{
+    isOpen: boolean;
+    message: string;
+    type?: "success" | "error" | "info" | "warning";
+  }>({
     isOpen: false,
     message: "",
     type: "success",
   });
-  
+
   // Stats
   const [stats, setStats] = useState<any>({});
   const [profile, setProfile] = useState<any>(null);
-  
+
   // Posts
   const [posts, setPosts] = useState<any[]>([]);
   const [postsPage, setPostsPage] = useState(1);
   const [postsPagination, setPostsPagination] = useState<any>({});
   const [postsSearch, setPostsSearch] = useState("");
   const [postsStatusFilter, setPostsStatusFilter] = useState("");
-  
+
   // Comments
   const [comments, setComments] = useState<any[]>([]);
   const [commentsPage, setCommentsPage] = useState(1);
   const [commentsPagination, setCommentsPagination] = useState<any>({});
   const [commentsSearch, setCommentsSearch] = useState("");
-  
+
   // Banned Keywords
   const [bannedKeywords, setBannedKeywords] = useState<any[]>([]);
   const [keywordsPage, setKeywordsPage] = useState(1);
   const [keywordsPagination, setKeywordsPagination] = useState<any>({});
-  const [newKeyword, setNewKeyword] = useState({ keyword: "", severity: "medium", description: "" });
+  const [newKeyword, setNewKeyword] = useState({
+    keyword: "",
+    severity: "medium",
+    description: "",
+  });
   const [showAddKeyword, setShowAddKeyword] = useState(false);
-  
+
   // Contacts
   const [contacts, setContacts] = useState<any[]>([]);
   const [contactsPage, setContactsPage] = useState(1);
@@ -159,15 +169,15 @@ export default function ModeratorDashboard() {
   const [banModal, setBanModal] = useState<{
     isOpen: boolean;
     userId: number | null;
-    banType: 'account' | 'post' | 'comment' | null;
+    banType: "account" | "post" | "comment" | null;
     duration: string;
     reason: string;
   }>({
     isOpen: false,
     userId: null,
     banType: null,
-    duration: '1d',
-    reason: 'Vi phạm quy định cộng đồng',
+    duration: "1d",
+    reason: "Vi phạm quy định cộng đồng",
   });
 
   const tabItems = [
@@ -181,19 +191,37 @@ export default function ModeratorDashboard() {
   ];
 
   // API Functions
-  const getToken = () => localStorage.getItem("access_token");
+  const getToken = () => {
+    if (typeof window === "undefined") return null;
+
+    const portScopedKey = getStorageKey("access_token");
+    const directToken = localStorage.getItem(portScopedKey);
+    if (directToken) return directToken;
+
+    const legacyToken = localStorage.getItem("access_token");
+    if (legacyToken) return legacyToken;
+
+    const cookieMatch =
+      document.cookie.match(
+        new RegExp(`(?:^|; )access_token_${window.location.port}=([^;]+)`)
+      ) || document.cookie.match(new RegExp(`(?:^|; )access_token=([^;]+)`));
+    return cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
+  };
 
   const moderatorAPI = {
     getStats: async () => {
       const token = getToken();
-      const response = await fetch(`${API_BASE_URL}/moderator/stats?_t=${Date.now()}`, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/stats?_t=${Date.now()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        }
+      );
       if (!response.ok) throw new Error("Failed to fetch stats");
       return response.json();
     },
@@ -212,24 +240,30 @@ export default function ModeratorDashboard() {
       // Add cache-busting timestamp
       const paramsWithCache = { ...params, _t: Date.now() };
       const queryParams = new URLSearchParams(paramsWithCache).toString();
-      const response = await fetch(`${API_BASE_URL}/moderator/posts?${queryParams}`, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/posts?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        }
+      );
       if (!response.ok) throw new Error("Failed to fetch posts");
       return response.json();
     },
 
     deletePost: async (postId: number) => {
       const token = getToken();
-      const response = await fetch(`${API_BASE_URL}/moderator/posts/${postId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/posts/${postId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!response.ok) throw new Error("Failed to delete post");
       return response.json();
     },
@@ -239,14 +273,17 @@ export default function ModeratorDashboard() {
       // Add cache-busting timestamp
       const paramsWithCache = { ...params, _t: Date.now() };
       const queryParams = new URLSearchParams(paramsWithCache).toString();
-      const response = await fetch(`${API_BASE_URL}/moderator/posts/search-banned?${queryParams}`, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/posts/search-banned?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        }
+      );
       if (!response.ok) throw new Error("Failed to search posts");
       return response.json();
     },
@@ -256,24 +293,30 @@ export default function ModeratorDashboard() {
       // Add cache-busting timestamp
       const paramsWithCache = { ...params, _t: Date.now() };
       const queryParams = new URLSearchParams(paramsWithCache).toString();
-      const response = await fetch(`${API_BASE_URL}/moderator/comments?${queryParams}`, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/comments?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        }
+      );
       if (!response.ok) throw new Error("Failed to fetch comments");
       return response.json();
     },
 
     deleteComment: async (commentId: number) => {
       const token = getToken();
-      const response = await fetch(`${API_BASE_URL}/moderator/comments/${commentId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/comments/${commentId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!response.ok) throw new Error("Failed to delete comment");
       return response.json();
     },
@@ -281,9 +324,12 @@ export default function ModeratorDashboard() {
     searchCommentsWithBanned: async (params: any = {}) => {
       const token = getToken();
       const queryParams = new URLSearchParams(params).toString();
-      const response = await fetch(`${API_BASE_URL}/moderator/comments/search-banned?${queryParams}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/comments/search-banned?${queryParams}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!response.ok) throw new Error("Failed to search comments");
       return response.json();
     },
@@ -293,52 +339,64 @@ export default function ModeratorDashboard() {
       // Add cache-busting timestamp
       const paramsWithCache = { ...params, _t: Date.now() };
       const queryParams = new URLSearchParams(paramsWithCache).toString();
-      const response = await fetch(`${API_BASE_URL}/moderator/banned-keywords?${queryParams}`, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/banned-keywords?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        }
+      );
       if (!response.ok) throw new Error("Failed to fetch keywords");
       return response.json();
     },
 
     createBannedKeyword: async (data: any) => {
       const token = getToken();
-      const response = await fetch(`${API_BASE_URL}/moderator/banned-keywords`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/banned-keywords`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
+        }
+      );
       if (!response.ok) throw new Error("Failed to create keyword");
       return response.json();
     },
 
     updateBannedKeyword: async (keywordId: number, data: any) => {
       const token = getToken();
-      const response = await fetch(`${API_BASE_URL}/moderator/banned-keywords/${keywordId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/banned-keywords/${keywordId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
+        }
+      );
       if (!response.ok) throw new Error("Failed to update keyword");
       return response.json();
     },
 
     deleteBannedKeyword: async (keywordId: number) => {
       const token = getToken();
-      const response = await fetch(`${API_BASE_URL}/moderator/banned-keywords/${keywordId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/banned-keywords/${keywordId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!response.ok) throw new Error("Failed to delete keyword");
       return response.json();
     },
@@ -346,47 +404,63 @@ export default function ModeratorDashboard() {
     getContacts: async (params: any = {}) => {
       const token = getToken();
       const queryParams = new URLSearchParams(params).toString();
-      const response = await fetch(`${API_BASE_URL}/moderator/contacts?${queryParams}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/contacts?${queryParams}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!response.ok) throw new Error("Failed to fetch contacts");
       return response.json();
     },
 
     assignContact: async (contactId: number) => {
       const token = getToken();
-      const response = await fetch(`${API_BASE_URL}/moderator/contacts/${contactId}/assign`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/contacts/${contactId}/assign`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!response.ok) throw new Error("Failed to assign contact");
       return response.json();
     },
 
-    respondToContact: async (contactId: number, response: string, status: string) => {
+    respondToContact: async (
+      contactId: number,
+      response: string,
+      status: string
+    ) => {
       const token = getToken();
-      const response_data = await fetch(`${API_BASE_URL}/moderator/contacts/${contactId}/respond`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ response, status }),
-      });
+      const response_data = await fetch(
+        `${API_BASE_URL}/moderator/contacts/${contactId}/respond`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ response, status }),
+        }
+      );
       if (!response_data.ok) throw new Error("Failed to respond");
       return response_data.json();
     },
 
     sendNotification: async (data: any) => {
       const token = getToken();
-      const response = await fetch(`${API_BASE_URL}/moderator/notifications/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/notifications/send`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
+        }
+      );
       if (!response.ok) throw new Error("Failed to send notification");
       return response.json();
     },
@@ -405,31 +479,52 @@ export default function ModeratorDashboard() {
       return response.json();
     },
 
-    banUser: async (userId: number, banType: string, duration: string, reason: string) => {
+    banUser: async (
+      userId: number,
+      banType: string,
+      duration: string,
+      reason: string
+    ) => {
       const token = getToken();
-      const endpoint = banType === 'account' ? 'ban' : banType === 'post' ? 'ban-post' : 'ban-comment';
-      const response = await fetch(`${API_BASE_URL}/moderator/users/${userId}/${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ duration, reason }),
-      });
+      const endpoint =
+        banType === "account"
+          ? "ban"
+          : banType === "post"
+          ? "ban-post"
+          : "ban-comment";
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/users/${userId}/${endpoint}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ duration, reason }),
+        }
+      );
       if (!response.ok) throw new Error("Failed to ban user");
       return response.json();
     },
 
     unbanUser: async (userId: number, banType: string) => {
       const token = getToken();
-      const endpoint = banType === 'account' ? 'unban' : banType === 'post' ? 'unban-post' : 'unban-comment';
-      const response = await fetch(`${API_BASE_URL}/moderator/users/${userId}/${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const endpoint =
+        banType === "account"
+          ? "unban"
+          : banType === "post"
+          ? "unban-post"
+          : "unban-comment";
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/users/${userId}/${endpoint}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (!response.ok) throw new Error("Failed to unban user");
       return response.json();
     },
@@ -439,14 +534,17 @@ export default function ModeratorDashboard() {
       // Add cache-busting timestamp
       const paramsWithCache = { ...params, _t: Date.now() };
       const queryParams = new URLSearchParams(paramsWithCache).toString();
-      const response = await fetch(`${API_BASE_URL}/moderator/users/banned?${queryParams}`, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/users/banned?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        }
+      );
       if (!response.ok) throw new Error("Failed to fetch banned users");
       return response.json();
     },
@@ -456,14 +554,17 @@ export default function ModeratorDashboard() {
       // Add cache-busting timestamp
       const paramsWithCache = { ...params, _t: Date.now() };
       const queryParams = new URLSearchParams(paramsWithCache).toString();
-      const response = await fetch(`${API_BASE_URL}/moderator/warnings/users?${queryParams}`, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/moderator/warnings/users?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        }
+      );
       if (!response.ok) throw new Error("Failed to fetch warning users");
       return response.json();
     },
@@ -506,7 +607,10 @@ export default function ModeratorDashboard() {
       setBannedUsersPagination(data.pagination || {});
     } catch (error: any) {
       console.error("Error loading banned users:", error);
-      showToast(error.message || "Lỗi tải danh sách tài khoản bị khóa", "error");
+      showToast(
+        error.message || "Lỗi tải danh sách tài khoản bị khóa",
+        "error"
+      );
       // Don't clear existing data on error
       if (bannedUsers.length === 0) {
         setBannedUsers([]);
@@ -686,7 +790,12 @@ export default function ModeratorDashboard() {
         banModal.duration,
         banModal.reason
       );
-      const banTypeText = banModal.banType === 'account' ? 'tài khoản' : banModal.banType === 'post' ? 'đăng bài' : 'bình luận';
+      const banTypeText =
+        banModal.banType === "account"
+          ? "tài khoản"
+          : banModal.banType === "post"
+          ? "đăng bài"
+          : "bình luận";
       setSuccessPopup({
         isOpen: true,
         message: result.message || `Khóa ${banTypeText} thành công!`,
@@ -704,7 +813,10 @@ export default function ModeratorDashboard() {
           loadWarningUsers();
         }
         // Also reload stats to reflect changes
-        moderatorAPI.getStats().then(setStats).catch(() => {});
+        moderatorAPI
+          .getStats()
+          .then(setStats)
+          .catch(() => {});
       }, 100);
     } catch (error: any) {
       setSuccessPopup({
@@ -718,7 +830,12 @@ export default function ModeratorDashboard() {
   const handleUnbanUser = async (userId: number, banType: string) => {
     try {
       const result = await moderatorAPI.unbanUser(userId, banType);
-      const banTypeText = banType === 'account' ? 'tài khoản' : banType === 'post' ? 'đăng bài' : 'bình luận';
+      const banTypeText =
+        banType === "account"
+          ? "tài khoản"
+          : banType === "post"
+          ? "đăng bài"
+          : "bình luận";
       setSuccessPopup({
         isOpen: true,
         message: result.message || `Mở khóa ${banTypeText} thành công!`,
@@ -733,7 +850,10 @@ export default function ModeratorDashboard() {
       }
       // Also reload stats to reflect changes
       setTimeout(() => {
-        moderatorAPI.getStats().then(setStats).catch(() => {});
+        moderatorAPI
+          .getStats()
+          .then(setStats)
+          .catch(() => {});
       }, 200);
     } catch (error: any) {
       setSuccessPopup({
@@ -748,22 +868,22 @@ export default function ModeratorDashboard() {
     try {
       const unbans: Promise<any>[] = [];
       if (banStatus.account) {
-        unbans.push(moderatorAPI.unbanUser(userId, 'account'));
+        unbans.push(moderatorAPI.unbanUser(userId, "account"));
       }
       if (banStatus.post) {
-        unbans.push(moderatorAPI.unbanUser(userId, 'post'));
+        unbans.push(moderatorAPI.unbanUser(userId, "post"));
       }
       if (banStatus.comment) {
-        unbans.push(moderatorAPI.unbanUser(userId, 'comment'));
+        unbans.push(moderatorAPI.unbanUser(userId, "comment"));
       }
-      
+
       await Promise.all(unbans);
       setSuccessPopup({
         isOpen: true,
         message: "Mở khóa tất cả thành công!",
         type: "success",
       });
-      
+
       // Force reload data immediately after unban
       if (activeTab === "banned-users") {
         setTimeout(() => {
@@ -771,7 +891,10 @@ export default function ModeratorDashboard() {
         }, 100);
       }
       setTimeout(() => {
-        moderatorAPI.getStats().then(setStats).catch(() => {});
+        moderatorAPI
+          .getStats()
+          .then(setStats)
+          .catch(() => {});
       }, 200);
     } catch (error: any) {
       setSuccessPopup({
@@ -830,7 +953,11 @@ export default function ModeratorDashboard() {
       return;
     }
     try {
-      await moderatorAPI.respondToContact(selectedContact.id, contactResponse, "resolved");
+      await moderatorAPI.respondToContact(
+        selectedContact.id,
+        contactResponse,
+        "resolved"
+      );
       showToast("Phản hồi thành công!", "success");
       setSelectedContact(null);
       setContactResponse("");
@@ -840,7 +967,10 @@ export default function ModeratorDashboard() {
     }
   };
 
-  const showToast = (message: string, type: "success" | "error" = "success") => {
+  const showToast = (
+    message: string,
+    type: "success" | "error" = "success"
+  ) => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
@@ -857,7 +987,7 @@ export default function ModeratorDashboard() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Quản Lý Bài Đăng</h3>
           <div className="flex items-center space-x-4">
-          <div className="relative">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
@@ -883,7 +1013,12 @@ export default function ModeratorDashboard() {
                 moderatorAPI.searchPostsWithBanned({ page: 1 }).then((data) => {
                   setPosts(data.posts || []);
                   setPostsPagination(data.pagination || {});
-                  showToast("Đã tìm thấy " + (data.posts?.length || 0) + " bài viết có từ khóa cấm", "success");
+                  showToast(
+                    "Đã tìm thấy " +
+                      (data.posts?.length || 0) +
+                      " bài viết có từ khóa cấm",
+                    "success"
+                  );
                 });
               }}
               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
@@ -892,7 +1027,7 @@ export default function ModeratorDashboard() {
               Tìm bài có từ cấm
             </button>
           </div>
-              </div>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -918,18 +1053,25 @@ export default function ModeratorDashboard() {
                   </span>
                   <span className="text-xs text-gray-500">
                     • {formatDate(post.created_at)}
-                </span>
-              </div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">{post.title}</h4>
-                <p className="text-gray-600 text-sm line-clamp-2">{post.excerpt || post.content?.substring(0, 200)}</p>
+                  </span>
+                </div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                  {post.title}
+                </h4>
+                <p className="text-gray-600 text-sm line-clamp-2">
+                  {post.excerpt || post.content?.substring(0, 200)}
+                </p>
                 {post.banned_keywords && post.banned_keywords.length > 0 && (
                   <div className="mt-2">
                     <p className="text-xs text-red-600">
-                      Từ khóa cấm: {post.banned_keywords.map((kw: any) => kw.keyword).join(", ")}
+                      Từ khóa cấm:{" "}
+                      {post.banned_keywords
+                        .map((kw: any) => kw.keyword)
+                        .join(", ")}
                     </p>
-            </div>
+                  </div>
                 )}
-          </div>
+              </div>
               <div className="flex items-center space-x-2 ml-4">
                 <button
                   onClick={() => setSelectedPostSlug(post.slug)}
@@ -952,7 +1094,10 @@ export default function ModeratorDashboard() {
                         content_type: "post",
                       });
                       setActiveTab("notifications");
-                      showToast("Đã điền thông tin User ID và Post ID", "success");
+                      showToast(
+                        "Đã điền thông tin User ID và Post ID",
+                        "success"
+                      );
                     } else {
                       showToast("Không tìm thấy thông tin tác giả", "error");
                     }
@@ -969,9 +1114,9 @@ export default function ModeratorDashboard() {
                       setBanModal({
                         isOpen: true,
                         userId: post.author.id,
-                        banType: 'post',
-                        duration: '1d',
-                        reason: 'Vi phạm quy định đăng bài',
+                        banType: "post",
+                        duration: "1d",
+                        reason: "Vi phạm quy định đăng bài",
                       });
                     }}
                     className="flex items-center space-x-1 bg-orange-50 hover:bg-orange-100 text-orange-700 px-3 py-2 rounded-lg transition-colors"
@@ -997,8 +1142,8 @@ export default function ModeratorDashboard() {
                 >
                   <Trash2 className="w-4 h-4" />
                   <span className="text-sm">Xóa</span>
-          </button>
-        </div>
+                </button>
+              </div>
             </div>
           </motion.div>
         ))}
@@ -1017,15 +1162,17 @@ export default function ModeratorDashboard() {
             Trang {postsPage} / {postsPagination.totalPages}
           </span>
           <button
-            onClick={() => setPostsPage((p) => Math.min(postsPagination.totalPages, p + 1))}
+            onClick={() =>
+              setPostsPage((p) => Math.min(postsPagination.totalPages, p + 1))
+            }
             disabled={postsPage >= postsPagination.totalPages}
             className="px-4 py-2 border rounded-lg disabled:opacity-50"
           >
             Sau
           </button>
-            </div>
+        </div>
       )}
-            </div>
+    </div>
   );
 
   const renderComments = () => (
@@ -1046,28 +1193,35 @@ export default function ModeratorDashboard() {
             </div>
             <button
               onClick={() => {
-                moderatorAPI.searchCommentsWithBanned({ page: 1 }).then((data) => {
-                  setComments(data.comments || []);
-                  setCommentsPagination(data.pagination || {});
-                  showToast("Đã tìm thấy " + (data.comments?.length || 0) + " bình luận có từ khóa cấm", "success");
-                });
+                moderatorAPI
+                  .searchCommentsWithBanned({ page: 1 })
+                  .then((data) => {
+                    setComments(data.comments || []);
+                    setCommentsPagination(data.pagination || {});
+                    showToast(
+                      "Đã tìm thấy " +
+                        (data.comments?.length || 0) +
+                        " bình luận có từ khóa cấm",
+                      "success"
+                    );
+                  });
               }}
               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
             >
               <Ban className="w-4 h-4 inline mr-2" />
               Tìm comment có từ cấm
             </button>
-            </div>
-            </div>
           </div>
+        </div>
+      </div>
 
       <div className="space-y-4">
         {comments.map((comment) => (
-        <motion.div
+          <motion.div
             key={comment.id}
             whileHover={{ scale: 1.01 }}
-          className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
-        >
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
+          >
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
@@ -1090,7 +1244,8 @@ export default function ModeratorDashboard() {
                 {comment.post && (
                   <div className="flex items-center space-x-2 mt-2">
                     <p className="text-sm text-gray-600">
-                      Trong bài: <span className="font-medium">{comment.post.title}</span>
+                      Trong bài:{" "}
+                      <span className="font-medium">{comment.post.title}</span>
                     </p>
                     <button
                       onClick={() => setSelectedPostSlug(comment.post.slug)}
@@ -1101,13 +1256,17 @@ export default function ModeratorDashboard() {
                     </button>
                   </div>
                 )}
-                {comment.banned_keywords && comment.banned_keywords.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-xs text-red-600">
-                      Từ khóa cấm: {comment.banned_keywords.map((kw: any) => kw.keyword).join(", ")}
-              </p>
-            </div>
-                )}
+                {comment.banned_keywords &&
+                  comment.banned_keywords.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs text-red-600">
+                        Từ khóa cấm:{" "}
+                        {comment.banned_keywords
+                          .map((kw: any) => kw.keyword)
+                          .join(", ")}
+                      </p>
+                    </div>
+                  )}
               </div>
               <div className="flex items-center space-x-2 ml-4">
                 <button
@@ -1120,11 +1279,16 @@ export default function ModeratorDashboard() {
                       setWarningForm({
                         ...warningForm,
                         user_id: comment.author.id.toString(),
-                        content_id: comment.post?.id ? comment.post.id.toString() : comment.id.toString(),
+                        content_id: comment.post?.id
+                          ? comment.post.id.toString()
+                          : comment.id.toString(),
                         content_type: comment.post ? "post" : "comment",
                       });
                       setActiveTab("notifications");
-                      showToast("Đã điền thông tin User ID và Content ID", "success");
+                      showToast(
+                        "Đã điền thông tin User ID và Content ID",
+                        "success"
+                      );
                     } else {
                       showToast("Không tìm thấy thông tin tác giả", "error");
                     }
@@ -1142,9 +1306,9 @@ export default function ModeratorDashboard() {
                         setBanModal({
                           isOpen: true,
                           userId: comment.author.id,
-                          banType: 'comment',
-                          duration: '1d',
-                          reason: 'Vi phạm quy định bình luận',
+                          banType: "comment",
+                          duration: "1d",
+                          reason: "Vi phạm quy định bình luận",
                         });
                       }}
                       className="flex items-center space-x-1 bg-orange-50 hover:bg-orange-100 text-orange-700 px-3 py-2 rounded-lg transition-colors"
@@ -1158,9 +1322,9 @@ export default function ModeratorDashboard() {
                         setBanModal({
                           isOpen: true,
                           userId: comment.author.id,
-                          banType: 'account',
-                          duration: '1d',
-                          reason: 'Vi phạm quy định cộng đồng',
+                          banType: "account",
+                          duration: "1d",
+                          reason: "Vi phạm quy định cộng đồng",
                         });
                       }}
                       className="flex items-center space-x-1 bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-2 rounded-lg transition-colors"
@@ -1188,9 +1352,9 @@ export default function ModeratorDashboard() {
                   <Trash2 className="w-4 h-4" />
                   <span className="text-sm">Xóa</span>
                 </button>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
         ))}
       </div>
 
@@ -1207,15 +1371,19 @@ export default function ModeratorDashboard() {
             Trang {commentsPage} / {commentsPagination.totalPages}
           </span>
           <button
-            onClick={() => setCommentsPage((p) => Math.min(commentsPagination.totalPages, p + 1))}
+            onClick={() =>
+              setCommentsPage((p) =>
+                Math.min(commentsPagination.totalPages, p + 1)
+              )
+            }
             disabled={commentsPage >= commentsPagination.totalPages}
             className="px-4 py-2 border rounded-lg disabled:opacity-50"
           >
             Sau
           </button>
-            </div>
+        </div>
       )}
-            </div>
+    </div>
   );
 
   const renderKeywords = () => (
@@ -1230,28 +1398,36 @@ export default function ModeratorDashboard() {
             <Plus className="w-4 h-4" />
             <span>Thêm từ khóa</span>
           </button>
-          </div>
+        </div>
       </div>
 
       {showAddKeyword && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <h4 className="font-semibold mb-4">Thêm từ khóa cấm mới</h4>
           <div className="space-y-4">
-              <div>
-              <label className="block text-sm font-medium mb-1">Từ khóa *</label>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Từ khóa *
+              </label>
               <input
                 type="text"
                 value={newKeyword.keyword}
-                onChange={(e) => setNewKeyword({ ...newKeyword, keyword: e.target.value })}
+                onChange={(e) =>
+                  setNewKeyword({ ...newKeyword, keyword: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                 placeholder="Nhập từ khóa cấm"
               />
-              </div>
-              <div>
-              <label className="block text-sm font-medium mb-1">Mức độ nghiêm trọng</label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Mức độ nghiêm trọng
+              </label>
               <select
                 value={newKeyword.severity}
-                onChange={(e) => setNewKeyword({ ...newKeyword, severity: e.target.value })}
+                onChange={(e) =>
+                  setNewKeyword({ ...newKeyword, severity: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               >
                 <option value="low">Thấp</option>
@@ -1259,22 +1435,28 @@ export default function ModeratorDashboard() {
                 <option value="high">Cao</option>
                 <option value="critical">Nghiêm trọng</option>
               </select>
-              </div>
-              <div>
+            </div>
+            <div>
               <label className="block text-sm font-medium mb-1">Mô tả</label>
               <textarea
                 value={newKeyword.description}
-                onChange={(e) => setNewKeyword({ ...newKeyword, description: e.target.value })}
+                onChange={(e) =>
+                  setNewKeyword({ ...newKeyword, description: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                 rows={3}
                 placeholder="Lý do từ khóa này bị cấm"
               />
-              </div>
+            </div>
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => {
                   setShowAddKeyword(false);
-                  setNewKeyword({ keyword: "", severity: "medium", description: "" });
+                  setNewKeyword({
+                    keyword: "",
+                    severity: "medium",
+                    description: "",
+                  });
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
@@ -1303,21 +1485,30 @@ export default function ModeratorDashboard() {
                 <div className="flex items-center space-x-3 mb-2">
                   <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
                     {keyword.keyword}
-                </span>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    keyword.severity === "critical" ? "bg-red-200 text-red-900" :
-                    keyword.severity === "high" ? "bg-orange-100 text-orange-800" :
-                    keyword.severity === "medium" ? "bg-yellow-100 text-yellow-800" :
-                    "bg-gray-100 text-gray-800"
-                  }`}>
+                  </span>
+                  <span
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      keyword.severity === "critical"
+                        ? "bg-red-200 text-red-900"
+                        : keyword.severity === "high"
+                        ? "bg-orange-100 text-orange-800"
+                        : keyword.severity === "medium"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
                     {keyword.severity}
-              </span>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    keyword.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-                  }`}>
+                  </span>
+                  <span
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      keyword.is_active
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
                     {keyword.is_active ? "Đang hoạt động" : "Đã tắt"}
-              </span>
-            </div>
+                  </span>
+                </div>
                 {keyword.description && (
                   <p className="text-gray-600 text-sm">{keyword.description}</p>
                 )}
@@ -1328,10 +1519,14 @@ export default function ModeratorDashboard() {
               <div className="flex items-center space-x-2 ml-4">
                 <button
                   onClick={() => {
-                    moderatorAPI.updateBannedKeyword(keyword.id, { is_active: !keyword.is_active }).then(() => {
-                      showToast("Cập nhật thành công!", "success");
-                      loadKeywords();
-                    });
+                    moderatorAPI
+                      .updateBannedKeyword(keyword.id, {
+                        is_active: !keyword.is_active,
+                      })
+                      .then(() => {
+                        showToast("Cập nhật thành công!", "success");
+                        loadKeywords();
+                      });
                   }}
                   className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
                 >
@@ -1353,8 +1548,8 @@ export default function ModeratorDashboard() {
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
+              </div>
             </div>
-          </div>
           </motion.div>
         ))}
       </div>
@@ -1378,20 +1573,30 @@ export default function ModeratorDashboard() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    contact.status === "pending" ? "bg-yellow-100 text-yellow-800" :
-                    contact.status === "in_progress" ? "bg-blue-100 text-blue-800" :
-                    contact.status === "resolved" ? "bg-green-100 text-green-800" :
-                    "bg-gray-100 text-gray-800"
-                  }`}>
+                  <span
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      contact.status === "pending"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : contact.status === "in_progress"
+                        ? "bg-blue-100 text-blue-800"
+                        : contact.status === "resolved"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
                     {contact.status}
                   </span>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    contact.priority === "urgent" ? "bg-red-100 text-red-800" :
-                    contact.priority === "high" ? "bg-orange-100 text-orange-800" :
-                    contact.priority === "medium" ? "bg-yellow-100 text-yellow-800" :
-                    "bg-gray-100 text-gray-800"
-                  }`}>
+                  <span
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      contact.priority === "urgent"
+                        ? "bg-red-100 text-red-800"
+                        : contact.priority === "high"
+                        ? "bg-orange-100 text-orange-800"
+                        : contact.priority === "medium"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
                     {contact.priority}
                   </span>
                   <span className="text-xs text-gray-500">
@@ -1401,16 +1606,20 @@ export default function ModeratorDashboard() {
                     • {formatDate(contact.created_at)}
                   </span>
                 </div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">{contact.subject}</h4>
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                  {contact.subject}
+                </h4>
                 <p className="text-gray-600 text-sm mb-2">{contact.message}</p>
                 <p className="text-sm text-gray-500">
                   Từ: {contact.name} ({contact.email})
                 </p>
                 {contact.response && (
                   <div className="mt-3 p-3 bg-green-50 rounded-lg">
-                    <p className="text-sm font-medium text-green-800">Phản hồi:</p>
+                    <p className="text-sm font-medium text-green-800">
+                      Phản hồi:
+                    </p>
                     <p className="text-sm text-green-700">{contact.response}</p>
-              </div>
+                  </div>
                 )}
               </div>
               <div className="flex flex-col space-y-2 ml-4">
@@ -1420,7 +1629,7 @@ export default function ModeratorDashboard() {
                     className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
                   >
                     Nhận xử lý
-                </button>
+                  </button>
                 )}
                 <button
                   onClick={() => setSelectedContact(contact)}
@@ -1437,13 +1646,17 @@ export default function ModeratorDashboard() {
       {selectedContact && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">Phản hồi yêu cầu hỗ trợ</h3>
+            <h3 className="text-lg font-semibold mb-4">
+              Phản hồi yêu cầu hỗ trợ
+            </h3>
             <div className="mb-4">
               <p className="text-sm text-gray-600 mb-2">Yêu cầu:</p>
               <p className="text-gray-900">{selectedContact.message}</p>
             </div>
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Phản hồi *</label>
+              <label className="block text-sm font-medium mb-2">
+                Phản hồi *
+              </label>
               <textarea
                 value={contactResponse}
                 onChange={(e) => setContactResponse(e.target.value)}
@@ -1484,7 +1697,12 @@ export default function ModeratorDashboard() {
       try {
         await moderatorAPI.sendNotification(notificationForm);
         showToast("Gửi thông báo thành công!", "success");
-        setNotificationForm({ user_id: "", message: "", title: "Thông báo từ Moderator", type: "info" });
+        setNotificationForm({
+          user_id: "",
+          message: "",
+          title: "Thông báo từ Moderator",
+          type: "info",
+        });
       } catch (error) {
         showToast("Lỗi gửi thông báo", "error");
       }
@@ -1498,23 +1716,35 @@ export default function ModeratorDashboard() {
       try {
         await moderatorAPI.sendWarning(warningForm);
         showToast("Gửi cảnh báo thành công!", "success");
-        setWarningForm({ user_id: "", reason: "Vi phạm quy định cộng đồng", content_id: "", content_type: "post" });
+        setWarningForm({
+          user_id: "",
+          reason: "Vi phạm quy định cộng đồng",
+          content_id: "",
+          content_type: "post",
+        });
       } catch (error) {
         showToast("Lỗi gửi cảnh báo", "error");
       }
     };
 
     return (
-    <div className="space-y-6">
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <div className="space-y-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <h3 className="text-lg font-semibold mb-4">Gửi Thông Báo</h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">User ID *</label>
+              <label className="block text-sm font-medium mb-1">
+                User ID *
+              </label>
               <input
                 type="number"
                 value={notificationForm.user_id}
-                onChange={(e) => setNotificationForm({ ...notificationForm, user_id: e.target.value })}
+                onChange={(e) =>
+                  setNotificationForm({
+                    ...notificationForm,
+                    user_id: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                 placeholder="ID người dùng"
               />
@@ -1524,15 +1754,27 @@ export default function ModeratorDashboard() {
               <input
                 type="text"
                 value={notificationForm.title}
-                onChange={(e) => setNotificationForm({ ...notificationForm, title: e.target.value })}
+                onChange={(e) =>
+                  setNotificationForm({
+                    ...notificationForm,
+                    title: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Nội dung *</label>
+              <label className="block text-sm font-medium mb-1">
+                Nội dung *
+              </label>
               <textarea
                 value={notificationForm.message}
-                onChange={(e) => setNotificationForm({ ...notificationForm, message: e.target.value })}
+                onChange={(e) =>
+                  setNotificationForm({
+                    ...notificationForm,
+                    message: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                 rows={4}
                 placeholder="Nội dung thông báo"
@@ -1545,45 +1787,64 @@ export default function ModeratorDashboard() {
               Gửi thông báo
             </button>
           </div>
-      </div>
+        </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <h3 className="text-lg font-semibold mb-4">Gửi Cảnh Báo Vi Phạm</h3>
-      <div className="space-y-4">
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">User ID *</label>
+              <label className="block text-sm font-medium mb-1">
+                User ID *
+              </label>
               <input
                 type="number"
                 value={warningForm.user_id}
-                onChange={(e) => setWarningForm({ ...warningForm, user_id: e.target.value })}
+                onChange={(e) =>
+                  setWarningForm({ ...warningForm, user_id: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                 placeholder="ID người dùng"
               />
-                </div>
+            </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Lý do vi phạm</label>
+              <label className="block text-sm font-medium mb-1">
+                Lý do vi phạm
+              </label>
               <input
                 type="text"
                 value={warningForm.reason}
-                onChange={(e) => setWarningForm({ ...warningForm, reason: e.target.value })}
+                onChange={(e) =>
+                  setWarningForm({ ...warningForm, reason: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
-              </div>
+            </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Content ID (tùy chọn)</label>
+              <label className="block text-sm font-medium mb-1">
+                Content ID (tùy chọn)
+              </label>
               <input
                 type="number"
                 value={warningForm.content_id}
-                onChange={(e) => setWarningForm({ ...warningForm, content_id: e.target.value })}
+                onChange={(e) =>
+                  setWarningForm({ ...warningForm, content_id: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                 placeholder="ID bài viết/bình luận"
               />
-              </div>
+            </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Loại nội dung</label>
+              <label className="block text-sm font-medium mb-1">
+                Loại nội dung
+              </label>
               <select
                 value={warningForm.content_type}
-                onChange={(e) => setWarningForm({ ...warningForm, content_type: e.target.value })}
+                onChange={(e) =>
+                  setWarningForm({
+                    ...warningForm,
+                    content_type: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               >
                 <option value="post">Bài viết</option>
@@ -1597,9 +1858,9 @@ export default function ModeratorDashboard() {
               Gửi cảnh báo
             </button>
           </div>
+        </div>
       </div>
-    </div>
-  );
+    );
   };
 
   const renderWarnings = () => {
@@ -1609,13 +1870,16 @@ export default function ModeratorDashboard() {
       return "bg-yellow-100 text-yellow-800 border-yellow-300";
     };
 
-    const openBanModal = (userId: number, banType: 'account' | 'post' | 'comment') => {
+    const openBanModal = (
+      userId: number,
+      banType: "account" | "post" | "comment"
+    ) => {
       setBanModal({
         isOpen: true,
         userId,
         banType,
-        duration: '1d',
-        reason: 'Vi phạm quy định cộng đồng - Đã vi phạm từ khóa cấm nhiều lần',
+        duration: "1d",
+        reason: "Vi phạm quy định cộng đồng - Đã vi phạm từ khóa cấm nhiều lần",
       });
     };
 
@@ -1624,7 +1888,9 @@ export default function ModeratorDashboard() {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-semibold">Cảnh Báo Người Dùng Vi Phạm</h3>
+              <h3 className="text-lg font-semibold">
+                Cảnh Báo Người Dùng Vi Phạm
+              </h3>
               <p className="text-sm text-gray-500 mt-1">
                 Danh sách người dùng đã vi phạm từ khóa cấm từ 3 lần trở lên
               </p>
@@ -1646,7 +1912,9 @@ export default function ModeratorDashboard() {
           {warningUsers.length === 0 ? (
             <div className="bg-white p-12 rounded-xl shadow-sm border border-gray-100 text-center">
               <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Không có người dùng nào cần cảnh báo</p>
+              <p className="text-gray-600">
+                Không có người dùng nào cần cảnh báo
+              </p>
             </div>
           ) : (
             warningUsers.map((user) => {
@@ -1675,13 +1943,19 @@ export default function ModeratorDashboard() {
                           <h4 className="text-lg font-semibold text-gray-900">
                             {user.full_name || user.username}
                           </h4>
-                          <p className="text-sm text-gray-500">@{user.username}</p>
+                          <p className="text-sm text-gray-500">
+                            @{user.username}
+                          </p>
                           <p className="text-sm text-gray-500">{user.email}</p>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center space-x-3 mb-3">
-                        <span className={`px-3 py-1 text-sm font-semibold rounded-full border ${getSeverityColor(violationCount)}`}>
+                        <span
+                          className={`px-3 py-1 text-sm font-semibold rounded-full border ${getSeverityColor(
+                            violationCount
+                          )}`}
+                        >
                           ⚠️ {violationCount} lần vi phạm
                         </span>
                         {user.is_account_banned && (
@@ -1701,11 +1975,11 @@ export default function ModeratorDashboard() {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col space-y-2 ml-4">
                       {!user.is_account_banned && (
                         <button
-                          onClick={() => openBanModal(user.id, 'account')}
+                          onClick={() => openBanModal(user.id, "account")}
                           className="flex items-center space-x-1 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg transition-colors"
                           title="Khóa tài khoản"
                         >
@@ -1715,7 +1989,7 @@ export default function ModeratorDashboard() {
                       )}
                       {!user.is_post_banned && (
                         <button
-                          onClick={() => openBanModal(user.id, 'post')}
+                          onClick={() => openBanModal(user.id, "post")}
                           className="flex items-center space-x-1 bg-orange-50 hover:bg-orange-100 text-orange-700 px-4 py-2 rounded-lg transition-colors"
                           title="Khóa đăng bài"
                         >
@@ -1725,7 +1999,7 @@ export default function ModeratorDashboard() {
                       )}
                       {!user.is_comment_banned && (
                         <button
-                          onClick={() => openBanModal(user.id, 'comment')}
+                          onClick={() => openBanModal(user.id, "comment")}
                           className="flex items-center space-x-1 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg transition-colors"
                           title="Khóa bình luận"
                         >
@@ -1754,7 +2028,11 @@ export default function ModeratorDashboard() {
               Trang {warningUsersPage} / {warningUsersPagination.pages}
             </span>
             <button
-              onClick={() => setWarningUsersPage((p) => Math.min(warningUsersPagination.pages, p + 1))}
+              onClick={() =>
+                setWarningUsersPage((p) =>
+                  Math.min(warningUsersPagination.pages, p + 1)
+                )
+              }
               disabled={warningUsersPage >= warningUsersPagination.pages}
               className="px-4 py-2 border rounded-lg disabled:opacity-50"
             >
@@ -1780,16 +2058,24 @@ export default function ModeratorDashboard() {
     const getBanStatus = (user: any) => {
       const now = new Date();
       // Check if user has any active ban (not null and not expired)
-      const accountBanned = user.account_banned_until && new Date(user.account_banned_until) > now;
-      const postBanned = user.post_banned_until && new Date(user.post_banned_until) > now;
-      const commentBanned = user.comment_banned_until && new Date(user.comment_banned_until) > now;
-      
+      const accountBanned =
+        user.account_banned_until && new Date(user.account_banned_until) > now;
+      const postBanned =
+        user.post_banned_until && new Date(user.post_banned_until) > now;
+      const commentBanned =
+        user.comment_banned_until && new Date(user.comment_banned_until) > now;
+
       // Also check if user has ban fields set (even if expired, we should show unban option)
       // This handles cases where ban might have expired but still exists in DB
-      const hasAccountBan = user.account_banned_until !== null && user.account_banned_until !== undefined;
-      const hasPostBan = user.post_banned_until !== null && user.post_banned_until !== undefined;
-      const hasCommentBan = user.comment_banned_until !== null && user.comment_banned_until !== undefined;
-      
+      const hasAccountBan =
+        user.account_banned_until !== null &&
+        user.account_banned_until !== undefined;
+      const hasPostBan =
+        user.post_banned_until !== null && user.post_banned_until !== undefined;
+      const hasCommentBan =
+        user.comment_banned_until !== null &&
+        user.comment_banned_until !== undefined;
+
       return {
         account: accountBanned || hasAccountBan,
         post: postBanned || hasPostBan,
@@ -1798,8 +2084,8 @@ export default function ModeratorDashboard() {
     };
 
     return (
-    <div className="space-y-6">
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <div className="space-y-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Quản Lý Tài Khoản Bị Khóa</h3>
             <div className="flex items-center space-x-4">
@@ -1825,7 +2111,7 @@ export default function ModeratorDashboard() {
               </select>
             </div>
           </div>
-      </div>
+        </div>
 
         <div className="space-y-4">
           {bannedUsers.length === 0 ? (
@@ -1860,36 +2146,48 @@ export default function ModeratorDashboard() {
                           <h4 className="text-lg font-semibold text-gray-900">
                             {user.full_name || user.username}
                           </h4>
-                          <p className="text-sm text-gray-500">@{user.username}</p>
+                          <p className="text-sm text-gray-500">
+                            @{user.username}
+                          </p>
                           <p className="text-sm text-gray-500">{user.email}</p>
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-wrap gap-2 mb-3">
                         {banStatus.account && (
                           <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                            🔒 Khóa tài khoản đến: {formatBanDate(user.account_banned_until)}
+                            🔒 Khóa tài khoản đến:{" "}
+                            {formatBanDate(user.account_banned_until)}
                           </span>
                         )}
                         {banStatus.post && (
                           <span className="px-3 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
-                            📝 Khóa đăng bài đến: {formatBanDate(user.post_banned_until)}
+                            📝 Khóa đăng bài đến:{" "}
+                            {formatBanDate(user.post_banned_until)}
                           </span>
                         )}
                         {banStatus.comment && (
                           <span className="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            💬 Khóa bình luận đến: {formatBanDate(user.comment_banned_until)}
+                            💬 Khóa bình luận đến:{" "}
+                            {formatBanDate(user.comment_banned_until)}
                           </span>
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2 ml-4 flex-wrap">
                       {/* Đếm số loại ban */}
                       {(() => {
-                        const banCount = [banStatus.account, banStatus.post, banStatus.comment].filter(Boolean).length;
-                        const hasAnyBan = banStatus.account || banStatus.post || banStatus.comment;
-                        
+                        const banCount = [
+                          banStatus.account,
+                          banStatus.post,
+                          banStatus.comment,
+                        ].filter(Boolean).length;
+                        const hasAnyBan =
+                          banStatus.account ||
+                          banStatus.post ||
+                          banStatus.comment;
+
                         // Nếu có nhiều hơn 1 loại ban, hiển thị nút "Mở khóa tất cả"
                         if (banCount > 1) {
                           return (
@@ -1920,7 +2218,7 @@ export default function ModeratorDashboard() {
                                       title: "Mở khóa tài khoản",
                                       message: `Bạn có chắc muốn mở khóa tài khoản của ${user.username}?`,
                                       onConfirm: () => {
-                                        handleUnbanUser(user.id, 'account');
+                                        handleUnbanUser(user.id, "account");
                                         setConfirmModal(null);
                                       },
                                     });
@@ -1940,7 +2238,7 @@ export default function ModeratorDashboard() {
                                       title: "Mở khóa đăng bài",
                                       message: `Bạn có chắc muốn mở khóa đăng bài cho ${user.username}?`,
                                       onConfirm: () => {
-                                        handleUnbanUser(user.id, 'post');
+                                        handleUnbanUser(user.id, "post");
                                         setConfirmModal(null);
                                       },
                                     });
@@ -1960,7 +2258,7 @@ export default function ModeratorDashboard() {
                                       title: "Mở khóa bình luận",
                                       message: `Bạn có chắc muốn mở khóa bình luận cho ${user.username}?`,
                                       onConfirm: () => {
-                                        handleUnbanUser(user.id, 'comment');
+                                        handleUnbanUser(user.id, "comment");
                                         setConfirmModal(null);
                                       },
                                     });
@@ -1975,7 +2273,7 @@ export default function ModeratorDashboard() {
                             </>
                           );
                         }
-                        
+
                         // Nếu chỉ có 1 loại ban, hiển thị nút mở khóa tương ứng
                         if (banCount === 1) {
                           if (banStatus.account) {
@@ -1987,7 +2285,7 @@ export default function ModeratorDashboard() {
                                     title: "Mở khóa tài khoản",
                                     message: `Bạn có chắc muốn mở khóa tài khoản của ${user.username}?`,
                                     onConfirm: () => {
-                                      handleUnbanUser(user.id, 'account');
+                                      handleUnbanUser(user.id, "account");
                                       setConfirmModal(null);
                                     },
                                   });
@@ -2009,7 +2307,7 @@ export default function ModeratorDashboard() {
                                     title: "Mở khóa đăng bài",
                                     message: `Bạn có chắc muốn mở khóa đăng bài cho ${user.username}?`,
                                     onConfirm: () => {
-                                      handleUnbanUser(user.id, 'post');
+                                      handleUnbanUser(user.id, "post");
                                       setConfirmModal(null);
                                     },
                                   });
@@ -2031,7 +2329,7 @@ export default function ModeratorDashboard() {
                                     title: "Mở khóa bình luận",
                                     message: `Bạn có chắc muốn mở khóa bình luận cho ${user.username}?`,
                                     onConfirm: () => {
-                                      handleUnbanUser(user.id, 'comment');
+                                      handleUnbanUser(user.id, "comment");
                                       setConfirmModal(null);
                                     },
                                   });
@@ -2045,14 +2343,22 @@ export default function ModeratorDashboard() {
                             );
                           }
                         }
-                        
+
                         // Fallback: Nếu không có ban nào được phát hiện nhưng user vẫn có ban trong DB
-                        if (!hasAnyBan && (user.account_banned_until !== null || user.post_banned_until !== null || user.comment_banned_until !== null)) {
-                          const banTypes = [];
-                          if (user.account_banned_until !== null) banTypes.push('account');
-                          if (user.post_banned_until !== null) banTypes.push('post');
-                          if (user.comment_banned_until !== null) banTypes.push('comment');
-                          
+                        if (
+                          !hasAnyBan &&
+                          (user.account_banned_until !== null ||
+                            user.post_banned_until !== null ||
+                            user.comment_banned_until !== null)
+                        ) {
+                          const banTypes: string[] = [];
+                          if (user.account_banned_until !== null)
+                            banTypes.push("account");
+                          if (user.post_banned_until !== null)
+                            banTypes.push("post");
+                          if (user.comment_banned_until !== null)
+                            banTypes.push("comment");
+
                           if (banTypes.length === 1) {
                             return (
                               <button
@@ -2084,9 +2390,9 @@ export default function ModeratorDashboard() {
                                     message: `Bạn có chắc muốn mở khóa tất cả các loại khóa cho ${user.username}?`,
                                     onConfirm: () => {
                                       handleUnbanAll(user.id, {
-                                        account: banTypes.includes('account'),
-                                        post: banTypes.includes('post'),
-                                        comment: banTypes.includes('comment'),
+                                        account: banTypes.includes("account"),
+                                        post: banTypes.includes("post"),
+                                        comment: banTypes.includes("comment"),
                                       });
                                       setConfirmModal(null);
                                     },
@@ -2101,11 +2407,11 @@ export default function ModeratorDashboard() {
                             );
                           }
                         }
-                        
+
                         return null;
                       })()}
-              </div>
-            </div>
+                    </div>
+                  </div>
                 </motion.div>
               );
             })
@@ -2125,16 +2431,20 @@ export default function ModeratorDashboard() {
               Trang {bannedUsersPage} / {bannedUsersPagination.totalPages}
             </span>
             <button
-              onClick={() => setBannedUsersPage((p) => Math.min(bannedUsersPagination.totalPages, p + 1))}
+              onClick={() =>
+                setBannedUsersPage((p) =>
+                  Math.min(bannedUsersPagination.totalPages, p + 1)
+                )
+              }
               disabled={bannedUsersPage >= bannedUsersPagination.totalPages}
               className="px-4 py-2 border rounded-lg disabled:opacity-50"
             >
               Sau
             </button>
-      </div>
+          </div>
         )}
-    </div>
-  );
+      </div>
+    );
   };
 
   if (loading) {
@@ -2153,8 +2463,12 @@ export default function ModeratorDashboard() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Moderator Dashboard</h1>
-          <p className="text-gray-600 mt-2">Quản lý và kiểm duyệt nội dung VieGo Blog</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Moderator Dashboard
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Quản lý và kiểm duyệt nội dung VieGo Blog
+          </p>
         </div>
 
         {/* Stats Cards */}
@@ -2162,8 +2476,12 @@ export default function ModeratorDashboard() {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium">Tổng Bài Viết</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalPosts || 0}</p>
+                <p className="text-gray-600 text-sm font-medium">
+                  Tổng Bài Viết
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.totalPosts || 0}
+                </p>
               </div>
               <FileText className="w-8 h-8 text-blue-600" />
             </div>
@@ -2171,8 +2489,12 @@ export default function ModeratorDashboard() {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium">Tổng Bình Luận</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalComments || 0}</p>
+                <p className="text-gray-600 text-sm font-medium">
+                  Tổng Bình Luận
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.totalComments || 0}
+                </p>
               </div>
               <MessageCircle className="w-8 h-8 text-purple-600" />
             </div>
@@ -2180,8 +2502,12 @@ export default function ModeratorDashboard() {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium">Yêu Cầu Hỗ Trợ</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalContacts || 0}</p>
+                <p className="text-gray-600 text-sm font-medium">
+                  Yêu Cầu Hỗ Trợ
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.totalContacts || 0}
+                </p>
               </div>
               <HelpCircle className="w-8 h-8 text-green-600" />
             </div>
@@ -2190,7 +2516,9 @@ export default function ModeratorDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Từ Khóa Cấm</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalBannedKeywords || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.totalBannedKeywords || 0}
+                </p>
               </div>
               <Ban className="w-8 h-8 text-red-600" />
             </div>
@@ -2260,61 +2588,69 @@ export default function ModeratorDashboard() {
 
       {/* Ban Modal */}
       {banModal.isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md"
-            >
-              <h3 className="text-xl font-semibold mb-4">
-                {banModal.banType === 'account' && '🔒 Khóa Tài Khoản'}
-                {banModal.banType === 'post' && '📝 Khóa Đăng Bài'}
-                {banModal.banType === 'comment' && '💬 Khóa Bình Luận'}
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Thời gian khóa *</label>
-                  <select
-                    value={banModal.duration}
-                    onChange={(e) => setBanModal({ ...banModal, duration: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="30min">30 phút</option>
-                    <option value="2h">2 giờ</option>
-                    <option value="1d">1 ngày</option>
-                    <option value="3d">3 ngày</option>
-                    <option value="7d">7 ngày</option>
-                    <option value="permanent">Vĩnh viễn</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Lý do *</label>
-                  <textarea
-                    value={banModal.reason}
-                    onChange={(e) => setBanModal({ ...banModal, reason: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    rows={3}
-                    placeholder="Nhập lý do khóa..."
-                  />
-                </div>
-                <div className="flex space-x-3">
-                  <button
-                    onClick={handleBanUser}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Xác nhận khóa
-                  </button>
-                  <button
-                    onClick={() => setBanModal({ ...banModal, isOpen: false })}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Hủy
-                  </button>
-                </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md"
+          >
+            <h3 className="text-xl font-semibold mb-4">
+              {banModal.banType === "account" && "🔒 Khóa Tài Khoản"}
+              {banModal.banType === "post" && "📝 Khóa Đăng Bài"}
+              {banModal.banType === "comment" && "💬 Khóa Bình Luận"}
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Thời gian khóa *
+                </label>
+                <select
+                  value={banModal.duration}
+                  onChange={(e) =>
+                    setBanModal({ ...banModal, duration: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="30min">30 phút</option>
+                  <option value="2h">2 giờ</option>
+                  <option value="1d">1 ngày</option>
+                  <option value="3d">3 ngày</option>
+                  <option value="7d">7 ngày</option>
+                  <option value="permanent">Vĩnh viễn</option>
+                </select>
               </div>
-            </motion.div>
-          </div>
-        )}
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Lý do *
+                </label>
+                <textarea
+                  value={banModal.reason}
+                  onChange={(e) =>
+                    setBanModal({ ...banModal, reason: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  rows={3}
+                  placeholder="Nhập lý do khóa..."
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleBanUser}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Xác nhận khóa
+                </button>
+                <button
+                  onClick={() => setBanModal({ ...banModal, isOpen: false })}
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors"
+                >
+                  Hủy
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Post Modal */}
       {selectedPostSlug && (

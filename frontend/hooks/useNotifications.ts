@@ -184,6 +184,41 @@ export function useNotifications() {
     }
   }, [user]);
 
+  const deleteNotification = useCallback(
+    async (notificationId: number) => {
+      if (!user) return;
+
+      try {
+        const token = localStorage.getItem("access_token");
+        const API_BASE_URL =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const response = await fetch(
+          `${API_BASE_URL}/notifications/${notificationId}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          setNotifications((prev) =>
+            prev.filter((notif) => notif.id !== notificationId)
+          );
+          // If it was unread, decrease count
+          const notif = notifications.find((n) => n.id === notificationId);
+          if (notif && !notif.is_read) {
+            setUnreadCount((prev) => Math.max(0, prev - 1));
+          }
+        }
+      } catch (error) {
+        console.error("Error deleting notification:", error);
+      }
+    },
+    [user, notifications]
+  );
+
   // Listen for new notifications via Socket.IO
   useEffect(() => {
     if (!socket || !isConnected) return;
@@ -209,8 +244,14 @@ export function useNotifications() {
       } else {
         setUnreadCount((prev) => prev + 1);
       }
-      // Refresh notifications to get the latest list
-      fetchNotifications();
+
+      // If we have the full notification object, add it to the list immediately
+      if (data.notification) {
+        setNotifications((prev) => [data.notification, ...prev]);
+      } else {
+        // Otherwise refresh notifications to get the latest list
+        fetchNotifications();
+      }
     };
 
     socket.on("new_notification", handleNewNotification);
@@ -279,5 +320,6 @@ export function useNotifications() {
     fetchNotifications,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
   };
 }

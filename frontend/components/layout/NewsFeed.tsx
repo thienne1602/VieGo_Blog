@@ -1417,11 +1417,11 @@ const NewsFeed = () => {
         )}
       </AnimatePresence>
 
-      {/* Scroll to Top Button */}
+      {/* Scroll to Top Button - Giữa màn hình */}
       <AnimatePresence>
         {showScrollTop && (
           <motion.button
-            className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:shadow-blue-500/50 transition-all duration-300"
+            className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:shadow-blue-500/50 transition-all duration-300"
             initial={{ opacity: 0, scale: 0, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0, y: 20 }}

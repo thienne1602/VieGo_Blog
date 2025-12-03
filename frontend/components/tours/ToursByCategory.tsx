@@ -8,12 +8,36 @@ import api from "../../lib/api";
 import TourCard from "./TourCard";
 
 const categoryConfig: any = {
-  adventure: { icon: "🏔️", label: "Khám Phá", gradient: "from-orange-500 to-red-500" },
-  cultural: { icon: "🏛️", label: "Văn Hóa", gradient: "from-purple-500 to-pink-500" },
-  food: { icon: "🍜", label: "Ẩm Thực", gradient: "from-yellow-500 to-orange-500" },
-  nature: { icon: "🌿", label: "Thiên Nhiên", gradient: "from-green-500 to-teal-500" },
-  urban: { icon: "🏙️", label: "Thành Phố", gradient: "from-blue-500 to-indigo-500" },
-  spiritual: { icon: "🕉️", label: "Tâm Linh", gradient: "from-indigo-500 to-purple-500" },
+  adventure: {
+    icon: "🏔️",
+    label: "Khám Phá",
+    gradient: "from-orange-500 to-red-500",
+  },
+  cultural: {
+    icon: "🏛️",
+    label: "Văn Hóa",
+    gradient: "from-purple-500 to-pink-500",
+  },
+  food: {
+    icon: "🍜",
+    label: "Ẩm Thực",
+    gradient: "from-yellow-500 to-orange-500",
+  },
+  nature: {
+    icon: "🌿",
+    label: "Thiên Nhiên",
+    gradient: "from-green-500 to-teal-500",
+  },
+  urban: {
+    icon: "🏙️",
+    label: "Thành Phố",
+    gradient: "from-blue-500 to-indigo-500",
+  },
+  spiritual: {
+    icon: "🕉️",
+    label: "Tâm Linh",
+    gradient: "from-indigo-500 to-purple-500",
+  },
 };
 
 export default function ToursByCategory() {
@@ -32,7 +56,7 @@ export default function ToursByCategory() {
             { value: "all", label: "Tất Cả", icon: "✨" },
             ...cats,
           ]);
-          
+
           // Load initial tours
           if (cats.length > 0) {
             setSelectedCategory(cats[0].value);
@@ -52,9 +76,9 @@ export default function ToursByCategory() {
   const loadToursByCategory = async (categoryValue: string) => {
     setLoading(true);
     try {
-      const res = await api.getTours({ 
+      const res = await api.getTours({
         category: categoryValue === "all" ? undefined : categoryValue,
-        per_page: 6 
+        per_page: 6,
       });
       if (res.success) {
         const toursData = res.data?.tours || res.data?.data || res.data || [];
@@ -78,7 +102,10 @@ export default function ToursByCategory() {
         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64 mb-8 animate-pulse"></div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-96 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+            <div
+              key={i}
+              className="h-96 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"
+            ></div>
           ))}
         </div>
       </div>
@@ -113,9 +140,13 @@ export default function ToursByCategory() {
       <div className="mb-8 overflow-x-auto">
         <div className="flex gap-4 pb-4 min-w-max">
           {categories.map((category) => {
-            const config = categoryConfig[category.value] || { icon: category.icon || "🌟", label: category.label || category.value, gradient: "from-gray-500 to-gray-600" };
+            const config = categoryConfig[category.value] || {
+              icon: category.icon || "🌟",
+              label: category.label || category.value,
+              gradient: "from-gray-500 to-gray-600",
+            };
             const isActive = selectedCategory === category.value;
-            
+
             return (
               <motion.button
                 key={category.value}
@@ -135,7 +166,7 @@ export default function ToursByCategory() {
                   <span className="text-2xl">{config.icon}</span>
                   <span>{config.label}</span>
                 </div>
-                
+
                 {isActive && (
                   <motion.div
                     className="absolute inset-0 bg-white/20 rounded-2xl"
@@ -204,7 +235,13 @@ export default function ToursByCategory() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <Link href="/tours">
+          <Link
+            href={
+              selectedCategory && selectedCategory !== "all"
+                ? `/tours?category=${selectedCategory}`
+                : "/tours"
+            }
+          >
             <motion.button
               className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-teal-600 to-blue-600 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all group"
               whileHover={{ scale: 1.05 }}

@@ -312,6 +312,36 @@ Frontend sẽ chạy tại: `http://localhost:3000`
 
 ---
 
+## 🧭 Quản lý nội dung tour
+
+Tất cả dữ liệu tour giờ được dựng tự động từ bộ mô tả địa danh tại `backend/utils/tour_content_generator.py`. Hồ sơ của từng điểm đến (đèo, bãi biển, đặc sản, lễ hội...) sẽ được dùng để tạo:
+
+- Mô tả hành trình đa đoạn
+- Lịch trình từng ngày với hoạt động, bữa ăn, lưu trú
+- Danh sách dịch vụ bao gồm/không bao gồm
+- Chính sách giá, trẻ em, hủy tour và bảo hiểm
+
+### Cập nhật lại toàn bộ tour
+
+```powershell
+cd backend
+python update_tour_content.py
+```
+
+Tùy chọn:
+
+- `--dry-run`: Xem danh sách tour bị ảnh hưởng mà không ghi xuống DB.
+- `--tour-id 15`: Chỉ làm mới 1 tour cụ thể.
+- `--only-missing`: Chỉ cập nhật những tour chưa có lịch trình chi tiết.
+
+> Lưu ý: Script sẽ tự động tái tạo mô tả bằng tiếng Việt nên hãy cập nhật `tour_content_generator.py` nếu bạn muốn bổ sung điểm đến mới hoặc tinh chỉnh nội dung.
+
+### Seed dữ liệu
+
+`backend/seed_30_tours.py` đã được tích hợp generator, vì vậy mỗi lần seed lại hệ thống sẽ có đầy đủ lịch trình, chính sách và nội dung giống như tour thật.
+
+---
+
 ## 📁 Cấu trúc thư mục
 
 ```

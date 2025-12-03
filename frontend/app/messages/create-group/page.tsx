@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
+import { getStorageKey } from "@/lib/api";
 import { ArrowLeft, Users, X, Search, Check } from "lucide-react";
 import Link from "next/link";
 
@@ -21,7 +22,7 @@ export default function CreateGroupPage() {
     if (user) {
       const fetchFriends = async () => {
         try {
-          const token = localStorage.getItem("access_token");
+          const token = localStorage.getItem(getStorageKey("access_token"));
           if (!token) {
             console.warn("[Messages] No token available for fetching friends");
             return;

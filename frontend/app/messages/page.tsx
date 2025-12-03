@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
 import { useChat } from "@/hooks/useChat";
+import { getStorageKey } from "@/lib/api";
 import {
   Search,
   MessageCircle,
@@ -42,7 +43,7 @@ export default function MessagesListPage() {
       // Fetch friends for group creation
       const fetchFriends = async () => {
         try {
-          const token = localStorage.getItem("access_token");
+          const token = localStorage.getItem(getStorageKey("access_token"));
           if (!token) {
             console.warn("[Messages] No token available for fetching friends");
             return;
@@ -94,10 +95,11 @@ export default function MessagesListPage() {
     });
   };
 
-  const filteredConversations = conversations.filter((conv) => {
+  const filteredConversations = conversations.filter((conv: any) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
-    if (conv.type === "group") {
+    const isGroup = conv.group !== undefined && conv.group !== null;
+    if (isGroup) {
       const groupName = (conv.group?.name || "").toLowerCase();
       return groupName.includes(query);
     } else {
@@ -171,8 +173,8 @@ export default function MessagesListPage() {
             </div>
           ) : (
             <div>
-              {filteredConversations.map((conv) => {
-                const isGroup = conv.type === "group";
+              {filteredConversations.map((conv: any) => {
+                const isGroup = conv.group !== undefined && conv.group !== null;
                 const isSelected = isGroup
                   ? selectedConversation === conv.group?.room_id
                   : selectedConversation === conv.other_user?.id;
@@ -470,7 +472,9 @@ export default function MessagesListPage() {
                     }
 
                     try {
-                      const token = localStorage.getItem("access_token");
+                      const token = localStorage.getItem(
+                        getStorageKey("access_token")
+                      );
                       const API_BASE_URL =
                         process.env.NEXT_PUBLIC_API_URL ||
                         "http://localhost:5000/api";

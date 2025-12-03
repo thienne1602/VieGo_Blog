@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/lib/ThemeContext";
-import { Tag, Clock, Calendar, Cloud, ChevronDown, ChevronUp } from "lucide-react";
+import { Tag, Clock, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 
 const Sidebar = () => {
   const { theme, toggleTheme } = useTheme();
@@ -12,14 +12,6 @@ const Sidebar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(true);
-  const [currentWeather, setCurrentWeather] = useState({
-    location: "Hà Nội",
-    temp: 28,
-    condition: "sunny",
-    humidity: 65,
-    wind: "12 km/h",
-    icon: "☀️",
-  });
 
   // 实时时钟更新
   useEffect(() => {
@@ -27,46 +19,6 @@ const Sidebar = () => {
       setCurrentTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
-
-  // 获取当前位置天气（模拟数据，实际应该调用天气API）
-  useEffect(() => {
-    // 这里可以调用地理位置API和天气API
-    // 暂时使用模拟数据
-    const fetchWeather = async () => {
-      try {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              // 这里应该调用天气API
-              // 暂时使用模拟数据
-              setCurrentWeather({
-                location: "Hà Nội",
-                temp: 28,
-                condition: "sunny",
-                humidity: 65,
-                wind: "12 km/h",
-                icon: "☀️",
-              });
-            },
-            () => {
-              // 获取位置失败，使用默认位置
-              setCurrentWeather({
-                location: "Hà Nội",
-                temp: 28,
-                condition: "sunny",
-                humidity: 65,
-                wind: "12 km/h",
-                icon: "☀️",
-              });
-            }
-          );
-        }
-      } catch (error) {
-        console.error("Error fetching weather:", error);
-      }
-    };
-    fetchWeather();
   }, []);
 
   // 促销旅游数据
@@ -424,64 +376,6 @@ const Sidebar = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-
-      {/* 当前位置天气 */}
-      <div className="p-4">
-        <h3 className="text-gray-800 dark:text-gray-200 font-bold text-base flex items-center mb-3">
-          <Cloud className="w-5 h-5 mr-2 text-primary-500" />
-          Thời tiết vị trí hiện tại
-        </h3>
-        <motion.div
-          className="bg-gradient-to-br from-white/60 via-blue-50/40 to-purple-50/40 dark:from-gray-800/60 dark:via-gray-700/40 dark:to-gray-800/40 backdrop-blur-sm rounded-xl p-4 border border-white/30 dark:border-gray-700/30"
-          whileHover={{ scale: 1.01 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h4 className="font-semibold text-gray-800 dark:text-gray-200 flex items-center text-sm">
-                <svg
-                  className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                {currentWeather.location}
-              </h4>
-              <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mt-1">
-                {currentWeather.temp}°C
-              </div>
-            </div>
-            <div className="text-5xl">{currentWeather.icon}</div>
-          </div>
-          <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
-            <div className="text-xs text-gray-600 dark:text-gray-400">
-              <div className="font-medium">Độ ẩm</div>
-              <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                {currentWeather.humidity}%
-              </div>
-            </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">
-              <div className="font-medium">Gió</div>
-              <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                {currentWeather.wind}
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </motion.div>
   );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import BackgroundImage from "@/components/common/BackgroundImage";
 import {
   Mail,
   Phone,
@@ -16,7 +17,8 @@ import {
   User,
 } from "lucide-react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -85,22 +87,24 @@ export default function ContactPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+      <div className="relative min-h-screen flex items-center justify-center px-4">
+        <BackgroundImage overlay={true} overlayOpacity={40} />
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center"
+          className="relative z-10 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center"
         >
           <div className="mb-4 flex justify-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
               <CheckCircle className="w-8 h-8 text-green-500" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Gửi yêu cầu thành công!
           </h2>
-          <p className="text-gray-600 mb-6">
-            Chúng tôi đã nhận được yêu cầu hỗ trợ của bạn. Chúng tôi sẽ phản hồi sớm nhất có thể qua email.
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            Chúng tôi đã nhận được yêu cầu hỗ trợ của bạn. Chúng tôi sẽ phản hồi
+            sớm nhất có thể qua email.
           </p>
           <button
             onClick={() => setSubmitted(false)}
@@ -114,8 +118,9 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="relative min-h-screen pt-24 pb-12 px-4">
+      <BackgroundImage overlay={true} overlayOpacity={35} blur={true} />
+      <div className="relative z-10 max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <motion.div
@@ -123,7 +128,7 @@ export default function ContactPage() {
             animate={{ opacity: 1, y: 0 }}
             className="inline-block mb-4"
           >
-            <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto">
+            <div className="w-16 h-16 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center mx-auto">
               <MessageSquare className="w-8 h-8 text-white" />
             </div>
           </motion.div>
@@ -131,7 +136,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl font-bold text-gray-900 mb-4"
+            className="text-4xl font-bold text-white dark:text-white mb-4 drop-shadow-lg"
           >
             Liên Hệ & Hỗ Trợ
           </motion.h1>
@@ -139,9 +144,10 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-lg text-gray-600"
+            className="text-lg text-white dark:text-gray-300 drop-shadow-md"
           >
-            Chúng tôi luôn sẵn sàng hỗ trợ bạn. Hãy gửi yêu cầu của bạn và chúng tôi sẽ phản hồi trong thời gian sớm nhất.
+            Chúng tôi luôn sẵn sàng hỗ trợ bạn. Hãy gửi yêu cầu của bạn và chúng
+            tôi sẽ phản hồi trong thời gian sớm nhất.
           </motion.p>
         </div>
 
@@ -152,17 +158,17 @@ export default function ContactPage() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white rounded-2xl shadow-xl p-8"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                 Gửi yêu cầu hỗ trợ
               </h2>
 
               {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                   <div className="flex items-center">
-                    <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-                    <p className="text-red-700">{error}</p>
+                    <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 mr-2" />
+                    <p className="text-red-700 dark:text-red-300">{error}</p>
                   </div>
                 </div>
               )}
@@ -170,7 +176,7 @@ export default function ContactPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Category Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Loại yêu cầu
                   </label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -181,26 +187,29 @@ export default function ContactPage() {
                           key={category.value}
                           type="button"
                           onClick={() =>
-                            setFormData({ ...formData, category: category.value })
+                            setFormData({
+                              ...formData,
+                              category: category.value,
+                            })
                           }
                           className={`p-3 rounded-lg border-2 transition-all ${
                             formData.category === category.value
-                              ? "border-blue-500 bg-blue-50"
-                              : "border-gray-200 hover:border-gray-300"
+                              ? "border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30"
+                              : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-700"
                           }`}
                         >
                           <Icon
                             className={`w-5 h-5 mx-auto mb-1 ${
                               formData.category === category.value
-                                ? "text-blue-500"
-                                : "text-gray-400"
+                                ? "text-blue-500 dark:text-blue-400"
+                                : "text-gray-400 dark:text-gray-500"
                             }`}
                           />
                           <p
                             className={`text-xs ${
                               formData.category === category.value
-                                ? "text-blue-700 font-medium"
-                                : "text-gray-600"
+                                ? "text-blue-700 dark:text-blue-300 font-medium"
+                                : "text-gray-700 dark:text-gray-300"
                             }`}
                           >
                             {category.label}
@@ -213,7 +222,7 @@ export default function ContactPage() {
 
                 {/* Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Họ và tên *
                   </label>
                   <input
@@ -223,14 +232,14 @@ export default function ContactPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="Nhập họ và tên của bạn"
                   />
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email *
                   </label>
                   <input
@@ -240,14 +249,14 @@ export default function ContactPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="your.email@example.com"
                   />
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Số điện thoại (tùy chọn)
                   </label>
                   <input
@@ -256,14 +265,14 @@ export default function ContactPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="0123-456-789"
                   />
                 </div>
 
                 {/* Subject */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Tiêu đề *
                   </label>
                   <input
@@ -273,14 +282,14 @@ export default function ContactPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, subject: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="Tóm tắt vấn đề của bạn"
                   />
                 </div>
 
                 {/* Message */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Nội dung chi tiết *
                   </label>
                   <textarea
@@ -290,7 +299,7 @@ export default function ContactPage() {
                       setFormData({ ...formData, message: e.target.value })
                     }
                     rows={6}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="Mô tả chi tiết vấn đề hoặc yêu cầu của bạn..."
                   />
                 </div>
@@ -325,58 +334,72 @@ export default function ContactPage() {
               transition={{ delay: 0.4 }}
               className="space-y-6"
             >
-              <div className="bg-white rounded-2xl shadow-xl p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                   Thông tin liên hệ
                 </h3>
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-5 h-5 text-blue-500" />
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-5 h-5 text-blue-500 dark:text-blue-400" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Email</p>
-                      <p className="text-sm text-gray-600">support@viego.com</p>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">support@viego.com</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-5 h-5 text-green-500" />
+                    <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Phone className="w-5 h-5 text-green-500 dark:text-green-400" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Hotline</p>
-                      <p className="text-sm text-gray-600">1900-xxxx</p>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Hotline
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">1900-xxxx</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-xl p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                   Thời gian phản hồi
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Yêu cầu thông thường</span>
-                    <span className="text-sm font-medium text-gray-900">24-48 giờ</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Yêu cầu thông thường
+                    </span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      24-48 giờ
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Yêu cầu khẩn cấp</span>
-                    <span className="text-sm font-medium text-gray-900">2-4 giờ</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Yêu cầu khẩn cấp
+                    </span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      2-4 giờ
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Vấn đề kỹ thuật</span>
-                    <span className="text-sm font-medium text-gray-900">12-24 giờ</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Vấn đề kỹ thuật
+                    </span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      12-24 giờ
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100">
-                <h3 className="text-lg font-bold text-blue-900 mb-2">
-                  💡 Mẹo
-                </h3>
-                <ul className="text-sm text-blue-800 space-y-2">
-                  <li>• Mô tả chi tiết vấn đề để chúng tôi có thể hỗ trợ tốt hơn</li>
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 border border-blue-100 dark:border-blue-800">
+                <h3 className="text-lg font-bold text-blue-900 dark:text-blue-300 mb-2">💡 Mẹo</h3>
+                <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-2">
+                  <li>
+                    • Mô tả chi tiết vấn đề để chúng tôi có thể hỗ trợ tốt hơn
+                  </li>
                   <li>• Đính kèm ảnh chụp màn hình nếu có thể</li>
                   <li>• Kiểm tra email thường xuyên để nhận phản hồi</li>
                 </ul>
@@ -388,4 +411,3 @@ export default function ContactPage() {
     </div>
   );
 }
-

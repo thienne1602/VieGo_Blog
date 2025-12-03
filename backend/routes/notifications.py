@@ -371,6 +371,46 @@ def create_notification(user_id, type, message, title=None, actor_id=None,
         
         print(f'[Notification] Creating notification: user_id={user_id_int}, type={type}, actor_id={actor_id}')
         
+        # Check for duplicate unread notification if it's a friend request
+        if type == 'friend_request' and actor_id:
+            existing_notif = Notification.query.filter_by(
+                user_id=user_id_int,
+                type='friend_request',
+                actor_id=actor_id,
+                is_read=False
+            ).first()
+            
+            if existing_notif:
+                print(f'[Notification] Found existing unread friend request notification {existing_notif.id}, updating timestamp instead of creating new one')
+                existing_notif.created_at = datetime.utcnow()
+                existing_notif.is_seen = False # Reset seen status so it pops up again
+                db.session.commit()
+                
+                # Re-emit socket event for the existing notification
+                if emit_realtime:
+                    try:
+                        unread_count = Notification.query.filter_by(
+                            user_id=user_id_int,
+                            is_read=False
+                        ).count()
+                        
+                        notification_data = existing_notif.to_dict(include_actor=True)
+                        
+                        emit_to_user(user_id_int, 'new_notification', {
+                            'type': type,
+                            'message': message,
+                            'title': existing_notif.title,
+                            'notification_id': existing_notif.id,
+                            'unread_count': unread_count,
+                            'action_url': action_url,
+                            'created_at': existing_notif.created_at.isoformat(),
+                            'notification': notification_data
+                        })
+                    except Exception as emit_error:
+                        print(f'[Notification] WARNING: Failed to emit real-time notification update: {str(emit_error)}')
+                
+                return existing_notif
+
         # Try to create notification with extra_data, but handle if column doesn't exist
         try:
             notification = Notification(
@@ -434,6 +474,10 @@ def create_notification(user_id, type, message, title=None, actor_id=None,
                 ).count()
                 
                 print(f'[Notification] Emitting real-time notification to user {user_id_int}, unread_count={unread_count}')
+                
+                # Convert notification to dict for socket emission
+                notification_data = notification.to_dict(include_actor=True)
+                
                 emit_to_user(user_id_int, 'new_notification', {
                     'type': type,
                     'message': message,
@@ -441,7 +485,8 @@ def create_notification(user_id, type, message, title=None, actor_id=None,
                     'notification_id': notification.id,
                     'unread_count': unread_count,
                     'action_url': action_url,
-                    'created_at': notification.created_at.isoformat() if notification.created_at else None
+                    'created_at': notification.created_at.isoformat() if notification.created_at else None,
+                    'notification': notification_data  # Include full notification data
                 })
                 print(f'[Notification] Real-time notification emitted successfully')
             except Exception as emit_error:

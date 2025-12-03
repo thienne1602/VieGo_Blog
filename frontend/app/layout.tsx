@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/lib/ThemeContext";
 import AuthGuard from "@/components/AuthGuard";
 import NotificationPopup from "@/components/common/NotificationPopup";
 import DevCacheNotice from "@/components/common/DevCacheNotice";
+import Chatbot from "@/components/common/Chatbot";
 import { usePathname } from "next/navigation";
 
 const poppins = Poppins({
@@ -85,6 +86,7 @@ export default function RootLayout({
                   <main className="flex-grow">{children}</main>
                   <NotificationPopup />
                   <DevCacheNotice />
+                  <Chatbot />
                 </div>
               </AuthGuard>
             </SocketProvider>

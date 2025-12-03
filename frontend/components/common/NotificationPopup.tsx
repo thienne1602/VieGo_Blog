@@ -16,7 +16,9 @@ export default function NotificationPopup({
   autoCloseDelay = 5000,
 }: NotificationPopupProps) {
   const { notifications, markAsRead } = useNotifications();
-  const [displayedNotifications, setDisplayedNotifications] = useState<Set<number>>(new Set());
+  const [displayedNotifications, setDisplayedNotifications] = useState<
+    Set<number>
+  >(new Set());
   const [currentNotification, setCurrentNotification] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [modalNotification, setModalNotification] = useState<any>(null);
@@ -29,24 +31,26 @@ export default function NotificationPopup({
 
     if (unreadNotifications.length > 0) {
       const latest = unreadNotifications[0];
-      
+
       // Only show popup for specific notification types
       const shouldShowPopup = [
-        'account_banned',
-        'post_banned',
-        'comment_banned',
-        'account_unbanned',
-        'post_unbanned',
-        'comment_unbanned',
-        'violation_warning',
-        'post_created',
-        'info',
-        'warning',
+        "account_banned",
+        "post_banned",
+        "comment_banned",
+        "account_unbanned",
+        "post_unbanned",
+        "comment_unbanned",
+        "violation_warning",
+        "post_created",
+        "info",
+        "warning",
       ].includes(latest.type);
 
       if (shouldShowPopup) {
         setCurrentNotification(latest);
-        setDisplayedNotifications((prev) => new Set([...prev, latest.id]));
+        setDisplayedNotifications(
+          (prev) => new Set(Array.from(prev).concat(latest.id))
+        );
 
         if (autoClose) {
           const timer = setTimeout(() => {
@@ -75,42 +79,42 @@ export default function NotificationPopup({
   // Determine icon and colors based on notification type
   const getNotificationStyle = (type: string) => {
     switch (type) {
-      case 'account_banned':
-      case 'post_banned':
-      case 'comment_banned':
+      case "account_banned":
+      case "post_banned":
+      case "comment_banned":
         return {
           icon: Ban,
-          bgColor: 'bg-red-50',
-          borderColor: 'border-red-200',
-          iconColor: 'text-red-600',
-          titleColor: 'text-red-800',
+          bgColor: "bg-red-50",
+          borderColor: "border-red-200",
+          iconColor: "text-red-600",
+          titleColor: "text-red-800",
         };
-      case 'account_unbanned':
-      case 'post_unbanned':
-      case 'comment_unbanned':
-      case 'post_created':
+      case "account_unbanned":
+      case "post_unbanned":
+      case "comment_unbanned":
+      case "post_created":
         return {
           icon: CheckCircle,
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200',
-          iconColor: 'text-green-600',
-          titleColor: 'text-green-800',
+          bgColor: "bg-green-50",
+          borderColor: "border-green-200",
+          iconColor: "text-green-600",
+          titleColor: "text-green-800",
         };
-      case 'violation_warning':
+      case "violation_warning":
         return {
           icon: AlertTriangle,
-          bgColor: 'bg-orange-50',
-          borderColor: 'border-orange-200',
-          iconColor: 'text-orange-600',
-          titleColor: 'text-orange-800',
+          bgColor: "bg-orange-50",
+          borderColor: "border-orange-200",
+          iconColor: "text-orange-600",
+          titleColor: "text-orange-800",
         };
       default:
         return {
           icon: Info,
-          bgColor: 'bg-blue-50',
-          borderColor: 'border-blue-200',
-          iconColor: 'text-blue-600',
-          titleColor: 'text-blue-800',
+          bgColor: "bg-blue-50",
+          borderColor: "border-blue-200",
+          iconColor: "text-blue-600",
+          titleColor: "text-blue-800",
         };
     }
   };
@@ -138,8 +142,10 @@ export default function NotificationPopup({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
-                    <h4 className={`${style.titleColor} font-semibold text-lg mb-1`}>
-                      {currentNotification.title || 'Thông báo'}
+                    <h4
+                      className={`${style.titleColor} font-semibold text-lg mb-1`}
+                    >
+                      {currentNotification.title || "Thông báo"}
                     </h4>
                     <button
                       onClick={(e) => {
@@ -177,4 +183,3 @@ export default function NotificationPopup({
     </>
   );
 }
-

@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuth } from "./AuthContext";
+import { getStorageKey } from "./api";
 
 interface SocketContextType {
   socket: Socket | null;
@@ -36,35 +37,26 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const userIdRef = useRef<number | null>(null);
   const socketRef = useRef<Socket | null>(null);
 
-  // Get current port from window.location
-  const getCurrentPort = (): string => {
-    if (typeof window !== 'undefined') {
-      const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
-      return port;
-    }
-    return '3000'; // Default fallback
-  };
-
-  // Get storage key with port suffix to ensure isolation between clients
-  const getStorageKey = (baseKey: string): string => {
-    const port = getCurrentPort();
-    return `${baseKey}_${port}`;
-  };
-
   useEffect(() => {
     const currentUserId = user?.id || null;
     const previousUserId = userIdRef.current;
-    
+
     // If user changed (logout or login with different user), disconnect old socket
-    if (previousUserId !== null && previousUserId !== currentUserId && socketRef.current) {
-      console.log(`[Socket.IO] User changed from ${previousUserId} to ${currentUserId}, disconnecting old socket`);
+    if (
+      previousUserId !== null &&
+      previousUserId !== currentUserId &&
+      socketRef.current
+    ) {
+      console.log(
+        `[Socket.IO] User changed from ${previousUserId} to ${currentUserId}, disconnecting old socket`
+      );
       socketRef.current.disconnect();
       socketRef.current.close();
       setSocket(null);
       setIsConnected(false);
       socketRef.current = null;
     }
-    
+
     userIdRef.current = currentUserId;
 
     // If no user or no token, don't connect
@@ -74,8 +66,14 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     }
 
     // If socket already exists and connected for this user, don't reconnect
-    if (socketRef.current && socketRef.current.connected && previousUserId === currentUserId) {
-      console.log(`[Socket.IO] Socket already connected for user ${currentUserId}`);
+    if (
+      socketRef.current &&
+      socketRef.current.connected &&
+      previousUserId === currentUserId
+    ) {
+      console.log(
+        `[Socket.IO] Socket already connected for user ${currentUserId}`
+      );
       return;
     }
 
@@ -100,13 +98,15 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         reconnectionDelay: 1000,
         reconnectionAttempts: 5,
         timeout: 5000,
-        transports: ['websocket', 'polling'],
+        transports: ["websocket", "polling"],
       }
     );
 
     socketInstance.on("connect", () => {
       setIsConnected(true);
-      console.log(`✅ Connected to VieGo Socket.IO server for user ${currentUserId}`);
+      console.log(
+        `✅ Connected to VieGo Socket.IO server for user ${currentUserId}`
+      );
     });
 
     socketInstance.on("connect_error", (error) => {
@@ -116,7 +116,9 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
     socketInstance.on("disconnect", () => {
       setIsConnected(false);
-      console.log(`🔌 Disconnected from Socket.IO server (user ${currentUserId})`);
+      console.log(
+        `🔌 Disconnected from Socket.IO server (user ${currentUserId})`
+      );
     });
 
     setSocket(socketInstance);

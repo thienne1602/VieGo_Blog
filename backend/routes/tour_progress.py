@@ -373,9 +373,44 @@ def init_checkpoints_from_itinerary(booking_id):
             
             # Handle different itinerary formats
             if isinstance(day_data, dict):
+                # Create main checkpoint for the day
                 checkpoint_name = day_data.get('title', f'Day {day_key}')
                 checkpoint_description = day_data.get('description', '')
                 location = day_data.get('location', '')
+                
+                # Check for activities to create sub-checkpoints
+                activities = day_data.get('activities', [])
+                if activities and isinstance(activities, list):
+                    # Create main day checkpoint
+                    main_checkpoint = TourProgress(
+                        booking_id=booking_id,
+                        checkpoint_name=checkpoint_name,
+                        checkpoint_description=checkpoint_description,
+                        checkpoint_order=len(checkpoints_created) + 1,
+                        location_name=location,
+                        status='pending',
+                        updated_by=current_user_id
+                    )
+                    db.session.add(main_checkpoint)
+                    checkpoints_created.append(main_checkpoint)
+                    
+                    # Create checkpoints for each activity
+                    for idx, activity in enumerate(activities):
+                        activity_checkpoint = TourProgress(
+                            booking_id=booking_id,
+                            checkpoint_name=f"Hoạt động {idx + 1}: {activity[:50]}..." if len(activity) > 50 else activity,
+                            checkpoint_description=activity,
+                            checkpoint_order=len(checkpoints_created) + 1,
+                            location_name=location, # Inherit location from day
+                            status='pending',
+                            updated_by=current_user_id,
+                            notes=f"Thuộc {checkpoint_name}"
+                        )
+                        db.session.add(activity_checkpoint)
+                        checkpoints_created.append(activity_checkpoint)
+                    
+                    continue # Skip default creation since we handled it
+                
             elif isinstance(day_data, str):
                 checkpoint_name = f'Day {day_key}'
                 checkpoint_description = day_data
@@ -387,7 +422,7 @@ def init_checkpoints_from_itinerary(booking_id):
                 booking_id=booking_id,
                 checkpoint_name=checkpoint_name,
                 checkpoint_description=checkpoint_description,
-                checkpoint_order=int(day_key) if str(day_key).isdigit() else len(checkpoints_created) + 1,
+                checkpoint_order=len(checkpoints_created) + 1,
                 location_name=location,
                 status='pending',
                 updated_by=current_user_id

@@ -577,3 +577,118 @@ def get_seller_tours(seller_id):
         }), 200
     except Exception as e:
         return jsonify({'error': f'Error fetching seller tours: {str(e)}'}), 500
+
+@tours_bp.route('/destinations/ranking', methods=['GET'])
+def get_destination_ranking():
+    """Get ranking of popular destinations based on tour counts"""
+    try:
+        # List of all 63 provinces/cities in Vietnam
+        provinces = [
+            {"name": "Hà Nội", "keywords": ["Hanoi", "Ha Noi", "Hà Nội"], "image": "https://images.unsplash.com/photo-1555921015-5532091f6026?w=800"},
+            {"name": "TP Hồ Chí Minh", "keywords": ["Ho Chi Minh", "Saigon", "Sài Gòn", "HCM"], "image": "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800"},
+            {"name": "Đà Nẵng", "keywords": ["Da Nang", "Đà Nẵng"], "image": "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800"},
+            {"name": "Quảng Nam", "keywords": ["Hoi An", "Hội An", "Quảng Nam"], "image": "https://images.unsplash.com/photo-1578241561880-0a1d5db283cb?w=800"},
+            {"name": "Lào Cai", "keywords": ["Sapa", "Sa Pa", "Lào Cai"], "image": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800"},
+            {"name": "Quảng Ninh", "keywords": ["Ha Long", "Hạ Long", "Quảng Ninh"], "image": "https://images.unsplash.com/photo-1528127269322-539801943592?w=800"},
+            {"name": "Ninh Bình", "keywords": ["Ninh Binh", "Ninh Bình", "Trang An", "Tam Coc"], "image": "https://images.unsplash.com/photo-1565060169194-196e927284b4?w=800"},
+            {"name": "Thừa Thiên Huế", "keywords": ["Hue", "Huế"], "image": "https://images.unsplash.com/photo-1599708153386-62e27c51b354?w=800"},
+            {"name": "Kiên Giang", "keywords": ["Phu Quoc", "Phú Quốc", "Kiên Giang"], "image": "https://images.unsplash.com/photo-1558618047-f4b511aae74d?w=800"},
+            {"name": "Lâm Đồng", "keywords": ["Da Lat", "Đà Lạt", "Lâm Đồng"], "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800"},
+            {"name": "Khánh Hòa", "keywords": ["Nha Trang", "Khánh Hòa"], "image": "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=800"},
+            {"name": "Bình Thuận", "keywords": ["Mui Ne", "Mũi Né", "Phan Thiet", "Bình Thuận"], "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800"},
+            {"name": "Quảng Bình", "keywords": ["Phong Nha", "Quảng Bình"], "image": "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800"},
+            {"name": "Hà Giang", "keywords": ["Ha Giang", "Hà Giang"], "image": "https://images.unsplash.com/photo-1531737212413-667205e1cda7?w=800"},
+            {"name": "Cần Thơ", "keywords": ["Can Tho", "Cần Thơ"], "image": "https://images.unsplash.com/photo-1552493450-2c954569a5bb?w=800"},
+            {"name": "An Giang", "keywords": ["An Giang", "Chau Doc"], "image": None},
+            {"name": "Bà Rịa - Vũng Tàu", "keywords": ["Vung Tau", "Vũng Tàu", "Ba Ria"], "image": "https://images.unsplash.com/photo-1625409723595-667034081342?w=800"},
+            {"name": "Bắc Giang", "keywords": ["Bac Giang", "Bắc Giang"], "image": None},
+            {"name": "Bắc Kạn", "keywords": ["Bac Kan", "Bắc Kạn", "Ba Be"], "image": None},
+            {"name": "Bạc Liêu", "keywords": ["Bac Lieu", "Bạc Liêu"], "image": None},
+            {"name": "Bắc Ninh", "keywords": ["Bac Ninh", "Bắc Ninh"], "image": None},
+            {"name": "Bến Tre", "keywords": ["Ben Tre", "Bến Tre"], "image": None},
+            {"name": "Bình Định", "keywords": ["Binh Dinh", "Bình Định", "Quy Nhon"], "image": "https://images.unsplash.com/photo-1646622765668-225053019c12?w=800"},
+            {"name": "Bình Dương", "keywords": ["Binh Duong", "Bình Dương"], "image": None},
+            {"name": "Bình Phước", "keywords": ["Binh Phuoc", "Bình Phước"], "image": None},
+            {"name": "Cà Mau", "keywords": ["Ca Mau", "Cà Mau"], "image": None},
+            {"name": "Cao Bằng", "keywords": ["Cao Bang", "Cao Bằng", "Ban Gioc"], "image": "https://images.unsplash.com/photo-1618802324738-4f0527a47153?w=800"},
+            {"name": "Đắk Lắk", "keywords": ["Dak Lak", "Đắk Lắk", "Buon Ma Thuot"], "image": None},
+            {"name": "Đắk Nông", "keywords": ["Dak Nong", "Đắk Nông"], "image": None},
+            {"name": "Điện Biên", "keywords": ["Dien Bien", "Điện Biên"], "image": None},
+            {"name": "Đồng Nai", "keywords": ["Dong Nai", "Đồng Nai"], "image": None},
+            {"name": "Đồng Tháp", "keywords": ["Dong Thap", "Đồng Tháp"], "image": None},
+            {"name": "Gia Lai", "keywords": ["Gia Lai", "Pleiku"], "image": None},
+            {"name": "Hà Nam", "keywords": ["Ha Nam", "Hà Nam"], "image": None},
+            {"name": "Hà Tĩnh", "keywords": ["Ha Tinh", "Hà Tĩnh"], "image": None},
+            {"name": "Hải Dương", "keywords": ["Hai Duong", "Hải Dương"], "image": None},
+            {"name": "Hải Phòng", "keywords": ["Hai Phong", "Hải Phòng", "Cat Ba"], "image": "https://images.unsplash.com/photo-1598527782678-d46a66527530?w=800"},
+            {"name": "Hậu Giang", "keywords": ["Hau Giang", "Hậu Giang"], "image": None},
+            {"name": "Hòa Bình", "keywords": ["Hoa Binh", "Hòa Bình", "Mai Chau"], "image": None},
+            {"name": "Hưng Yên", "keywords": ["Hung Yen", "Hưng Yên"], "image": None},
+            {"name": "Kon Tum", "keywords": ["Kon Tum"], "image": None},
+            {"name": "Lai Châu", "keywords": ["Lai Chau", "Lai Châu"], "image": None},
+            {"name": "Lạng Sơn", "keywords": ["Lang Son", "Lạng Sơn"], "image": None},
+            {"name": "Long An", "keywords": ["Long An"], "image": None},
+            {"name": "Nam Định", "keywords": ["Nam Dinh", "Nam Định"], "image": None},
+            {"name": "Nghệ An", "keywords": ["Nghe An", "Nghệ An", "Vinh"], "image": None},
+            {"name": "Ninh Thuận", "keywords": ["Ninh Thuan", "Ninh Thuận", "Phan Rang"], "image": "https://images.unsplash.com/photo-1596627828222-4747251485f7?w=800"},
+            {"name": "Phú Thọ", "keywords": ["Phu Tho", "Phú Thọ"], "image": None},
+            {"name": "Phú Yên", "keywords": ["Phu Yen", "Phú Yên"], "image": "https://images.unsplash.com/photo-1623656588286-a1e24d543495?w=800"},
+            {"name": "Quảng Ngãi", "keywords": ["Quang Ngai", "Quảng Ngãi", "Ly Son"], "image": None},
+            {"name": "Quảng Trị", "keywords": ["Quang Tri", "Quảng Trị"], "image": None},
+            {"name": "Sóc Trăng", "keywords": ["Soc Trang", "Sóc Trăng"], "image": None},
+            {"name": "Sơn La", "keywords": ["Son La", "Sơn La", "Moc Chau"], "image": "https://images.unsplash.com/photo-1611024847487-e26177381a3f?w=800"},
+            {"name": "Tây Ninh", "keywords": ["Tay Ninh", "Tây Ninh"], "image": None},
+            {"name": "Thái Bình", "keywords": ["Thai Binh", "Thái Bình"], "image": None},
+            {"name": "Thái Nguyên", "keywords": ["Thai Nguyen", "Thái Nguyên"], "image": None},
+            {"name": "Thanh Hóa", "keywords": ["Thanh Hoa", "Thanh Hóa", "Pu Luong"], "image": None},
+            {"name": "Tiền Giang", "keywords": ["Tien Giang", "Tiền Giang", "My Tho"], "image": None},
+            {"name": "Trà Vinh", "keywords": ["Tra Vinh", "Trà Vinh"], "image": None},
+            {"name": "Tuyên Quang", "keywords": ["Tuyen Quang", "Tuyên Quang"], "image": None},
+            {"name": "Vĩnh Long", "keywords": ["Vinh Long", "Vĩnh Long"], "image": None},
+            {"name": "Vĩnh Phúc", "keywords": ["Vinh Phuc", "Vĩnh Phúc", "Tam Dao"], "image": None},
+            {"name": "Yên Bái", "keywords": ["Yen Bai", "Yên Bái", "Mu Cang Chai"], "image": "https://images.unsplash.com/photo-1568318266362-d4f7a7c4d1d3?w=800"},
+        ]
+        
+        # Get all active tours
+        tours = Tour.query.filter_by(status='active').all()
+        
+        ranking = []
+        for province in provinces:
+            count = 0
+            rating_sum = 0
+            reviews_count = 0
+            
+            for tour in tours:
+                # Check if tour location matches any keyword
+                location_match = False
+                if tour.starting_location:
+                    for keyword in province['keywords']:
+                        if keyword.lower() in tour.starting_location.lower():
+                            location_match = True
+                            break
+                
+                if location_match:
+                    count += 1
+                    rating_sum += tour.rating or 0
+                    reviews_count += tour.reviews_count or 0
+            
+            if count > 0:
+                avg_rating = rating_sum / count if count > 0 else 0
+                ranking.append({
+                    "name": province['name'],
+                    "tour_count": count,
+                    "avg_rating": round(avg_rating, 1),
+                    "total_reviews": reviews_count,
+                    "image": province['image']
+                })
+        
+        # Sort by tour count descending
+        ranking.sort(key=lambda x: x['tour_count'], reverse=True)
+        
+        return jsonify({
+            'success': True,
+            'data': ranking
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Lỗi lấy bảng xếp hạng: {str(e)}'}), 500
