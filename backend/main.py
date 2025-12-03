@@ -1,5 +1,8 @@
 import os
 import sys
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, jsonify, request, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
