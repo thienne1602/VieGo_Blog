@@ -366,21 +366,18 @@ def upload_checkin_photo(current_user, checkin_id):
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
         
+from utils.cloudinary_helper import upload_to_cloudinary
+
+# ... existing code ...
+
         if file and allowed_file(file.filename):
-            # Create upload directory if not exists
-            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+            # Upload to Cloudinary
+            photo_url = upload_to_cloudinary(file, folder="viego_blog/checkpoint_photos")
             
-            # Generate unique filename
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = secure_filename(file.filename)
-            unique_filename = f"checkin_{checkin_id}_{timestamp}_{filename}"
-            filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
-            
-            # Save file
-            file.save(filepath)
+            if not photo_url:
+                return jsonify({'error': 'Failed to upload photo to Cloudinary'}), 500
             
             # Add photo URL to checkin
-            photo_url = f"/uploads/checkpoint_photos/{unique_filename}"
             checkin.add_photo(photo_url)
             
             db.session.commit()

@@ -362,27 +362,24 @@ def send_message():
             if 'file' in request.files:
                 file = request.files['file']
                 if file and file.filename:
-                    import os
-                    from werkzeug.utils import secure_filename
-                    from flask import current_app
+                    from utils.cloudinary_helper import upload_to_cloudinary
                     
-                    upload_folder = current_app.config['UPLOAD_FOLDER']
+                    folder_name = "viego_blog/files"
+                    resource_type = "auto"
+                    
                     if message_type == 'image':
-                        folder = os.path.join(upload_folder, 'images')
+                        folder_name = "viego_blog/images"
+                        resource_type = "image"
                     elif message_type == 'audio':
-                        folder = os.path.join(upload_folder, 'audio')
-                    else:
-                        folder = os.path.join(upload_folder, 'files')
+                        folder_name = "viego_blog/audio"
+                        resource_type = "video" # Cloudinary treats audio as video
                     
-                    os.makedirs(folder, exist_ok=True)
+                    # Upload to Cloudinary
+                    file_url = upload_to_cloudinary(file, folder=folder_name, resource_type=resource_type)
                     
-                    # Generate unique filename
-                    filename = secure_filename(file.filename)
-                    unique_filename = f"{current_user_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{filename}"
-                    file_path = os.path.join(folder, unique_filename)
-                    file.save(file_path)
-                    
-                    file_url = f"/uploads/{os.path.basename(folder)}/{unique_filename}"
+                    if not file_url:
+                        return jsonify({'error': 'Lỗi khi upload file lên Cloudinary'}), 500
+                        
                     file_type = file.content_type
         
         if not receiver_id:
@@ -1151,22 +1148,24 @@ def send_group_message(room_id):
             if 'file' in request.files:
                 file = request.files['file']
                 if file and file.filename:
-                    upload_folder = current_app.config['UPLOAD_FOLDER']
+                    from utils.cloudinary_helper import upload_to_cloudinary
+                    
+                    folder_name = "viego_blog/files"
+                    resource_type = "auto"
+                    
                     if message_type == 'image':
-                        folder = os.path.join(upload_folder, 'images')
+                        folder_name = "viego_blog/images"
+                        resource_type = "image"
                     elif message_type == 'audio':
-                        folder = os.path.join(upload_folder, 'audio')
-                    else:
-                        folder = os.path.join(upload_folder, 'files')
+                        folder_name = "viego_blog/audio"
+                        resource_type = "video"
                     
-                    os.makedirs(folder, exist_ok=True)
+                    # Upload to Cloudinary
+                    file_url = upload_to_cloudinary(file, folder=folder_name, resource_type=resource_type)
                     
-                    filename = secure_filename(file.filename)
-                    unique_filename = f"{current_user_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{filename}"
-                    file_path = os.path.join(folder, unique_filename)
-                    file.save(file_path)
-                    
-                    file_url = f"/uploads/{os.path.basename(folder)}/{unique_filename}"
+                    if not file_url:
+                        return jsonify({'error': 'Lỗi khi upload file lên Cloudinary'}), 500
+                        
                     file_type = file.content_type
         
         # Validate message content

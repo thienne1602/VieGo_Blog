@@ -11,10 +11,17 @@ from datetime import datetime
 
 def create_database_connection(database=None):
     """Tạo kết nối database"""
+    # Use environment variables or defaults
+    host = os.getenv('DB_HOST', 'localhost')
+    user = os.getenv('DB_USER', 'root')
+    password = os.getenv('DB_PASSWORD', '')
+    port = int(os.getenv('DB_PORT', 3306))
+    
     config = {
-        'host': 'localhost',
-        'user': 'root',
-        'password': '',  # WAMP default no password
+        'host': host,
+        'user': user,
+        'password': password,
+        'port': port,
         'charset': 'utf8mb4',
         'cursorclass': pymysql.cursors.DictCursor
     }

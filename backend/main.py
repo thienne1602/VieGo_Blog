@@ -35,15 +35,25 @@ app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'your-secret-key-chan
 from datetime import timedelta
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
 
-# Database configuration for WAMP Server
-app.config['SQLALCHEMY_DATABASE_URI'] = (
-    f"mysql://{os.getenv('DB_USER', 'root')}:"
-    f"{os.getenv('DB_PASSWORD', '')}@"
-    f"{os.getenv('DB_HOST', 'localhost')}:"
-    f"{os.getenv('DB_PORT', '3306')}/"
-    f"{os.getenv('DB_NAME', 'viego_blog')}"
-    f"?charset=utf8mb4"
-)
+# Database configuration
+# Check for DATABASE_URL environment variable (common in production like Render)
+database_url = os.getenv('DATABASE_URL')
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+if database_url:
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Fallback to individual environment variables or local defaults
+    app.config['SQLALCHEMY_DATABASE_URI'] = (
+        f"mysql://{os.getenv('DB_USER', 'root')}:"
+        f"{os.getenv('DB_PASSWORD', '')}@"
+        f"{os.getenv('DB_HOST', 'localhost')}:"
+        f"{os.getenv('DB_PORT', '3306')}/"
+        f"{os.getenv('DB_NAME', 'viego_blog')}"
+        f"?charset=utf8mb4"
+    )
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_size': 10,

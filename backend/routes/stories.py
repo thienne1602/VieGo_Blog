@@ -262,23 +262,24 @@ def create_story():
         
         # Generate unique filename
         filename = secure_filename(file.filename)
-        unique_filename = generate_unique_filename(filename)
         
-        # Create upload directory
-        upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
+        # Upload to Cloudinary
+        from utils.cloudinary_helper import upload_to_cloudinary
+        
+        folder_name = "viego_blog/stories/images"
+        resource_type = "image"
+        
         if media_type == 'video':
-            media_folder = os.path.join(upload_folder, 'stories', 'videos')
-        else:
-            media_folder = os.path.join(upload_folder, 'stories', 'images')
+            folder_name = "viego_blog/stories/videos"
+            resource_type = "video"
+            
+        media_url = upload_to_cloudinary(file, folder=folder_name, resource_type=resource_type)
         
-        os.makedirs(media_folder, exist_ok=True)
-        
-        # Save file
-        file_path = os.path.join(media_folder, unique_filename)
-        file.save(file_path)
-        
-        # Generate URL
-        media_url = f"/uploads/stories/{media_type}s/{unique_filename}"
+        if not media_url:
+            return jsonify({
+                'success': False,
+                'error': 'Lỗi khi upload file lên Cloudinary'
+            }), 500
         
         # Get content from form data (optional)
         content = request.form.get('content', '')

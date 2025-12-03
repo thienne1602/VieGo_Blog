@@ -516,25 +516,17 @@ def upload_checkpoint_images(checkpoint_id):
             
             # Generate unique filename
             filename = secure_filename(file.filename)
-            unique_filename = generate_unique_filename(filename)
-            file_path = os.path.join(checkpoint_folder, unique_filename)
             
-            # Save file
-            file.save(file_path)
+            # Upload to Cloudinary
+            from utils.cloudinary_helper import upload_to_cloudinary
             
-            # Optionally compress/resize image
-            try:
-                img = Image.open(file_path)
-                # Resize if too large (keep aspect ratio)
-                max_dimension = 1920
-                if img.width > max_dimension or img.height > max_dimension:
-                    img.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
-                    img.save(file_path, optimize=True, quality=85)
-            except Exception as e:
-                print(f"Warning: Could not optimize image {unique_filename}: {str(e)}")
+            # Cloudinary automatically optimizes images, so we don't need PIL here
+            image_url = upload_to_cloudinary(file, folder=f"viego_blog/tour_progress/booking_{checkpoint.booking_id}/checkpoint_{checkpoint_id}")
             
-            # Generate URL
-            image_url = f"/uploads/tour_progress/booking_{checkpoint.booking_id}/checkpoint_{checkpoint_id}/{unique_filename}"
+            if not image_url:
+                errors.append(f'{file.filename}: Failed to upload to Cloudinary')
+                continue
+            
             uploaded_images.append(image_url)
         
         # Update checkpoint with new images

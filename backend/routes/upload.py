@@ -12,6 +12,7 @@ from datetime import datetime
 
 from models import db
 from models.user import User
+from utils.cloudinary_helper import upload_to_cloudinary
 
 upload_bp = Blueprint('upload', __name__, url_prefix='/api/upload')
 
@@ -72,24 +73,17 @@ def upload_image():
         
         # Generate unique filename
         filename = secure_filename(file.filename)
-        unique_filename = generate_unique_filename(filename)
         
-        # Create upload directory if not exists
-        upload_folder = current_app.config['UPLOAD_FOLDER']
-        images_folder = os.path.join(upload_folder, 'images')
-        os.makedirs(images_folder, exist_ok=True)
+        # Upload to Cloudinary
+        file_url = upload_to_cloudinary(file, folder="viego_blog/images")
         
-        # Save file
-        file_path = os.path.join(images_folder, unique_filename)
-        file.save(file_path)
-        
-        # Generate URL
-        file_url = f"/uploads/images/{unique_filename}"
-        
+        if not file_url:
+             return jsonify({'error': 'Lỗi khi upload lên Cloudinary'}), 500
+
         return jsonify({
             'message': 'Upload ảnh thành công!',
             'url': file_url,
-            'filename': unique_filename,
+            'filename': filename,
             'size': file_size
         }), 201
         
@@ -152,16 +146,18 @@ def upload_multiple_images():
                 
                 # Generate unique filename
                 filename = secure_filename(file.filename)
-                unique_filename = generate_unique_filename(filename)
                 
-                # Save file
-                file_path = os.path.join(images_folder, unique_filename)
-                file.save(file_path)
+                # Upload to Cloudinary
+                file_url = upload_to_cloudinary(file, folder="viego_blog/images")
+                
+                if not file_url:
+                    errors.append({'filename': file.filename, 'error': 'Lỗi khi upload lên Cloudinary'})
+                    continue
                 
                 # Add to uploaded list
                 uploaded_files.append({
-                    'url': f"/uploads/images/{unique_filename}",
-                    'filename': unique_filename,
+                    'url': file_url,
+                    'filename': filename,
                     'original_name': filename,
                     'size': file_size
                 })
@@ -216,24 +212,32 @@ def upload_video():
         
         # Generate unique filename
         filename = secure_filename(file.filename)
-        unique_filename = generate_unique_filename(filename)
         
-        # Create upload directory if not exists
-        upload_folder = current_app.config['UPLOAD_FOLDER']
-        videos_folder = os.path.join(upload_folder, 'videos')
-        os.makedirs(videos_folder, exist_ok=True)
+        # Upload to Cloudinary
+        # Note: Cloudinary handles videos too, but might need resource_type='video' if using raw api, 
+        # but uploader.upload usually detects it or we can specify. 
+        # For simplicity in helper we used default, let's update helper or just use it.
+        # Actually, for video, it's safer to specify resource_type="video" in the helper or here.
+        # But since I can't easily change the helper signature without re-reading, I'll assume the helper handles it or I'll modify the helper later if needed.
+        # Wait, the helper uses `cloudinary.uploader.upload(file, folder=folder)`. 
+        # For videos, it's better to use `resource_type="video"`.
+        # I will update the helper later to accept kwargs or resource_type.
+        # For now, let's assume I will update the helper to handle auto-detection or I'll pass it if I update the helper.
         
-        # Save file
-        file_path = os.path.join(videos_folder, unique_filename)
-        file.save(file_path)
+        # Let's update the helper first to be more robust for videos.
+        # But I am in the middle of editing this file.
+        # I will use a specific call here if I can import the library, but I abstracted it.
+        # I'll stick to the abstraction and update the helper to support kwargs.
         
-        # Generate URL
-        file_url = f"/uploads/videos/{unique_filename}"
+        file_url = upload_to_cloudinary(file, folder="viego_blog/videos", resource_type="video")
+        
+        if not file_url:
+             return jsonify({'error': 'Lỗi khi upload video lên Cloudinary'}), 500
         
         return jsonify({
             'message': 'Upload video thành công!',
             'url': file_url,
-            'filename': unique_filename,
+            'filename': filename,
             'size': file_size
         }), 201
         
@@ -279,26 +283,21 @@ def upload_avatar():
         
         # Generate unique filename
         filename = secure_filename(file.filename)
-        unique_filename = generate_unique_filename(filename)
         
-        # Create upload directory if not exists
-        upload_folder = current_app.config['UPLOAD_FOLDER']
-        avatars_folder = os.path.join(upload_folder, 'avatars')
-        os.makedirs(avatars_folder, exist_ok=True)
+        # Upload to Cloudinary
+        avatar_url = upload_to_cloudinary(file, folder="viego_blog/avatars")
         
-        # Save file
-        file_path = os.path.join(avatars_folder, unique_filename)
-        file.save(file_path)
+        if not avatar_url:
+             return jsonify({'error': 'Lỗi khi upload avatar lên Cloudinary'}), 500
         
         # Update user avatar URL
-        avatar_url = f"/uploads/avatars/{unique_filename}"
         user.avatar_url = avatar_url
         db.session.commit()
         
         return jsonify({
             'message': 'Upload avatar thành công!',
             'url': avatar_url,
-            'filename': unique_filename
+            'filename': filename
         }), 201
         
     except Exception as e:
@@ -344,26 +343,21 @@ def upload_cover():
         
         # Generate unique filename
         filename = secure_filename(file.filename)
-        unique_filename = generate_unique_filename(filename)
         
-        # Create upload directory if not exists
-        upload_folder = current_app.config['UPLOAD_FOLDER']
-        covers_folder = os.path.join(upload_folder, 'covers')
-        os.makedirs(covers_folder, exist_ok=True)
+        # Upload to Cloudinary
+        cover_url = upload_to_cloudinary(file, folder="viego_blog/covers")
         
-        # Save file
-        file_path = os.path.join(covers_folder, unique_filename)
-        file.save(file_path)
+        if not cover_url:
+             return jsonify({'error': 'Lỗi khi upload ảnh bìa lên Cloudinary'}), 500
         
         # Update user cover image URL
-        cover_url = f"/uploads/covers/{unique_filename}"
         user.cover_image_url = cover_url
         db.session.commit()
         
         return jsonify({
             'message': 'Upload ảnh bìa thành công!',
             'url': cover_url,
-            'filename': unique_filename
+            'filename': filename
         }), 201
         
     except Exception as e:
