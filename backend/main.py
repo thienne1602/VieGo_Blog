@@ -42,6 +42,16 @@ if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
 if database_url:
+    # Fix for TiDB Cloud: Ensure SSL CA is correctly set using certifi
+    if 'tidbcloud.com' in database_url:
+        import certifi
+        # Remove existing ssl params to avoid duplication/conflict if we are adding them
+        if '?' in database_url:
+            base_url = database_url.split('?')[0]
+            database_url = f"{base_url}?ssl_ca={certifi.where()}&ssl_verify_cert=true&ssl_verify_identity=true"
+        else:
+            database_url = f"{database_url}?ssl_ca={certifi.where()}&ssl_verify_cert=true&ssl_verify_identity=true"
+            
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
     # Fallback to individual environment variables or local defaults
