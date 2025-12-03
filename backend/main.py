@@ -383,21 +383,50 @@ def init_db_command():
             # 1. DNS Lookup
             ip = None
             try:
-                ip = socket.gethostbyname(host)
-                debug_info.append(f"DNS Lookup Success (socket): {host} -> {ip}")
+                # Try native lookup first (blocking but reliable)
+                if 'native_gethostbyname' in globals() and native_gethostbyname:
+                    ip = native_gethostbyname(host)
+                    debug_info.append(f"DNS Lookup Success (native): {host} -> {ip}")
+                else:
+                    # Fallback if native not captured
+                    ip = socket.gethostbyname(host)
+                    debug_info.append(f"DNS Lookup Success (socket): {host} -> {ip}")
             except Exception as e:
-                debug_info.append(f"DNS Lookup Failed (socket): {str(e)}")
-                # Fallback to dnspython
-                try:
-                    answers = dns.resolver.resolve(host, 'A')
-                    ip = answers[0].to_text()
-                    debug_info.append(f"DNS Lookup Success (dnspython): {host} -> {ip}")
-                    
-                    # Patch the URI with the IP address to bypass DNS issues in SQLAlchemy
-                    # We need to update the engine's URL because the engine is already created
-                    new_url = db.engine.url.set(host=ip)
-                    # Create a new engine with the IP address
-                    # Note: This is a temporary fix for this request context
+                debug_info.append(f"DNS Lookup Failed: {str(e)}")
+                return jsonify({"error": "DNS Failure", "debug": debug_info}), 500
+
+            # 2. TCP Connection
+            try:
+                # Use the resolved IP
+                target = ip if ip else host
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(5)
+                result = sock.connect_ex((target, port))
+                if result == 0:
+                    debug_info.append(f"TCP Connection Success to {target}")
+                else:
+                    debug_info.append(f"TCP Connection Failed to {target} (Error code: {result})")
+                sock.close()
+            except Exception as e:
+                debug_info.append(f"TCP Connection Error: {str(e)}")
+
+        # 3. SQLAlchemy Creation
+        debug_info.append("Attempting SQLAlchemy create_all...")
+        
+        # Force SQLAlchemy to use the resolved IP if DNS is flaky
+        if ip and ip != host:
+            try:
+                original_uri = app.config['SQLALCHEMY_DATABASE_URI']
+                if host in original_uri:
+                    patched_uri = original_uri.replace(host, ip)
+                    debug_info.append("Patching DB URI with resolved IP...")
+                    app.config['SQLALCHEMY_DATABASE_URI'] = patched_uri
+                    if 'sqlalchemy' in app.extensions:
+                        db.engine.dispose()
+            except Exception as patch_error:
+                debug_info.append(f"Warning: Failed to patch DB URI: {str(patch_error)}")
+
+        db.create_all()
                     # We can't easily replace the engine globally in Flask-SQLAlchemy 3.x safely without side effects
                     # But for create_all it might be enough to just use a new engine
                     
