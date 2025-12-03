@@ -340,11 +340,62 @@ def serve_uploads(filename):
 # Temporary route to initialize database on Render (since Shell is paid)
 @app.route('/api/init-db-command', methods=['GET'])
 def init_db_command():
+    debug_info = []
     try:
+        import socket
+        from urllib.parse import urlparse
+        
+        # Parse DB URL to get host and port
+        uri = app.config['SQLALCHEMY_DATABASE_URI']
+        # Handle mysql+pymysql://...
+        if '://' in uri:
+            uri = uri.split('://', 1)[1]
+        
+        # Extract host (handle user:pass@host:port/db)
+        if '@' in uri:
+            host_part = uri.split('@')[1]
+            host_part = host_part.split('/')[0]
+            if ':' in host_part:
+                host = host_part.split(':')[0]
+                port = int(host_part.split(':')[1])
+            else:
+                host = host_part
+                port = 3306
+        else:
+            debug_info.append("Could not parse DB URI for debugging")
+            host = None
+            
+        if host:
+            debug_info.append(f"Target Host: {host}")
+            debug_info.append(f"Target Port: {port}")
+            
+            # 1. DNS Lookup
+            try:
+                ip = socket.gethostbyname(host)
+                debug_info.append(f"DNS Lookup Success: {host} -> {ip}")
+            except Exception as e:
+                debug_info.append(f"DNS Lookup Failed: {str(e)}")
+                return jsonify({"error": "DNS Failure", "debug": debug_info}), 500
+
+            # 2. TCP Connection
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(5)
+                result = sock.connect_ex((host, port))
+                if result == 0:
+                    debug_info.append("TCP Connection Success")
+                else:
+                    debug_info.append(f"TCP Connection Failed (Error code: {result})")
+                sock.close()
+            except Exception as e:
+                debug_info.append(f"TCP Connection Error: {str(e)}")
+
+        # 3. SQLAlchemy Creation
+        debug_info.append("Attempting SQLAlchemy create_all...")
         db.create_all()
-        return jsonify({"message": "Database initialized successfully!"}), 200
+        return jsonify({"message": "Database initialized successfully!", "debug": debug_info}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e), "debug": debug_info}), 500
 
 # Create tables
 def create_tables():
