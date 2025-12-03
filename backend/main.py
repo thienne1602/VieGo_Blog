@@ -419,12 +419,26 @@ def init_db_command():
                 original_uri = app.config['SQLALCHEMY_DATABASE_URI']
                 if host in original_uri:
                     patched_uri = original_uri.replace(host, ip)
-                    debug_info.append("Patching DB URI with resolved IP...")
-                    app.config['SQLALCHEMY_DATABASE_URI'] = patched_uri
-                    if 'sqlalchemy' in app.extensions:
-                        db.engine.dispose()
+                    debug_info.append(f"Using patched URI with IP: {ip}")
+                    
+                    # Create a specific engine for this operation to bypass cached engine
+                    from sqlalchemy import create_engine
+                    
+                    # Get existing engine options (SSL, etc)
+                    engine_options = app.config.get('SQLALCHEMY_ENGINE_OPTIONS', {}).copy()
+                    
+                    # Create new engine
+                    new_engine = create_engine(patched_uri, **engine_options)
+                    
+                    # Use this engine to create tables
+                    db.metadata.create_all(bind=new_engine)
+                    
+                    debug_info.append("Tables created successfully using patched engine!")
+                    return jsonify({"message": "Database initialized successfully!", "debug": debug_info}), 200
             except Exception as patch_error:
-                debug_info.append(f"Warning: Failed to patch DB URI: {str(patch_error)}")
+                debug_info.append(f"Failed to use patched engine: {str(patch_error)}")
+                # Fallback to default attempt below
+                pass
 
         db.create_all()
         return jsonify({"message": "Database initialized successfully!", "debug": debug_info}), 200
