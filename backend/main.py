@@ -1,7 +1,13 @@
 import os
 import sys
 import socket
-import dns.resolver
+
+# Save native gethostbyname before monkey patching to bypass eventlet DNS issues
+try:
+    native_gethostbyname = socket.gethostbyname
+except AttributeError:
+    native_gethostbyname = None
+
 import eventlet
 eventlet.monkey_patch()
 
