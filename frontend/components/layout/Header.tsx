@@ -938,7 +938,9 @@ const Header = () => {
               {navItems.map((item, index) => (
                 <button
                   key={index}
-                  ref={(el) => (navRefs.current[index] = el)}
+                  ref={(el) => {
+                    navRefs.current[index] = el;
+                  }}
                   onClick={(e) => handleNavClick(item, index, e)}
                   onMouseEnter={() => setHoveredNavIndex(index)}
                   onMouseLeave={() => setHoveredNavIndex(null)}
@@ -958,10 +960,7 @@ const Header = () => {
             </nav>
 
             {/* Search Bar - Flexible width */}
-            <div
-              ref={searchContainerRef}
-              className="relative flex-1 min-w-0"
-            >
+            <div ref={searchContainerRef} className="relative flex-1 min-w-0">
               <div className="relative">
                 <input
                   ref={searchInputRef}
@@ -1562,6 +1561,13 @@ const Header = () => {
                                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                                   {notif.title || notif.message}
                                 </p>
+                                {notif.message &&
+                                  (!notif.title ||
+                                    notif.message !== notif.title) && (
+                                    <p className="text-xs text-gray-700 dark:text-gray-300 mt-1 whitespace-pre-wrap line-clamp-2">
+                                      {notif.message}
+                                    </p>
+                                  )}
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                   {formatTimeAgo(notif.created_at)}
                                 </p>

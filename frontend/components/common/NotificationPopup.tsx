@@ -46,7 +46,17 @@ export default function NotificationPopup({
         "warning",
       ].includes(latest.type);
 
-      if (shouldShowPopup) {
+      const isJourneyNotice =
+        latest.type === "booking" &&
+        typeof (latest as any).action_url === "string" &&
+        (latest as any).action_url.startsWith("/tour-journey/");
+
+      if (shouldShowPopup || isJourneyNotice) {
+        // Mark low-risk success notifications as read immediately so they
+        // don't re-appear on every page reload.
+        if (latest?.type === "post_created" && !latest?.is_read) {
+          markAsRead(latest.id);
+        }
         setCurrentNotification(latest);
         setDisplayedNotifications(
           (prev) => new Set(Array.from(prev).concat(latest.id))
@@ -54,15 +64,32 @@ export default function NotificationPopup({
 
         if (autoClose) {
           const timer = setTimeout(() => {
+            // Avoid repeatedly spamming “post created” popups across refreshes.
+            // Only auto-mark read for low-risk success notifications.
+            if (latest?.type === "post_created" && !latest?.is_read) {
+              markAsRead(latest.id);
+            }
             setCurrentNotification(null);
           }, autoCloseDelay);
           return () => clearTimeout(timer);
         }
       }
     }
-  }, [notifications, displayedNotifications, autoClose, autoCloseDelay]);
+  }, [
+    notifications,
+    displayedNotifications,
+    autoClose,
+    autoCloseDelay,
+    markAsRead,
+  ]);
 
   const handleClose = () => {
+    if (
+      currentNotification?.type === "post_created" &&
+      !currentNotification?.is_read
+    ) {
+      markAsRead(currentNotification.id);
+    }
     setCurrentNotification(null);
   };
 

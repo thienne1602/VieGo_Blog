@@ -3,9 +3,13 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime, timedelta
 import re
+from sqlalchemy import func
 
 from models.user import User, db
+from models.user_settings import UserSettings
 from utils.jwt_utils import get_current_user_id
+from utils.participant_onboarding import reset_user_password
+from utils.email import send_password_reset_email
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -23,6 +27,135 @@ def validate_password(password):
     if not re.search(r'[0-9]', password):
         return False, "Mật khẩu phải chứa ít nhất 1 chữ số"
     return True, "Hợp lệ"
+
+
+@auth_bp.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    """Reset password and send new password to user's email.
+
+    Security note: response is generic to avoid account enumeration.
+    """
+    try:
+        data = request.get_json() or {}
+        identifier = (data.get('identifier') or '').strip().lower()
+        if not identifier:
+            return jsonify({'error': 'Vui lòng nhập tên đăng nhập hoặc email'}), 400
+
+        # Helpful diagnostics (does not change the response to clients).
+        try:
+            print(f"[AUTH] Forgot-password requested identifier={identifier} ip={request.remote_addr}")
+        except Exception:
+            pass
+
+        user = User.query.filter(
+            (func.lower(User.username) == identifier) | (func.lower(User.email) == identifier)
+        ).first()
+
+        # Always return generic success message.
+        generic_ok = {
+            'message': 'Nếu tài khoản tồn tại, mật khẩu mới đã được gửi về email của bạn.'
+        }
+
+        if not user or not user.is_active:
+            print(f"[EMAIL] Forgot-password no-op: user_not_found_or_inactive identifier={identifier}")
+            return jsonify(generic_ok), 200
+
+        if not getattr(user, 'email', None):
+            print(f"[EMAIL] Forgot-password skipped: user_id={user.id} has no email")
+            return jsonify(generic_ok), 200
+
+        # IMPORTANT: don't commit the password change unless email was accepted for delivery.
+        new_password = reset_user_password(user, length=12)
+        ok, err = send_password_reset_email(
+            recipient_email=user.email,
+            username=user.username,
+            new_password=new_password,
+            full_name=user.full_name,
+        )
+        if not ok:
+            # Don't leak user existence; but provide actionable error for configured environments.
+            # Keep generic response, log for server.
+            print(
+                f"[EMAIL] Forgot-password send failed for user_id={user.id} to={user.email}: {err} (rolling back password reset)"
+            )
+            db.session.rollback()
+        else:
+            db.session.commit()
+            print(f"[EMAIL] Forgot-password email queued for user_id={user.id} to={user.email}")
+        return jsonify(generic_ok), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi quên mật khẩu: {str(e)}'}), 500
+
+
+def _coerce_user_id(user_id):
+    if isinstance(user_id, str) and user_id.isdigit():
+        return int(user_id)
+    return user_id
+
+
+def _get_or_create_user_settings(user_id) -> UserSettings:
+    user_id = _coerce_user_id(user_id)
+    settings = UserSettings.query.filter_by(user_id=user_id).first()
+    if settings:
+        return settings
+    settings = UserSettings(user_id=user_id)
+    db.session.add(settings)
+    return settings
+
+
+@auth_bp.route('/settings', methods=['GET'])
+@jwt_required()
+def get_settings():
+    try:
+        user_id = _coerce_user_id(get_jwt_identity())
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'Không tìm thấy người dùng'}), 404
+
+        settings = _get_or_create_user_settings(user_id)
+        db.session.commit()
+        return jsonify({'settings': settings.to_dict()}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi lấy cài đặt: {str(e)}'}), 500
+
+
+@auth_bp.route('/settings', methods=['PUT'])
+@jwt_required()
+def update_settings():
+    try:
+        user_id = _coerce_user_id(get_jwt_identity())
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'Không tìm thấy người dùng'}), 404
+
+        data = request.get_json() or {}
+        settings = _get_or_create_user_settings(user_id)
+
+        privacy = data.get('privacy') or {}
+        web = data.get('web') or {}
+
+        if 'show_email' in privacy:
+            settings.privacy_show_email = bool(privacy.get('show_email'))
+        if 'allow_messages' in privacy:
+            settings.privacy_allow_messages = bool(privacy.get('allow_messages'))
+        if 'allow_friend_requests' in privacy:
+            settings.privacy_allow_friend_requests = bool(privacy.get('allow_friend_requests'))
+
+        if 'email_notifications' in web:
+            settings.web_email_notifications = bool(web.get('email_notifications'))
+        if 'ui_theme' in web:
+            theme = (web.get('ui_theme') or 'system').strip().lower()
+            if theme not in ('system', 'light', 'dark'):
+                return jsonify({'error': 'ui_theme không hợp lệ'}), 400
+            settings.web_ui_theme = theme
+
+        db.session.commit()
+        return jsonify({'message': 'Cập nhật cài đặt thành công!', 'settings': settings.to_dict()}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi cập nhật cài đặt: {str(e)}'}), 500
 
 @auth_bp.route('/register', methods=['POST'])
 def register():

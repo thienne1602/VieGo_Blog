@@ -360,6 +360,7 @@ const LoginPage = () => {
                 <div className="text-center">
                   <button
                     type="button"
+                    onClick={() => router.push("/welcome?forgot=1")}
                     className="text-sm text-primary hover:text-accent transition-colors"
                   >
                     Quên mật khẩu?

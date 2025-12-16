@@ -65,7 +65,7 @@ export default function BookingSuccessModal({
                     className="relative"
                   >
                     <img
-                      src="/assets/stickers/đặt thành công.gif"
+                      src="/assets/stickers/dat-thanh-cong.gif"
                       alt="Success"
                       className="w-32 h-32 object-contain"
                     />

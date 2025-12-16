@@ -51,6 +51,8 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
   const [showMenu, setShowMenu] = useState(false);
 
   const isAuthor = user && post.author_id && user.id === post.author_id;
+  const galleryImages = Array.isArray(post.images) ? post.images : [];
+  const isSingleGalleryImage = galleryImages.length === 1;
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -187,7 +189,7 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
 
   return (
     <motion.div
-      className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer"
+      className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
@@ -195,13 +197,13 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
       onClick={handleCardClick}
     >
       {/* Post Header */}
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center space-x-3">
+      <div className="flex items-center justify-between p-6">
+        <div className="flex items-center space-x-4">
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-200 dark:ring-gray-700"
+            className="relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-gray-200 dark:ring-gray-700"
           >
             <Image
               src={
@@ -209,22 +211,24 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
                 "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"
               }
               alt={post.author_name}
-              width={40}
-              height={40}
+              width={48}
+              height={48}
               className="w-full h-full object-cover"
               loading="lazy"
               quality={75}
             />
           </motion.div>
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">{post.author_name}</h3>
-            <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
+              {post.author_name}
+            </h3>
+            <div className="flex items-center space-x-2 text-base text-gray-500 dark:text-gray-400">
               <span>{formatTimeAgo(post.published_at)}</span>
               {post.location && (
                 <>
                   <span>•</span>
                   <div className="flex items-center space-x-1">
-                    <MapPin className="w-3 h-3" />
+                    <MapPin className="w-4 h-4" />
                     <span>{post.location}</span>
                   </div>
                 </>
@@ -272,14 +276,16 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
       </div>
 
       {/* Post Content */}
-      <div className="px-4 pb-3">
-        <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{post.content}</p>
+      <div className="px-6 pb-4">
+        <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap text-lg leading-relaxed">
+          {post.content}
+        </p>
         {post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
+          <div className="flex flex-wrap gap-2 mt-4">
             {post.tags.map((tag) => (
               <span
                 key={tag}
-                className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 cursor-pointer text-sm transition-colors duration-200"
+                className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 cursor-pointer text-base transition-colors duration-200"
               >
                 #{tag}
               </span>
@@ -304,32 +310,54 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
               loading="lazy"
               quality={85}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              unoptimized={
+                typeof post.featured_image === "string" &&
+                (post.featured_image.startsWith("http://localhost:") ||
+                  post.featured_image.startsWith("http://127.0.0.1") ||
+                  post.featured_image.startsWith("http://[::1]") ||
+                  post.featured_image.startsWith("https://localhost:") ||
+                  post.featured_image.startsWith("https://127.0.0.1") ||
+                  post.featured_image.startsWith("https://[::1]"))
+              }
             />
             <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity duration-300" />
           </div>
         </motion.div>
       )}
 
-      {/* Image Gallery - Multiple Images */}
-      {post.images && Array.isArray(post.images) && post.images.length > 0 && (
-        <div className="px-4 pb-3">
-          <div className="grid grid-cols-2 gap-2">
-            {post.images.slice(0, 4).map((imageUrl, index) => {
+      {/* Image Gallery */}
+      {galleryImages.length > 0 && (
+        <div className="px-6 pb-4">
+          <div
+            className={
+              isSingleGalleryImage
+                ? "grid grid-cols-1 gap-2"
+                : "grid grid-cols-2 gap-2"
+            }
+          >
+            {galleryImages.slice(0, 4).map((imageUrl, index) => {
               // Use a reliable fallback image
-              const fallbackImage = 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop';
+              const fallbackImage =
+                "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop";
               // Convert relative path to full URL
               let safeImageUrl = imageUrl;
-              if (imageUrl && !imageUrl.startsWith('http')) {
-                const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
+              if (imageUrl && !imageUrl.startsWith("http")) {
+                const baseUrl =
+                  process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+                  "http://localhost:5000";
                 safeImageUrl = `${baseUrl}${imageUrl}`;
               } else if (!imageUrl) {
                 safeImageUrl = fallbackImage;
               }
-              
+
               return (
                 <motion.div
                   key={index}
-                  className="relative overflow-hidden rounded-lg aspect-square"
+                  className={
+                    isSingleGalleryImage
+                      ? "relative overflow-hidden rounded-2xl aspect-video"
+                      : "relative overflow-hidden rounded-2xl aspect-square"
+                  }
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                 >
@@ -340,21 +368,27 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
                     className="object-cover cursor-pointer hover:opacity-90 transition-all duration-300"
                     loading="lazy"
                     quality={80}
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                    unoptimized={safeImageUrl.startsWith("http://localhost:5000")}
+                    sizes={
+                      isSingleGalleryImage
+                        ? "(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 800px"
+                        : "(max-width: 768px) 50vw, 25vw"
+                    }
+                    unoptimized={safeImageUrl.startsWith(
+                      "http://localhost:5000"
+                    )}
                     onClick={(e) => {
                       e.stopPropagation();
                       // Could add lightbox/modal here
                     }}
                   />
                   {/* Show +X overlay on 4th image if there are more */}
-                  {index === 3 && post.images && post.images.length > 4 && (
+                  {index === 3 && galleryImages.length > 4 && (
                     <motion.div
-                      className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center cursor-pointer z-10"
+                      className="absolute inset-0 bg-black/60 rounded-2xl flex items-center justify-center cursor-pointer z-10"
                       whileHover={{ backgroundColor: "rgba(0,0,0,0.8)" }}
                     >
-                      <span className="text-white text-3xl font-bold drop-shadow-lg">
-                        +{post.images.length - 4}
+                      <span className="text-white text-4xl font-bold drop-shadow-lg">
+                        +{galleryImages.length - 4}
                       </span>
                     </motion.div>
                   )}
@@ -366,19 +400,19 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
       )}
 
       {/* Post Stats - Always show counts */}
-      <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+      <div className="px-6 py-3 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between text-base text-gray-500 dark:text-gray-400">
           <div className="flex items-center space-x-4">
             <span className="flex items-center space-x-1">
-              <Heart className="w-4 h-4" />
+              <Heart className="w-5 h-5" />
               <span>{likeCount || 0}</span>
             </span>
             <span className="flex items-center space-x-1">
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="w-5 h-5" />
               <span>{post.comment_count || 0}</span>
             </span>
             <span className="flex items-center space-x-1">
-              <Bookmark className="w-4 h-4" />
+              <Bookmark className="w-5 h-5" />
               <span>{post.views_count || 0} lượt xem</span>
             </span>
           </div>
@@ -386,22 +420,29 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
       </div>
 
       {/* Action Buttons - Simplified & Elegant */}
-      <div className="flex items-center justify-around py-2 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-around py-3 border-t border-gray-200 dark:border-gray-700">
         <motion.button
           onClick={handleLike}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 flex-1 justify-center ${
-            isLiked ? "text-red-600 dark:text-red-400" : "text-gray-600 dark:text-gray-400"
+          className={`flex items-center space-x-2 px-5 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 flex-1 justify-center ${
+            isLiked
+              ? "text-red-600 dark:text-red-400"
+              : "text-gray-600 dark:text-gray-400"
           }`}
         >
-          <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
-          <span className="text-sm font-medium hidden sm:inline" suppressHydrationWarning>Thích</span>
+          <Heart className={`w-6 h-6 ${isLiked ? "fill-current" : ""}`} />
+          <span
+            className="text-base font-medium hidden sm:inline"
+            suppressHydrationWarning
+          >
+            Thích
+          </span>
         </motion.button>
 
         <motion.button
-          className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 text-gray-600 dark:text-gray-400 flex-1 justify-center"
+          className="flex items-center space-x-2 px-5 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 text-gray-600 dark:text-gray-400 flex-1 justify-center"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -410,8 +451,13 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
             handleCardClick();
           }}
         >
-          <MessageCircle className="w-5 h-5" />
-          <span className="text-sm font-medium hidden sm:inline" suppressHydrationWarning>Bình luận</span>
+          <MessageCircle className="w-6 h-6" />
+          <span
+            className="text-base font-medium hidden sm:inline"
+            suppressHydrationWarning
+          >
+            Bình luận
+          </span>
         </motion.button>
 
         <motion.button
@@ -419,14 +465,21 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 flex-1 justify-center ${
-            isBookmarked ? "text-primary-600 dark:text-primary-400" : "text-gray-600 dark:text-gray-400"
+          className={`flex items-center space-x-2 px-5 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 flex-1 justify-center ${
+            isBookmarked
+              ? "text-primary-600 dark:text-primary-400"
+              : "text-gray-600 dark:text-gray-400"
           }`}
         >
           <Bookmark
-            className={`w-5 h-5 ${isBookmarked ? "fill-current" : ""}`}
+            className={`w-6 h-6 ${isBookmarked ? "fill-current" : ""}`}
           />
-          <span className="text-sm font-medium hidden sm:inline" suppressHydrationWarning>Lưu</span>
+          <span
+            className="text-base font-medium hidden sm:inline"
+            suppressHydrationWarning
+          >
+            Lưu
+          </span>
         </motion.button>
 
         <motion.button
@@ -450,7 +503,8 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
                 await navigator.share({
                   title: post.title,
                   text: post.content.substring(0, 100),
-                  url: window.location.origin + `/posts/${post.slug || post.id}`,
+                  url:
+                    window.location.origin + `/posts/${post.slug || post.id}`,
                 });
               } else {
                 navigator.clipboard.writeText(
@@ -465,10 +519,15 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 text-gray-600 dark:text-gray-400 flex-1 justify-center"
+          className="flex items-center space-x-2 px-5 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 text-gray-600 dark:text-gray-400 flex-1 justify-center"
         >
-          <Share2 className="w-5 h-5" />
-          <span className="text-sm font-medium hidden sm:inline" suppressHydrationWarning>Chia sẻ</span>
+          <Share2 className="w-6 h-6" />
+          <span
+            className="text-base font-medium hidden sm:inline"
+            suppressHydrationWarning
+          >
+            Chia sẻ
+          </span>
         </motion.button>
       </div>
     </motion.div>

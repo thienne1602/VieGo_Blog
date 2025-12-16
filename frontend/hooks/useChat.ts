@@ -23,11 +23,20 @@ interface ChatMessage {
 
 interface Conversation {
   id: string;
-  other_user: {
+  type?: "direct" | "group";
+  other_user?: {
     id: number;
     username: string;
     full_name: string;
     avatar_url?: string;
+  };
+  group?: {
+    id: number;
+    room_id: string;
+    name: string;
+    description?: string | null;
+    avatar_url?: string | null;
+    created_by?: number;
   };
   last_message?: {
     id: number;
@@ -36,6 +45,12 @@ interface Conversation {
     created_at: string;
     status: string;
     message_type?: string;
+    sender?: {
+      id: number;
+      username: string;
+      full_name: string;
+      avatar_url?: string;
+    } | null;
   };
   unread_count: number;
   updated_at?: string;
@@ -63,10 +78,11 @@ export function useChat() {
         return;
       }
 
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
       const url = `${API_BASE_URL}/chat/conversations`;
       console.log("[Chat] Fetching conversations from:", url);
-      
+
       const response = await fetch(url, {
         cache: "no-store",
         headers: {
@@ -80,7 +96,7 @@ export function useChat() {
         const data = await response.json();
         console.log("[Chat] Received data:", {
           conversationsCount: data.conversations?.length || 0,
-          conversations: data.conversations
+          conversations: data.conversations,
         });
         setConversations(data.conversations || []);
         // Calculate total unread count
@@ -115,15 +131,13 @@ export function useChat() {
 
     try {
       const token = getAccessToken();
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-      const response = await fetch(
-        `${API_BASE_URL}/chat/unread-count`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const response = await fetch(`${API_BASE_URL}/chat/unread-count`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -135,29 +149,31 @@ export function useChat() {
   }, [user]);
 
   const sendMessage = useCallback(
-    async (receiverId: number, message: string, messageType: string = "text") => {
+    async (
+      receiverId: number,
+      message: string,
+      messageType: string = "text"
+    ) => {
       if (!user) return null;
 
       // Only send via API - backend will handle Socket.IO emission
       // This prevents duplicate messages from being created
       try {
         const token = getAccessToken();
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const response = await fetch(
-          `${API_BASE_URL}/chat/messages`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              receiver_id: receiverId,
-              message: message,
-              message_type: messageType,
-            }),
-          }
-        );
+        const API_BASE_URL =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const response = await fetch(`${API_BASE_URL}/chat/messages`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            receiver_id: receiverId,
+            message: message,
+            message_type: messageType,
+          }),
+        });
 
         if (response.ok) {
           const data = await response.json();
@@ -178,7 +194,8 @@ export function useChat() {
 
       try {
         const token = getAccessToken();
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const API_BASE_URL =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
         const response = await fetch(
           `${API_BASE_URL}/chat/messages/${otherUserId}?page=${page}&per_page=50`,
           {
@@ -207,19 +224,24 @@ export function useChat() {
 
     const handleNewMessage = (data: ChatMessage) => {
       console.log("[Chat] New message received via Socket.IO:", data);
-      
+
       // IMPORTANT: Only process messages where current user is the RECEIVER
       // We should NOT process messages where current user is the sender (those are handled by message_sent event)
       if (!user || data.receiver_id !== user.id) {
-        console.log(`[Chat] Ignoring message - current user is not receiver. Current user: ${user?.id}, Message receiver: ${data.receiver_id}, sender: ${data.sender_id}`);
+        console.log(
+          `[Chat] Ignoring message - current user is not receiver. Current user: ${user?.id}, Message receiver: ${data.receiver_id}, sender: ${data.sender_id}`
+        );
         return;
       }
-      
+
       // This is a new message FOR the current user
       setConversations((prev) => {
         const updated = [...prev];
         // Use both sender_id and receiver_id to identify the conversation
-        const conversationId = `${Math.min(data.sender_id, data.receiver_id)}_${Math.max(data.sender_id, data.receiver_id)}`;
+        const conversationId = `${Math.min(
+          data.sender_id,
+          data.receiver_id
+        )}_${Math.max(data.sender_id, data.receiver_id)}`;
         const index = updated.findIndex((c) => c.id === conversationId);
 
         if (index >= 0) {
@@ -237,7 +259,9 @@ export function useChat() {
           setUnreadCount((prev) => prev + 1);
         } else {
           // New conversation - fetch conversations to update
-          console.log("[Chat] New conversation detected, fetching conversations");
+          console.log(
+            "[Chat] New conversation detected, fetching conversations"
+          );
           fetchConversations();
         }
         return updated;
@@ -263,15 +287,20 @@ export function useChat() {
   useEffect(() => {
     const currentUserId = user?.id || null;
     const previousUserId = previousUserIdRef.current;
-    
+
     // Clear state if user logged out OR if user.id changed (different user logged in)
-    if (!user || (previousUserId !== null && previousUserId !== currentUserId)) {
-      console.log(`[Chat] User changed from ${previousUserId} to ${currentUserId}, clearing state`);
+    if (
+      !user ||
+      (previousUserId !== null && previousUserId !== currentUserId)
+    ) {
+      console.log(
+        `[Chat] User changed from ${previousUserId} to ${currentUserId}, clearing state`
+      );
       setConversations([]);
       setUnreadCount(0);
       setLoading(true);
     }
-    
+
     previousUserIdRef.current = currentUserId;
   }, [user?.id, user]);
 
@@ -298,4 +327,3 @@ export function useChat() {
     getMessages,
   };
 }
-

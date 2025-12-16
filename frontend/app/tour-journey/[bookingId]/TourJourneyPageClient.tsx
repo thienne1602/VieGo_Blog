@@ -133,6 +133,14 @@ export default function TourJourneyPageClient({
     "all" | ParticipantType
   >("all");
   const [passengerError, setPassengerError] = useState<string | null>(null);
+  const [sendingPassengerCredentials, setSendingPassengerCredentials] =
+    useState(false);
+
+  const [journeyNoticeCategory, setJourneyNoticeCategory] = useState<
+    "start" | "rest" | "gather" | "other"
+  >("start");
+  const [journeyNoticeMessage, setJourneyNoticeMessage] = useState("");
+  const [journeyNoticeSending, setJourneyNoticeSending] = useState(false);
 
   // Convert old itinerary format {day1: {...}, day2: {...}} to new array format
   const convertItineraryFormat = (itinerary: any): any[] => {
@@ -358,6 +366,38 @@ export default function TourJourneyPageClient({
     setPassengersLoading(false);
   }, [bookingId, isGuide]);
 
+  const sendJourneyNotification = useCallback(async () => {
+    if (!isGuide) return;
+    if (!bookingId || bookingId === "page") return;
+
+    const message = (journeyNoticeMessage || "").trim();
+    if (!message) {
+      setToast({
+        message: "Vui lòng nhập nội dung thông báo",
+        type: "warning",
+      });
+      return;
+    }
+
+    setJourneyNoticeSending(true);
+    const result = await api.post(`/notifications/tour-journey/${bookingId}`, {
+      category: journeyNoticeCategory,
+      message,
+    });
+
+    if (result.success) {
+      setToast({ message: "Đã gửi thông báo", type: "success" });
+      setJourneyNoticeMessage("");
+    } else {
+      setToast({
+        message: result.error || "Không thể gửi thông báo",
+        type: "error",
+      });
+    }
+
+    setJourneyNoticeSending(false);
+  }, [bookingId, isGuide, journeyNoticeCategory, journeyNoticeMessage]);
+
   const exportPassengers = useCallback(async () => {
     if (!bookingId || bookingId === "page") {
       return;
@@ -385,6 +425,40 @@ export default function TourJourneyPageClient({
     }
   }, [bookingId, setToast]);
 
+  const sendPassengerCredentials = useCallback(async () => {
+    if (!bookingId || bookingId === "page") {
+      return;
+    }
+
+    setSendingPassengerCredentials(true);
+    setToast({
+      message: "Đang gửi email tài khoản cho hành khách...",
+      type: "info",
+    });
+
+    const result = await api.post(
+      `/booking-participants/booking/${bookingId}/send-credentials`,
+      {
+        reset_existing: true,
+      }
+    );
+
+    if (result.success) {
+      const sentCount = result.data?.sent ?? 0;
+      setToast({
+        message: `Đã gửi email cho ${sentCount} hành khách`,
+        type: "success",
+      });
+    } else {
+      setToast({
+        message: result.error || "Không thể gửi email tài khoản",
+        type: "error",
+      });
+    }
+
+    setSendingPassengerCredentials(false);
+  }, [bookingId, setToast]);
+
   // Initialize Leaflet map when showMap is true
   useEffect(() => {
     if (showMap && progress.length > 0 && typeof window !== "undefined") {
@@ -405,15 +479,18 @@ export default function TourJourneyPageClient({
           markersRef.current.forEach((marker) => marker.remove());
           markersRef.current = [];
 
-          const center =
-            mapCenter ||
-            (progress.find((cp) => cp.latitude && cp.longitude)
-              ? [
-                  progress.find((cp) => cp.latitude && cp.longitude)!.latitude!,
-                  progress.find((cp) => cp.latitude && cp.longitude)!
-                    .longitude!,
-                ]
-              : [10.762622, 106.660172]);
+          const firstCheckpointWithCoords = progress.find(
+            (cp) => cp.latitude && cp.longitude
+          );
+
+          const center: [number, number] = mapCenter
+            ? [mapCenter.lat, mapCenter.lng]
+            : firstCheckpointWithCoords
+            ? [
+                firstCheckpointWithCoords.latitude!,
+                firstCheckpointWithCoords.longitude!,
+              ]
+            : [10.762622, 106.660172];
 
           // Initialize map
           const map = L.default.map(mapElement, {
@@ -941,7 +1018,7 @@ export default function TourJourneyPageClient({
                   </h3>
                   {checkpoint.status === "in_progress" && (
                     <img
-                      src="/assets/stickers/vị trí.gif"
+                      src="/assets/stickers/vi-tri.gif"
                       alt="Current Location"
                       className="w-8 h-8 object-contain animate-bounce"
                     />
@@ -1566,6 +1643,98 @@ export default function TourJourneyPageClient({
                   </span>
                 </p>
 
+                {isGuide && (
+                  <div className="mt-5 pt-5 border-t border-gray-200/80 dark:border-gray-800/80">
+                    <p className="text-xs uppercase tracking-[0.35em] text-gray-500 dark:text-gray-400 font-semibold">
+                      Gửi thông báo
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setJourneyNoticeCategory("start");
+                          setJourneyNoticeMessage("Bắt đầu hành trình");
+                        }}
+                        className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-colors ${
+                          journeyNoticeCategory === "start"
+                            ? "bg-teal-600 text-white border-teal-600"
+                            : "bg-white/70 dark:bg-white/5 text-gray-700 dark:text-white/80 border-gray-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10"
+                        }`}
+                      >
+                        Bắt đầu
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setJourneyNoticeCategory("rest");
+                          setJourneyNoticeMessage("Nghỉ chân");
+                        }}
+                        className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-colors ${
+                          journeyNoticeCategory === "rest"
+                            ? "bg-teal-600 text-white border-teal-600"
+                            : "bg-white/70 dark:bg-white/5 text-gray-700 dark:text-white/80 border-gray-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10"
+                        }`}
+                      >
+                        Nghỉ chân
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setJourneyNoticeCategory("gather");
+                          setJourneyNoticeMessage("Tập hợp");
+                        }}
+                        className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-colors ${
+                          journeyNoticeCategory === "gather"
+                            ? "bg-teal-600 text-white border-teal-600"
+                            : "bg-white/70 dark:bg-white/5 text-gray-700 dark:text-white/80 border-gray-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10"
+                        }`}
+                      >
+                        Tập hợp
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setJourneyNoticeCategory("other");
+                          if (!journeyNoticeMessage)
+                            setJourneyNoticeMessage("");
+                        }}
+                        className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-colors ${
+                          journeyNoticeCategory === "other"
+                            ? "bg-teal-600 text-white border-teal-600"
+                            : "bg-white/70 dark:bg-white/5 text-gray-700 dark:text-white/80 border-gray-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10"
+                        }`}
+                      >
+                        Khác
+                      </button>
+                    </div>
+
+                    <textarea
+                      value={journeyNoticeMessage}
+                      onChange={(e) => setJourneyNoticeMessage(e.target.value)}
+                      rows={3}
+                      placeholder="Nhập nội dung thông báo cho khách..."
+                      className="mt-3 w-full rounded-2xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-white/5 px-4 py-3 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-teal-500/40"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={sendJourneyNotification}
+                      disabled={journeyNoticeSending}
+                      className="mt-3 inline-flex items-center justify-center gap-2 w-full px-4 py-3 rounded-2xl bg-teal-600 text-white font-semibold hover:bg-teal-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {journeyNoticeSending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Đang gửi...
+                        </>
+                      ) : (
+                        "Gửi thông báo"
+                      )}
+                    </button>
+                  </div>
+                )}
+
                 <AnimatePresence initial={false}>
                   {showBookingDetails && (
                     <motion.div
@@ -1688,6 +1857,16 @@ export default function TourJourneyPageClient({
                   >
                     <RefreshCcw className="w-4 h-4" />
                     Tải lại
+                  </button>
+                  <button
+                    onClick={sendPassengerCredentials}
+                    disabled={
+                      sendingPassengerCredentials || passengers.length === 0
+                    }
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition disabled:opacity-60"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Gửi lại mật khẩu
                   </button>
                   <button
                     onClick={exportPassengers}

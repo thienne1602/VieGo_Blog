@@ -57,7 +57,7 @@ export default function BookingPage() {
       <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-blue-50 pt-20 flex items-center justify-center">
         <div className="text-center">
           <img
-            src="/assets/stickers/đang tải 2.gif"
+            src="/assets/stickers/dang-tai-2.gif"
             alt="Loading"
             className="w-24 h-24 mx-auto mb-4 object-contain"
           />

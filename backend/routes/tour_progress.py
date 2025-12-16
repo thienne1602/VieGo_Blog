@@ -15,6 +15,9 @@ import zipfile
 import io
 from PIL import Image
 
+from routes.notifications import create_notification
+from utils.booking_audience import get_user_ids_for_booking
+
 tour_progress_bp = Blueprint('tour_progress', __name__, url_prefix='/api/tour-progress')
 
 # Configuration
@@ -59,12 +62,12 @@ def get_tour_progress_by_query():
         tour = Tour.query.get(booking.tour_id)
         assignment = TourAssignment.query.filter_by(booking_id=booking_id).first()
         
-        is_customer = booking.user_id == current_user_id
+        is_in_audience = current_user_id in get_user_ids_for_booking(int(booking_id))
         is_seller = tour and tour.seller_id == current_user_id
         is_guide = assignment and assignment.tour_guide_id == current_user_id
         is_admin = user.role == 'admin'
-        
-        if not (is_customer or is_seller or is_guide or is_admin):
+
+        if not (is_in_audience or is_seller or is_guide or is_admin):
             return jsonify({'error': 'Unauthorized'}), 403
         
         # Get all progress checkpoints
@@ -100,12 +103,12 @@ def get_tour_progress(booking_id):
         tour = Tour.query.get(booking.tour_id)
         assignment = TourAssignment.query.filter_by(booking_id=booking_id).first()
         
-        is_customer = booking.user_id == current_user_id
+        is_in_audience = current_user_id in get_user_ids_for_booking(int(booking_id))
         is_seller = tour and tour.seller_id == current_user_id
         is_guide = assignment and assignment.tour_guide_id == current_user_id
         is_admin = user.role == 'admin'
-        
-        if not (is_customer or is_seller or is_guide or is_admin):
+
+        if not (is_in_audience or is_seller or is_guide or is_admin):
             return jsonify({'error': 'Unauthorized'}), 403
         
         # Get all progress checkpoints
@@ -183,6 +186,27 @@ def create_checkpoint():
         
         db.session.add(checkpoint)
         db.session.commit()
+
+        # Notify users when scheduled time is set (travel time update)
+        if checkpoint.scheduled_time:
+            try:
+                user_ids = get_user_ids_for_booking(int(booking_id))
+                when_str = checkpoint.scheduled_time.isoformat()
+                for uid in user_ids:
+                    if uid == current_user_id:
+                        continue
+                    create_notification(
+                        user_id=uid,
+                        type='booking',
+                        title='Thời gian hành trình đã được cập nhật',
+                        message=f'Thời gian di chuyển/điểm đến "{checkpoint.checkpoint_name}" đã được đặt/cập nhật: {when_str}.',
+                        actor_id=current_user_id,
+                        related_type='booking',
+                        related_id=int(booking_id),
+                        metadata={'booking_id': int(booking_id), 'checkpoint_id': checkpoint.id}
+                    )
+            except Exception as notif_error:
+                print(f"[TourProgress] Warning: failed to notify scheduled_time update: {str(notif_error)}")
         
         return jsonify({
             'message': 'Checkpoint created successfully',
@@ -222,6 +246,7 @@ def update_checkpoint(checkpoint_id):
             return jsonify({'error': 'Unauthorized'}), 403
         
         data = request.get_json()
+        old_scheduled_time = checkpoint.scheduled_time
         
         # Update allowed fields
         if 'checkpoint_name' in data:
@@ -281,6 +306,27 @@ def update_checkpoint(checkpoint_id):
         checkpoint.updated_at = datetime.utcnow()
         
         db.session.commit()
+
+        # Notify users if scheduled_time changed
+        try:
+            if 'scheduled_time' in data and checkpoint.scheduled_time and checkpoint.scheduled_time != old_scheduled_time:
+                user_ids = get_user_ids_for_booking(int(checkpoint.booking_id))
+                when_str = checkpoint.scheduled_time.isoformat()
+                for uid in user_ids:
+                    if uid == current_user_id:
+                        continue
+                    create_notification(
+                        user_id=uid,
+                        type='booking',
+                        title='Thời gian hành trình đã được cập nhật',
+                        message=f'Thời gian di chuyển/điểm đến "{checkpoint.checkpoint_name}" vừa được cập nhật: {when_str}.',
+                        actor_id=current_user_id,
+                        related_type='booking',
+                        related_id=int(checkpoint.booking_id),
+                        metadata={'booking_id': int(checkpoint.booking_id), 'checkpoint_id': checkpoint.id}
+                    )
+        except Exception as notif_error:
+            print(f"[TourProgress] Warning: failed to notify scheduled_time change: {str(notif_error)}")
         
         return jsonify({
             'message': 'Checkpoint updated successfully',
@@ -366,17 +412,85 @@ def init_checkpoints_from_itinerary(booking_id):
         
         # Create checkpoints from itinerary
         checkpoints_created = []
-        
-        # Assuming itinerary is a dict with days as keys
-        for day_key in sorted(itinerary.keys()):
-            day_data = itinerary[day_key]
+
+        def iter_itinerary_days(raw_itinerary):
+            """Yield (day_number, day_data) pairs for both dict and list formats."""
+            if not raw_itinerary:
+                return []
+
+            # New format: list of day objects
+            if isinstance(raw_itinerary, list):
+                days = []
+                for idx, day in enumerate(raw_itinerary):
+                    if isinstance(day, dict):
+                        day_number = day.get('day_number') or day.get('dayNumber') or day.get('day')
+                        try:
+                            day_number = int(day_number) if day_number is not None else (idx + 1)
+                        except Exception:
+                            day_number = idx + 1
+                        days.append((day_number, day))
+                    elif isinstance(day, str):
+                        days.append((idx + 1, {'title': f'Day {idx + 1}', 'description': day}))
+                return sorted(days, key=lambda x: x[0])
+
+            # Legacy format: dict keyed by day
+            if isinstance(raw_itinerary, dict):
+                days = []
+                for key, value in raw_itinerary.items():
+                    day_number = None
+                    if isinstance(key, int):
+                        day_number = key
+                    elif isinstance(key, str):
+                        # Accept keys like "day1", "1", "Day 2"
+                        digits = ''.join(ch for ch in key if ch.isdigit())
+                        if digits:
+                            try:
+                                day_number = int(digits)
+                            except Exception:
+                                day_number = None
+                    if day_number is None:
+                        day_number = len(days) + 1
+                    days.append((day_number, value))
+                return sorted(days, key=lambda x: x[0])
+
+            # Fallback: string or other
+            if isinstance(raw_itinerary, str):
+                return [(1, {'title': 'Itinerary', 'description': raw_itinerary})]
+
+            return []
+
+        for day_number, day_data in iter_itinerary_days(itinerary):
             
             # Handle different itinerary formats
             if isinstance(day_data, dict):
                 # Create main checkpoint for the day
-                checkpoint_name = day_data.get('title', f'Day {day_key}')
+                checkpoint_name = day_data.get('title', f'Day {day_number}')
                 checkpoint_description = day_data.get('description', '')
-                location = day_data.get('location', '')
+                location = day_data.get('location', '') or day_data.get('location_name', '')
+
+                # Newer format may include explicit checkpoints
+                checkpoints = day_data.get('checkpoints', [])
+                if checkpoints and isinstance(checkpoints, list):
+                    for cp in checkpoints:
+                        if not isinstance(cp, dict):
+                            continue
+                        cp_name = cp.get('checkpoint_name') or cp.get('name') or cp.get('title') or 'Điểm dừng'
+                        cp_desc = cp.get('checkpoint_description') or cp.get('description') or ''
+                        cp_location = cp.get('location_name') or cp.get('location') or location or ''
+                        checkpoint = TourProgress(
+                            booking_id=booking_id,
+                            checkpoint_name=str(cp_name)[:255],
+                            checkpoint_description=cp_desc,
+                            checkpoint_order=len(checkpoints_created) + 1,
+                            location_name=cp_location,
+                            latitude=cp.get('latitude'),
+                            longitude=cp.get('longitude'),
+                            status='pending',
+                            updated_by=current_user_id
+                        )
+                        db.session.add(checkpoint)
+                        checkpoints_created.append(checkpoint)
+                    continue
                 
                 # Check for activities to create sub-checkpoints
                 activities = day_data.get('activities', [])
@@ -412,7 +526,7 @@ def init_checkpoints_from_itinerary(booking_id):
                     continue # Skip default creation since we handled it
                 
             elif isinstance(day_data, str):
-                checkpoint_name = f'Day {day_key}'
+                checkpoint_name = f'Day {day_number}'
                 checkpoint_description = day_data
                 location = ''
             else:
@@ -647,12 +761,12 @@ def download_all_checkpoint_images(booking_id):
         tour = Tour.query.get(booking.tour_id)
         assignment = TourAssignment.query.filter_by(booking_id=booking_id).first()
         
-        is_customer = booking.user_id == current_user_id
+        is_in_audience = current_user_id in get_user_ids_for_booking(int(booking_id))
         is_seller = tour and tour.seller_id == current_user_id
         is_guide = assignment and assignment.tour_guide_id == current_user_id
         is_admin = user.role == 'admin'
-        
-        if not (is_customer or is_seller or is_guide or is_admin):
+
+        if not (is_in_audience or is_seller or is_guide or is_admin):
             return jsonify({'error': 'Unauthorized'}), 403
         
         # Get all checkpoints with images

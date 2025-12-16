@@ -144,31 +144,66 @@ const PostDetailPage = () => {
   useEffect(() => {
     if (!socket || !isConnected || !post) return;
 
-    const handlePostLiked = (data: { post_id: number; post_slug: string; likes_count: number }) => {
+    const handlePostLiked = (data: {
+      post_id: number;
+      post_slug: string;
+      likes_count: number;
+    }) => {
       if (post.id === data.post_id || post.slug === data.post_slug) {
-        console.log("[Post Detail] Post liked, updating count:", data.likes_count);
-        setPost((prev) => prev ? { ...prev, likes_count: data.likes_count } : null);
+        console.log(
+          "[Post Detail] Post liked, updating count:",
+          data.likes_count
+        );
+        setPost((prev) =>
+          prev ? { ...prev, likes_count: data.likes_count } : null
+        );
       }
     };
 
-    const handlePostUnliked = (data: { post_id: number; post_slug: string; likes_count: number }) => {
+    const handlePostUnliked = (data: {
+      post_id: number;
+      post_slug: string;
+      likes_count: number;
+    }) => {
       if (post.id === data.post_id || post.slug === data.post_slug) {
-        console.log("[Post Detail] Post unliked, updating count:", data.likes_count);
-        setPost((prev) => prev ? { ...prev, likes_count: data.likes_count } : null);
+        console.log(
+          "[Post Detail] Post unliked, updating count:",
+          data.likes_count
+        );
+        setPost((prev) =>
+          prev ? { ...prev, likes_count: data.likes_count } : null
+        );
       }
     };
 
-    const handlePostCommented = (data: { post_id: number; post_slug: string; comments_count: number }) => {
+    const handlePostCommented = (data: {
+      post_id: number;
+      post_slug: string;
+      comments_count: number;
+    }) => {
       if (post.id === data.post_id || post.slug === data.post_slug) {
-        console.log("[Post Detail] Post commented, updating count:", data.comments_count);
-        setPost((prev) => prev ? { ...prev, comments_count: data.comments_count } : null);
+        console.log(
+          "[Post Detail] Post commented, updating count:",
+          data.comments_count
+        );
+        setPost((prev) =>
+          prev ? { ...prev, comments_count: data.comments_count } : null
+        );
       }
     };
 
-    const handleNewComment = (data: { post_id: number; comments_count: number }) => {
+    const handleNewComment = (data: {
+      post_id: number;
+      comments_count: number;
+    }) => {
       if (post.id === data.post_id) {
-        console.log("[Post Detail] New comment received, updating count:", data.comments_count);
-        setPost((prev) => prev ? { ...prev, comments_count: data.comments_count } : null);
+        console.log(
+          "[Post Detail] New comment received, updating count:",
+          data.comments_count
+        );
+        setPost((prev) =>
+          prev ? { ...prev, comments_count: data.comments_count } : null
+        );
         // Optionally refresh comments section
         // You might want to add a refresh function to CommentSection
       }
@@ -583,11 +618,21 @@ const PostDetailPage = () => {
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">
                   Hình ảnh ({post.images.length})
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div
+                  className={
+                    post.images.length === 1
+                      ? "grid grid-cols-1 gap-3"
+                      : "grid grid-cols-2 md:grid-cols-3 gap-3"
+                  }
+                >
                   {post.images.map((imageUrl, index) => (
                     <div
                       key={index}
-                      className="relative group cursor-pointer"
+                      className={
+                        post.images && post.images.length === 1
+                          ? "relative group cursor-pointer overflow-hidden rounded-lg aspect-video"
+                          : "relative group cursor-pointer"
+                      }
                       onClick={() => {
                         setLightboxIndex(index);
                         setLightboxOpen(true);
@@ -596,11 +641,18 @@ const PostDetailPage = () => {
                       <img
                         src={imageUrl}
                         alt={`Ảnh ${index + 1}`}
-                        className="w-full h-64 object-cover rounded-lg hover:opacity-90 transition"
+                        className={
+                          post.images && post.images.length === 1
+                            ? "absolute inset-0 w-full h-full object-cover hover:opacity-90 transition"
+                            : "w-full h-64 object-cover rounded-lg hover:opacity-90 transition"
+                        }
                         onError={(e) => {
                           // Fallback to placeholder if image fails to load
                           const target = e.target as HTMLImageElement;
-                          if (target.src && !target.src.includes('placeholder')) {
+                          if (
+                            target.src &&
+                            !target.src.includes("placeholder")
+                          ) {
                             target.src = `https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop`;
                           }
                         }}

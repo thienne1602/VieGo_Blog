@@ -9,8 +9,11 @@ from models.tour_assignment import TourAssignment
 from models.group_chat import GroupChat, GroupMember
 from models.chat import Chat
 from datetime import datetime, timedelta
+from sqlalchemy import func, or_
 import re
 import uuid
+
+from utils.participant_onboarding import ensure_user_for_participant, try_send_participant_account_email
 
 # Try to import email utility
 send_booking_confirmation_email = None
@@ -114,8 +117,26 @@ def get_customer_bookings():
 
         print(f"\n🔍 [DEBUG] Getting bookings for user: {user.username} (ID: {current_user_id}, Role: {user.role})")
         
-        # Get bookings where user_id == current_user_id (customer's own bookings)
-        bookings = Booking.query.filter_by(user_id=current_user_id).order_by(Booking.created_at.desc()).all()
+        # Get bookings where user is the booker OR appears as a participant (by participant email).
+        participant_booking_ids = []
+        if user.email:
+            normalized_email = user.email.strip().lower()
+            if normalized_email:
+                participant_booking_ids = [
+                    row[0]
+                    for row in db.session.query(BookingParticipant.booking_id)
+                    .filter(func.lower(BookingParticipant.email) == normalized_email)
+                    .distinct()
+                    .all()
+                ]
+
+        bookings_query = Booking.query.filter(
+            or_(
+                Booking.user_id == current_user_id,
+                Booking.id.in_(participant_booking_ids) if participant_booking_ids else False,
+            )
+        )
+        bookings = bookings_query.order_by(Booking.created_at.desc()).all()
         print(f"📦 [DEBUG] Found {len(bookings)} bookings for user {current_user_id}")
         
         # Also check all bookings to see if there's a mismatch
@@ -220,8 +241,26 @@ def get_booking(booking_id):
         
         print(f"[BOOKING DEBUG] User ID: {current_user_id} (type: {type(current_user_id)}), Role: {user.role}, Tour Seller ID: {tour_seller_id}, Booking User ID: {booking_user_id}, Is Assigned Guide: {is_assigned_guide}")
         
-        # Allow access if: admin OR tour seller OR booking owner (customer) OR assigned tour guide
-        if user.role != 'admin' and tour_seller_id != current_user_id and booking_user_id != current_user_id and not is_assigned_guide:
+        # Allow access if: admin OR tour seller OR booking owner OR assigned tour guide OR booking participant (by email).
+        is_participant = False
+        if user.email:
+            normalized_email = user.email.strip().lower()
+            if normalized_email:
+                is_participant = (
+                    BookingParticipant.query.filter(
+                        BookingParticipant.booking_id == booking_id,
+                        func.lower(BookingParticipant.email) == normalized_email,
+                    ).first()
+                    is not None
+                )
+
+        if (
+            user.role != 'admin'
+            and tour_seller_id != current_user_id
+            and booking_user_id != current_user_id
+            and not is_assigned_guide
+            and not is_participant
+        ):
             print(f"[BOOKING DEBUG] Permission denied: User {current_user_id} (role: {user.role}) trying to access booking {booking_id} (owned by user {booking_user_id}, tour owned by {tour_seller_id})")
             return jsonify({'error': 'Bạn không có quyền xem booking này'}), 403
         
@@ -330,51 +369,70 @@ def update_booking_status(booking_id):
         if new_status not in ['pending', 'confirmed', 'cancelled']:
             return jsonify({'error': 'Giá trị status không hợp lệ'}), 400
 
+        old_status = booking.status
         booking.status = new_status
         booking.updated_at = datetime.utcnow()
         
-        # Create group chat if booking is confirmed
+        # Create/update group chat for confirmed bookings
+        created_participant_accounts = []
         if new_status == 'confirmed':
             try:
-                # Check if group already exists for this booking to avoid duplicates
-                # We can check if there's a group with a specific name pattern or store group_id in booking
-                # For now, let's just create it. The user can manage it.
-                
-                # Create group name
                 group_name = f"Du lịch - {tour.title}"
-                
-                # Generate unique room_id
-                room_id = f"group_{uuid.uuid4().hex[:16]}"
-                
-                # Create group
-                group = GroupChat(
-                    room_id=room_id,
-                    name=group_name,
-                    description=f"Nhóm chat cho tour {tour.title}",
-                    created_by=booking.user_id
-                )
-                db.session.add(group)
-                db.session.flush()  # Get group.id
-                
-                # Add booker as admin
-                admin_member = GroupMember(
-                    group_id=group.id,
-                    user_id=booking.user_id,
-                    role='admin'
-                )
-                db.session.add(admin_member)
-                
-                # Create system message
-                system_message = Chat(
-                    room_id=room_id,
-                    sender_id=booking.user_id, # System message from admin
-                    message=f"Nhóm chat '{group_name}' đã được tạo tự động.",
-                    message_type='system',
-                    conversation_type='group'
-                )
-                db.session.add(system_message)
-                
-                print(f"✅ Created group chat '{group_name}' for booking {booking.id}")
+
+                # Deterministic room_id to prevent duplicate groups for the same booking
+                room_id = f"booking_{booking.id}"
+
+                group = GroupChat.query.filter_by(room_id=room_id).first()
+                group_created_now = False
+                if not group:
+                    group = GroupChat(
+                        room_id=room_id,
+                        name=group_name,
+                        description=f"Nhóm chat cho tour {tour.title}",
+                        created_by=booking.user_id
+                    )
+                    db.session.add(group)
+                    db.session.flush()  # Get group.id
+                    group_created_now = True
+
+                # Ensure booker is admin
+                existing_admin = GroupMember.query.filter_by(group_id=group.id, user_id=booking.user_id).first()
+                if not existing_admin:
+                    db.session.add(GroupMember(group_id=group.id, user_id=booking.user_id, role='admin'))
+                else:
+                    existing_admin.role = 'admin'
+
+                # Ensure all booking participants are also members
+                participants = BookingParticipant.query.filter_by(booking_id=booking.id).all()
+                for p in participants:
+                    if not p.email:
+                        continue
+
+                    ensure_result = ensure_user_for_participant(p.email, full_name=p.full_name)
+                    if ensure_result.created and ensure_result.user and ensure_result.plain_password:
+                        created_participant_accounts.append({
+                            'email': ensure_result.user.email,
+                            'username': ensure_result.user.username,
+                            'password': ensure_result.plain_password,
+                            'full_name': ensure_result.user.full_name,
+                        })
+
+                    if ensure_result.user:
+                        member = GroupMember.query.filter_by(group_id=group.id, user_id=ensure_result.user.id).first()
+                        if not member:
+                            db.session.add(GroupMember(group_id=group.id, user_id=ensure_result.user.id, role='member'))
+
+                # Create system message only on first-time group creation
+                if group_created_now:
+                    db.session.add(Chat(
+                        room_id=room_id,
+                        sender_id=booking.user_id,
+                        message=f"Nhóm chat '{group_name}' đã được tạo tự động.",
+                        message_type='system',
+                        conversation_type='group'
+                    ))
+
+                print(f"✅ Group chat ready for booking {booking.id}: room_id={room_id}, created={group_created_now}")
                 
             except Exception as e:
                 print(f"⚠️ Failed to create group chat: {str(e)}")
@@ -384,6 +442,25 @@ def update_booking_status(booking_id):
                 pass
 
         db.session.commit()
+
+        # Best-effort: send account emails for any participant accounts created during confirmation
+        seller_for_participant_emails = None
+        try:
+            if tour and getattr(tour, 'seller_id', None):
+                seller_for_participant_emails = User.query.get(tour.seller_id)
+        except Exception:
+            seller_for_participant_emails = None
+
+        for acc in created_participant_accounts:
+            sent, err = try_send_participant_account_email(
+                recipient_email=acc['email'],
+                username=acc['username'],
+                plain_password=acc['password'],
+                full_name=acc.get('full_name'),
+                seller=seller_for_participant_emails,
+            )
+            if not sent:
+                print(f"[Booking] Warning: failed to send participant account email to {acc['email']}: {err}")
 
         # Send confirmation email if status changed to 'confirmed' and email is available
         email_sent = False

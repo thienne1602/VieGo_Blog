@@ -14,6 +14,9 @@ from models.user import User
 from models.tour import Tour
 from models.booking import Booking
 
+from routes.notifications import create_notification
+from utils.booking_audience import get_user_ids_for_tour_bookings
+
 tours_bp = Blueprint('tours', __name__, url_prefix='/api/tours')
 
 @tours_bp.route('/', methods=['GET'])
@@ -331,9 +334,12 @@ def update_tour(tour_id):
             if field in data:
                 setattr(tour, field, data[field])
         
+        itinerary_updated = False
+
         # Update JSON fields
         if 'itinerary' in data:
             tour.set_itinerary(data['itinerary'])
+            itinerary_updated = True
         
         if 'inclusions' in data:
             tour.set_inclusions(data['inclusions'])
@@ -354,6 +360,26 @@ def update_tour(tour_id):
             tour.set_locations_covered(data['locations_covered'])
         
         db.session.commit()
+
+        # Notify booked users when itinerary changes
+        if itinerary_updated:
+            try:
+                user_ids = get_user_ids_for_tour_bookings(tour.id, statuses=('confirmed',))
+                for uid in user_ids:
+                    if uid == current_user_id:
+                        continue
+                    create_notification(
+                        user_id=uid,
+                        type='booking',
+                        title='Hành trình đã được cập nhật',
+                        message=f'Hành trình tour "{tour.title}" vừa được cập nhật. Vui lòng kiểm tra lịch trình và thời gian di chuyển.',
+                        actor_id=current_user_id,
+                        related_type='tour',
+                        related_id=tour.id,
+                        metadata={'tour_id': tour.id}
+                    )
+            except Exception as notif_error:
+                print(f"[Tours] Warning: failed to notify itinerary update: {str(notif_error)}")
         
         return jsonify({
             'message': 'Cập nhật tour thành công!',

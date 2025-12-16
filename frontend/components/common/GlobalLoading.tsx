@@ -18,7 +18,7 @@ export default function GlobalLoading({
         className="text-center"
       >
         <motion.img
-          src="/assets/stickers/đang tải.gif"
+          src="/assets/stickers/dang-tai.gif"
           alt="Loading"
           className="w-64 h-auto object-contain mx-auto mb-6"
           animate={{

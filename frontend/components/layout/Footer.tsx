@@ -66,10 +66,24 @@ export default function Footer() {
               nhất.
             </p>
             <div className="flex gap-4">
-              {[Facebook, Instagram, Twitter, Youtube].map((Icon, index) => (
+              {[
+                {
+                  Icon: Facebook,
+                  href: "https://www.facebook.com/ngocthien.thachvan/",
+                  label: "Facebook",
+                },
+                {
+                  Icon: Globe,
+                  href: "https://github.com/thienne1602",
+                  label: "GitHub",
+                },
+              ].map(({ Icon, href, label }) => (
                 <motion.a
-                  key={index}
-                  href="#"
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={label}
                   className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-primary-600 hover:border-primary-500 transition-all"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   whileTap={{ scale: 0.9 }}
@@ -153,7 +167,7 @@ export default function Footer() {
             </div>
             <div>
               <p className="text-sm text-gray-400">Hotline</p>
-              <p className="font-bold text-white">1900 123 456</p>
+              <p className="font-bold text-white">0948 283 916</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -162,7 +176,7 @@ export default function Footer() {
             </div>
             <div>
               <p className="text-sm text-gray-400">Email</p>
-              <p className="font-bold text-white">contact@viego.com</p>
+              <p className="font-bold text-white">ngocthien160224@gmail.com</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -171,14 +185,14 @@ export default function Footer() {
             </div>
             <div>
               <p className="text-sm text-gray-400">Địa chỉ</p>
-              <p className="font-bold text-white">Hà Nội, Việt Nam</p>
+              <p className="font-bold text-white">Hồ Chí Minh, Việt Nam</p>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <p>© {currentYear} VieGo. All rights reserved.</p>
+          <p>© {currentYear} VieGo. Tạo bởi thienne with love.</p>
           <div className="flex gap-6">
             {footerLinks.support.map((link) => (
               <Link

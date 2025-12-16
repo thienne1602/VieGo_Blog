@@ -2,10 +2,99 @@
 Email utility functions for sending notifications
 """
 import os
-from flask import Flask, current_app
+from flask import Flask, current_app, has_app_context
 from flask_mail import Mail, Message
 
 mail = Mail()
+
+
+def send_password_reset_email(recipient_email: str, username: str, new_password: str, full_name: str = None):
+    """Send a password reset email (new password) using system email configuration."""
+    try:
+        # Prefer the running Flask app configuration (which already loads backend/.env)
+        # so we send using the same credentials as other working emails.
+        if has_app_context():
+            mail_username = current_app.config.get('MAIL_USERNAME', '')
+            mail_password = (current_app.config.get('MAIL_PASSWORD', '') or '').strip().replace(' ', '')
+            mail_sender = current_app.config.get('MAIL_DEFAULT_SENDER', mail_username)
+            mail_server = current_app.config.get('MAIL_SERVER', os.getenv('MAIL_SERVER', 'smtp.gmail.com'))
+            mail_port = int(current_app.config.get('MAIL_PORT', os.getenv('MAIL_PORT', '587')))
+            mail_use_tls = bool(current_app.config.get('MAIL_USE_TLS', os.getenv('MAIL_USE_TLS', 'true').lower() == 'true'))
+            mail_use_ssl = bool(current_app.config.get('MAIL_USE_SSL', os.getenv('MAIL_USE_SSL', 'false').lower() == 'true'))
+        else:
+            mail_username = os.getenv('MAIL_USERNAME', '')
+            mail_password = (os.getenv('MAIL_PASSWORD', '') or '').strip().replace(' ', '')
+            mail_sender = os.getenv('MAIL_DEFAULT_SENDER', mail_username)
+            mail_server = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+            mail_port = int(os.getenv('MAIL_PORT', '587'))
+            mail_use_tls = os.getenv('MAIL_USE_TLS', 'true').lower() == 'true'
+            mail_use_ssl = os.getenv('MAIL_USE_SSL', 'false').lower() == 'true'
+
+        if not mail_username or not mail_password:
+            return False, 'email_not_configured'
+
+        display_name = full_name or username or "bạn"
+        subject = "VieGo - Mật khẩu mới của bạn"
+
+        html_body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset=\"UTF-8\">
+        </head>
+        <body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">
+            <div style=\"max-width: 600px; margin: 0 auto; padding: 20px;\">
+                <h2>Xin chào {display_name},</h2>
+                <p>Bạn vừa yêu cầu đặt lại mật khẩu trên VieGo.</p>
+                <p><strong>Tên đăng nhập:</strong> {username}</p>
+                <p><strong>Mật khẩu mới:</strong> <span style=\"font-size: 18px;\">{new_password}</span></p>
+                <p>Vui lòng đăng nhập bằng mật khẩu mới và đổi lại mật khẩu trong phần Cài đặt để an toàn hơn.</p>
+                <hr />
+                <p style=\"font-size: 12px; color: #666;\">Email này được gửi tự động, vui lòng không trả lời.</p>
+            </div>
+        </body>
+        </html>
+        """
+
+        text_body = f"""Xin chào {display_name},
+
+Bạn vừa yêu cầu đặt lại mật khẩu trên VieGo.
+
+Tên đăng nhập: {username}
+Mật khẩu mới: {new_password}
+
+Vui lòng đăng nhập bằng mật khẩu mới và đổi lại mật khẩu trong phần Cài đặt.
+"""
+
+        msg = Message(
+            subject=subject,
+            recipients=[recipient_email],
+            body=text_body,
+            html=html_body,
+            sender=mail_sender,
+        )
+
+        # If we're in an app context, use the configured global Mail instance.
+        # Otherwise, create a temporary Mail instance like other email utilities.
+        if has_app_context():
+            mail.send(msg)
+        else:
+            temp_app = Flask(__name__)
+            temp_app.config['MAIL_SERVER'] = mail_server
+            temp_app.config['MAIL_PORT'] = mail_port
+            temp_app.config['MAIL_USE_TLS'] = mail_use_tls
+            temp_app.config['MAIL_USE_SSL'] = mail_use_ssl
+            temp_app.config['MAIL_USERNAME'] = mail_username
+            temp_app.config['MAIL_PASSWORD'] = mail_password
+            temp_app.config['MAIL_DEFAULT_SENDER'] = mail_sender
+
+            temp_mail = Mail()
+            temp_mail.init_app(temp_app)
+            with temp_app.app_context():
+                temp_mail.send(msg)
+        return True, None
+    except Exception as e:
+        return False, str(e)
 
 def init_email(app: Flask):
     """Initialize Flask-Mail with app configuration"""
@@ -14,7 +103,8 @@ def init_email(app: Flask):
     app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'true').lower() == 'true'
     app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL', 'false').lower() == 'true'
     app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', '')
-    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', '')
+    # Gmail App Passwords are often shown/entered with spaces; strip them for SMTP auth.
+    app.config['MAIL_PASSWORD'] = (os.getenv('MAIL_PASSWORD', '') or '').strip().replace(' ', '')
     app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', os.getenv('MAIL_USERNAME', ''))
     
     mail.init_app(app)
@@ -49,7 +139,7 @@ def send_booking_confirmation_email(booking, tour, recipient_email: str, seller=
         if use_seller_email:
             # Use seller's email configuration
             mail_username = seller.seller_email
-            mail_password = seller.get_seller_email_password()
+            mail_password = (seller.get_seller_email_password() or '').strip().replace(' ', '')
             mail_sender = seller.seller_email
             # Assume Gmail SMTP for seller emails (can be customized later)
             mail_server = 'smtp.gmail.com'
@@ -61,7 +151,7 @@ def send_booking_confirmation_email(booking, tour, recipient_email: str, seller=
         else:
             # Use default system email configuration
             mail_username = os.getenv('MAIL_USERNAME', '')
-            mail_password = os.getenv('MAIL_PASSWORD', '')
+            mail_password = (os.getenv('MAIL_PASSWORD', '') or '').strip().replace(' ', '')
             mail_sender = os.getenv('MAIL_DEFAULT_SENDER', mail_username)
             mail_server = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
             mail_port = int(os.getenv('MAIL_PORT', '587'))
@@ -77,7 +167,7 @@ def send_booking_confirmation_email(booking, tour, recipient_email: str, seller=
                 # Fall back to system email
                 use_seller_email = False  # Important: Reset flag when falling back
                 mail_username = os.getenv('MAIL_USERNAME', '')
-                mail_password = os.getenv('MAIL_PASSWORD', '')
+                mail_password = (os.getenv('MAIL_PASSWORD', '') or '').strip().replace(' ', '')
                 mail_sender = os.getenv('MAIL_DEFAULT_SENDER', mail_username)
                 mail_server = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
                 mail_port = int(os.getenv('MAIL_PORT', '587'))
@@ -1016,3 +1106,162 @@ VieGo Travel
         import traceback
         print(f"   Traceback: {traceback.format_exc()}")
         return False
+
+def send_participant_account_created_email(
+    recipient_email: str,
+    username: str,
+    password: str,
+    full_name: str | None = None,
+    seller=None,
+):
+    """Send account credentials to a booking participant.
+
+    Priority:
+      1) Seller/company email (seller.seller_email + seller.seller_email_password) if provided.
+      2) System email configuration (MAIL_USERNAME/MAIL_PASSWORD).
+
+    Returns (ok: bool, error: str|None) and never raises.
+    """
+    try:
+        use_seller_email = bool(
+            seller
+            and getattr(seller, 'seller_email', None)
+            and getattr(seller, 'seller_email_password', None)
+        )
+
+        if use_seller_email:
+            mail_username = seller.seller_email
+            mail_password = seller.get_seller_email_password()
+            mail_sender = seller.seller_email
+            mail_server = 'smtp.gmail.com'
+            mail_port = 587
+            mail_use_tls = True
+            mail_use_ssl = False
+        else:
+            # Prefer the running Flask app configuration (launcher/.env), fallback to env.
+            if has_app_context():
+                mail_username = current_app.config.get('MAIL_USERNAME', '')
+                mail_password = current_app.config.get('MAIL_PASSWORD', '')
+                mail_sender = current_app.config.get('MAIL_DEFAULT_SENDER', mail_username)
+                mail_server = current_app.config.get('MAIL_SERVER', os.getenv('MAIL_SERVER', 'smtp.gmail.com'))
+                mail_port = int(current_app.config.get('MAIL_PORT', os.getenv('MAIL_PORT', '587')))
+                mail_use_tls = bool(current_app.config.get('MAIL_USE_TLS', os.getenv('MAIL_USE_TLS', 'true').lower() == 'true'))
+                mail_use_ssl = bool(current_app.config.get('MAIL_USE_SSL', os.getenv('MAIL_USE_SSL', 'false').lower() == 'true'))
+            else:
+                mail_username = os.getenv('MAIL_USERNAME', '')
+                mail_password = os.getenv('MAIL_PASSWORD', '')
+                mail_sender = os.getenv('MAIL_DEFAULT_SENDER', mail_username)
+                mail_server = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+                mail_port = int(os.getenv('MAIL_PORT', '587'))
+                mail_use_tls = os.getenv('MAIL_USE_TLS', 'true').lower() == 'true'
+                mail_use_ssl = os.getenv('MAIL_USE_SSL', 'false').lower() == 'true'
+
+        if not mail_username or not mail_password:
+            if use_seller_email:
+                print('[WARNING] Seller email not configured for participant account email (seller_email/seller_email_password missing)')
+                return False, 'seller_email/seller_email_password missing'
+            print('[WARNING] Email not configured for participant account email (MAIL_USERNAME/MAIL_PASSWORD missing)')
+            return False, 'MAIL_USERNAME/MAIL_PASSWORD missing'
+
+        display_name = (full_name or '').strip() or 'bạn'
+        subject = 'Tài khoản VieGo đã được tạo cho bạn'
+
+        html_body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset=\"UTF-8\">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; }}
+                .header {{ background: #667eea; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .content {{ background: white; padding: 20px; border-radius: 0 0 10px 10px; }}
+                .box {{ background: #f0f0f0; padding: 12px; border-radius: 6px; margin: 15px 0; }}
+                .mono {{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace; }}
+            </style>
+        </head>
+        <body>
+            <div class=\"container\">
+                <div class=\"header\">
+                    <h2>Chào {display_name}!</h2>
+                    <p>Tài khoản VieGo của bạn đã được tạo tự động</p>
+                </div>
+                <div class=\"content\">
+                    <p>Bạn vừa được thêm là người tham gia trong một tour. Hệ thống đã tạo tài khoản để bạn có thể đăng nhập theo dõi hành trình và nhận thông báo.</p>
+                    <div class=\"box\">
+                        <p><strong>Thông tin đăng nhập</strong></p>
+                        <p>Username/Email: <span class=\"mono\">{username}</span> (hoặc <span class=\"mono\">{recipient_email}</span>)</p>
+                        <p>Mật khẩu: <span class=\"mono\">{password}</span></p>
+                    </div>
+                    <p>Vì lý do bảo mật, bạn nên đổi mật khẩu sau khi đăng nhập.</p>
+                    <p>Trân trọng,<br/>VieGo</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        text_body = f"""Chào {display_name},
+
+Tài khoản VieGo của bạn đã được tạo tự động.
+
+Thông tin đăng nhập:
+- Username/Email: {username} (hoặc {recipient_email})
+- Mật khẩu: {password}
+
+Vì lý do bảo mật, bạn nên đổi mật khẩu sau khi đăng nhập.
+
+VieGo
+"""
+
+        msg = Message(
+            subject=subject,
+            sender=mail_sender,
+            recipients=[recipient_email],
+            body=text_body,
+            html=html_body,
+        )
+
+        if use_seller_email:
+            temp_app = Flask(__name__)
+            temp_app.config['MAIL_SERVER'] = mail_server
+            temp_app.config['MAIL_PORT'] = mail_port
+            temp_app.config['MAIL_USE_TLS'] = mail_use_tls
+            temp_app.config['MAIL_USE_SSL'] = mail_use_ssl
+            temp_app.config['MAIL_USERNAME'] = mail_username
+            temp_app.config['MAIL_PASSWORD'] = mail_password
+            temp_app.config['MAIL_DEFAULT_SENDER'] = mail_sender
+
+            temp_mail = Mail()
+            temp_mail.init_app(temp_app)
+
+            with temp_app.app_context():
+                temp_mail.send(msg)
+            print(f"[OK] Participant account email sent FROM SELLER ({mail_username}) TO {recipient_email}")
+        else:
+            if has_app_context():
+                mail.send(msg)
+            else:
+                temp_app = Flask(__name__)
+                temp_app.config['MAIL_SERVER'] = mail_server
+                temp_app.config['MAIL_PORT'] = mail_port
+                temp_app.config['MAIL_USE_TLS'] = mail_use_tls
+                temp_app.config['MAIL_USE_SSL'] = mail_use_ssl
+                temp_app.config['MAIL_USERNAME'] = mail_username
+                temp_app.config['MAIL_PASSWORD'] = mail_password
+                temp_app.config['MAIL_DEFAULT_SENDER'] = mail_sender
+
+                temp_mail = Mail()
+                temp_mail.init_app(temp_app)
+
+                with temp_app.app_context():
+                    temp_mail.send(msg)
+            print(f"[OK] Participant account email sent FROM SYSTEM ({mail_username}) TO {recipient_email}")
+
+        return True, None
+
+    except Exception as e:
+        print(f"[ERROR] Error sending participant account email to {recipient_email}: {str(e)}")
+        import traceback
+        print(f"   Traceback: {traceback.format_exc()}")
+        return False, str(e)

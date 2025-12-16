@@ -122,8 +122,7 @@ const RightSidebar = () => {
       const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
       if (diffInSeconds < 60) return "Vừa xong";
-      if (diffInSeconds < 3600)
-        return `${Math.floor(diffInSeconds / 60)} phút`;
+      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút`;
       if (diffInSeconds < 86400)
         return `${Math.floor(diffInSeconds / 3600)} giờ`;
       if (diffInSeconds < 604800)
@@ -141,6 +140,18 @@ const RightSidebar = () => {
   const handleConversationClick = (otherUserId: number) => {
     router.push(`/messages/${otherUserId}`);
   };
+
+  const isGroupConversation = (conversation: any) =>
+    conversation?.type === "group" ||
+    (typeof conversation?.id === "string" &&
+      conversation.id.startsWith("group_"));
+
+  const renderableConversations = conversations.filter((conversation: any) => {
+    if (isGroupConversation(conversation)) {
+      return Boolean(conversation?.group?.room_id);
+    }
+    return Boolean(conversation?.other_user?.id);
+  });
 
   return (
     <motion.div
@@ -286,7 +297,9 @@ const RightSidebar = () => {
                             className="w-full h-full rounded-full object-cover"
                           />
                         ) : (
-                          (seller.full_name || seller.username || "?")[0].toUpperCase()
+                          (seller.full_name ||
+                            seller.username ||
+                            "?")[0].toUpperCase()
                         )}
                       </div>
                       <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">
@@ -360,82 +373,111 @@ const RightSidebar = () => {
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
           </div>
-        ) : conversations.length === 0 ? (
+        ) : renderableConversations.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
             Chưa có cuộc trò chuyện nào
           </div>
         ) : (
           <div className="space-y-2">
             <AnimatePresence>
-              {conversations.slice(0, 5).map((conversation, index) => {
-                if (!conversation.other_user) {
-                  return null;
-                }
-                return (
-                  <motion.div
-                    key={conversation.id}
-                    className="group p-3 rounded-xl bg-gradient-to-br from-white/60 via-blue-50/40 to-purple-50/40 dark:from-gray-800/60 dark:via-gray-700/40 dark:to-gray-800/40 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 hover:shadow-lg transition-all duration-300 cursor-pointer relative"
-                    whileHover={{ scale: 1.01, x: -2 }}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ delay: index * 0.05, duration: 0.3 }}
-                    onClick={() => handleConversationClick(conversation.other_user.id)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="relative">
-                        <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 font-semibold">
-                          {conversation.other_user.avatar_url ? (
-                            <img
-                              src={conversation.other_user.avatar_url}
-                              alt={
-                                conversation.other_user.full_name ||
-                                conversation.other_user.username
-                              }
-                              className="w-full h-full rounded-full object-cover"
-                            />
-                          ) : (
-                            (conversation.other_user.full_name ||
-                              conversation.other_user.username ||
-                              "?")[0].toUpperCase()
-                          )}
-                        </div>
-                        {conversation.unread_count > 0 && (
-                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">
-                            <span className="text-xs font-bold text-white">
-                              {conversation.unread_count > 9
-                                ? "9+"
-                                : conversation.unread_count}
-                            </span>
+              {renderableConversations
+                .slice(0, 5)
+                .map((conversation: any, index) => {
+                  const isGroup = isGroupConversation(conversation);
+                  const title = isGroup
+                    ? conversation.group?.name || "Nhóm chat"
+                    : conversation.other_user?.full_name ||
+                      conversation.other_user?.username ||
+                      "Người dùng";
+
+                  const avatarUrl = isGroup
+                    ? conversation.group?.avatar_url
+                    : conversation.other_user?.avatar_url;
+
+                  const initialsSource = title || "?";
+                  const lastMessageAt = conversation.last_message?.created_at;
+
+                  const previewText = (() => {
+                    if (!conversation.last_message) return "";
+
+                    const msg = conversation.last_message;
+                    const baseText =
+                      msg.message_type === "image"
+                        ? "📷 Đã gửi ảnh"
+                        : msg.message_type === "file"
+                        ? "📎 Đã gửi file"
+                        : msg.message;
+
+                    if (!isGroup) return baseText;
+
+                    const senderName =
+                      msg.sender?.full_name || msg.sender?.username || "";
+                    return senderName ? `${senderName}: ${baseText}` : baseText;
+                  })();
+
+                  return (
+                    <motion.div
+                      key={conversation.id}
+                      className="group p-3 rounded-xl bg-gradient-to-br from-white/60 via-blue-50/40 to-purple-50/40 dark:from-gray-800/60 dark:via-gray-700/40 dark:to-gray-800/40 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 hover:shadow-lg transition-all duration-300 cursor-pointer relative"
+                      whileHover={{ scale: 1.01, x: -2 }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ delay: index * 0.05, duration: 0.3 }}
+                      onClick={() => {
+                        if (isGroup) {
+                          router.push(
+                            `/messages/group/${conversation.group.room_id}`
+                          );
+                          return;
+                        }
+                        handleConversationClick(conversation.other_user.id);
+                      }}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="relative">
+                          <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 font-semibold">
+                            {avatarUrl ? (
+                              <img
+                                src={avatarUrl}
+                                alt={title}
+                                className="w-full h-full rounded-full object-cover"
+                              />
+                            ) : (
+                              initialsSource[0].toUpperCase()
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">
-                            {conversation.other_user.full_name ||
-                              conversation.other_user.username}
-                          </h4>
-                          {conversation.last_message && (
-                            <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2">
-                              {formatTimeAgo(conversation.last_message.created_at)}
-                            </span>
+                          {conversation.unread_count > 0 && (
+                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">
+                              <span className="text-xs font-bold text-white">
+                                {conversation.unread_count > 9
+                                  ? "9+"
+                                  : conversation.unread_count}
+                              </span>
+                            </div>
                           )}
                         </div>
-                        {conversation.last_message && (
-                          <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                            {conversation.last_message.message_type === "image"
-                              ? "📷 Đã gửi ảnh"
-                              : conversation.last_message.message_type === "file"
-                              ? "📎 Đã gửi file"
-                              : conversation.last_message.message}
-                          </p>
-                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">
+                              {title}
+                            </h4>
+                            {conversation.last_message && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-2">
+                                {formatTimeAgo(lastMessageAt)}
+                              </span>
+                            )}
+                          </div>
+                          {conversation.last_message && (
+                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                              {previewText}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                    </motion.div>
+                  );
+                })}
             </AnimatePresence>
           </div>
         )}

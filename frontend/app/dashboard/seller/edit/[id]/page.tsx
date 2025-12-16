@@ -108,12 +108,34 @@ function EditTourForm({
             title: string;
             description: string;
           }> = [];
-          if (tour.itinerary && Array.isArray(tour.itinerary)) {
-            itinerary = tour.itinerary.map((item: any, index: number) => ({
-              day: item.day || index + 1,
-              title: item.title || "",
-              description: item.description || "",
-            }));
+          if (tour.itinerary) {
+            if (Array.isArray(tour.itinerary)) {
+              itinerary = tour.itinerary.map((item: any, index: number) => ({
+                day: item.day || item.day_number || item.dayNumber || index + 1,
+                title: item.title || "",
+                description: item.description || "",
+              }));
+            } else if (typeof tour.itinerary === "object") {
+              const entries = Object.entries(
+                tour.itinerary as Record<string, any>
+              );
+              itinerary = entries
+                .map(([key, value]: [string, any], index: number) => {
+                  const digits = key.replace(/\D/g, "");
+                  const day = digits ? parseInt(digits, 10) : index + 1;
+
+                  if (typeof value === "string") {
+                    return { day, title: "", description: value };
+                  }
+
+                  return {
+                    day,
+                    title: value?.title || "",
+                    description: value?.description || "",
+                  };
+                })
+                .sort((a, b) => a.day - b.day);
+            }
           }
 
           setForm({

@@ -640,6 +640,15 @@ def send_friend_request(target_user_id):
         if not receiver:
             print(f'[Friend Request] Error: Receiver {target_user_id} not found')
             return jsonify({'error': 'Không tìm thấy người dùng'}), 404
+
+        # Respect receiver privacy settings
+        try:
+            from models.user_settings import UserSettings
+            receiver_settings = UserSettings.query.filter_by(user_id=target_user_id).first()
+            if receiver_settings and not receiver_settings.privacy_allow_friend_requests:
+                return jsonify({'error': 'Người dùng này đang tắt lời mời kết bạn'}), 403
+        except Exception as e:
+            print(f"[Friend Request] Warning: cannot check privacy settings: {e}")
         
         # Refresh both users to get latest data from database
         db.session.refresh(requester)

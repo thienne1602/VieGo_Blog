@@ -250,6 +250,8 @@ Hãy trả lời câu hỏi của người dùng một cách CHÍNH XÁC, TỰ N
     console.log("[Gemini] Available models:", availableModelsCache);
   }
 
+  const availableModels = availableModelsCache ?? [];
+
   // Danh sách models để thử (ưu tiên models đã thành công trước đó)
   // Ưu tiên gemini-2.5-flash vì đã thành công
   const preferredModels = [
@@ -259,12 +261,12 @@ Hãy trả lời câu hỏi của người dùng một cách CHÍNH XÁC, TỰ N
   ];
 
   const modelsToTry =
-    availableModelsCache.length > 0
+    availableModels.length > 0
       ? [
           // Ưu tiên các model đã thành công
-          ...preferredModels.filter((m) => availableModelsCache.includes(m)),
+          ...preferredModels.filter((m) => availableModels.includes(m)),
           // Sau đó các model khác
-          ...availableModelsCache.filter((m) => !preferredModels.includes(m)),
+          ...availableModels.filter((m) => !preferredModels.includes(m)),
         ]
       : [
           ...preferredModels,
@@ -882,13 +884,11 @@ const findAnswer = async (
     // Tour theo category
     const categoryMap: Record<string, string[]> = {
       "văn hóa": ["cultural"],
-      "văn hóa": ["cultural"],
       "văn hoá": ["cultural"],
       "văn hoa": ["cultural"],
       "ăn uống": ["food"],
       "ẩm thực": ["food"],
       "am thuc": ["food"],
-      "món ăn": ["food"],
       "món ăn": ["food"],
       "phiêu lưu": ["adventure"],
       adventure: ["adventure"],

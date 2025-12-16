@@ -33,7 +33,7 @@ export default function HomePage() {
         {/* Loading Content with GIF */}
         <div className="relative z-10 text-center">
           <img
-            src="/assets/stickers/đang tải 2.gif"
+            src="/assets/stickers/dang-tai-2.gif"
             alt="Loading"
             className="w-32 h-32 mx-auto mb-4 object-contain"
           />
@@ -71,7 +71,7 @@ export default function HomePage() {
 
         {/* Main Content Area */}
         <div className="flex-1 lg:ml-80 xl:mr-80">
-          <div className="max-w-2xl mx-auto p-4">
+          <div className="max-w-5xl mx-auto p-6">
             <NewsFeed />
           </div>
         </div>

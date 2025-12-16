@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
+import api from "@/lib/api";
 
 export default function WelcomePage() {
   const [isActive, setIsActive] = useState(false);
@@ -18,7 +19,13 @@ export default function WelcomePage() {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotIdentifier, setForgotIdentifier] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState("");
+
   const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     user,
     isAuthenticated,
@@ -30,6 +37,14 @@ export default function WelcomePage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Support /welcome?forgot=1 navigation (e.g. from /login)
+  useEffect(() => {
+    const shouldOpen = searchParams?.get("forgot") === "1";
+    if (shouldOpen) {
+      setShowForgotPassword(true);
+    }
+  }, [searchParams]);
 
   // Check if user is already authenticated and force param is not set
   // If authenticated without force param, they should be redirected by middleware/AuthGuard
@@ -69,6 +84,43 @@ export default function WelcomePage() {
     } catch (err) {
       setError("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    setForgotMessage("");
+    setError("");
+
+    const identifier = forgotIdentifier.trim();
+    if (!identifier) {
+      setForgotMessage("Vui lòng nhập email hoặc tên đăng nhập.");
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      const result = await api.post("/auth/forgot-password", {
+        identifier,
+      });
+
+      if (!result.success) {
+        setForgotMessage(
+          result.error || "Không thể gửi mật khẩu mới. Vui lòng thử lại."
+        );
+        return;
+      }
+
+      const msg =
+        result.data?.message ||
+        "Nếu tài khoản tồn tại, mật khẩu mới đã được gửi về email của bạn.";
+      setForgotMessage(msg);
+    } catch (err: any) {
+      setForgotMessage(
+        err?.message || "Không thể gửi mật khẩu mới. Vui lòng thử lại."
+      );
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -221,6 +273,61 @@ export default function WelcomePage() {
               </button>
             </div>
 
+            {/* Forgot password */}
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForgotPassword((v) => !v);
+                  setForgotMessage("");
+                }}
+                className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+              >
+                Quên mật khẩu?
+              </button>
+            </div>
+
+            {showForgotPassword && (
+              <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 p-4 space-y-3">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  Nhập <strong>email</strong> hoặc{" "}
+                  <strong>tên đăng nhập</strong>. Nếu đúng, hệ thống sẽ tạo mật
+                  khẩu mới và gửi về email.
+                </p>
+
+                <div className="space-y-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={forgotIdentifier}
+                      onChange={(e) => setForgotIdentifier(e.target.value)}
+                      className="w-full px-5 pr-12 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 outline-none text-gray-900 dark:text-white text-sm placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-primary-500 transition-all"
+                      placeholder="Email hoặc tên đăng nhập"
+                    />
+                    <Mail
+                      className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400"
+                      size={18}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={forgotLoading}
+                    onClick={() => handleForgotPassword()}
+                    className="w-full h-11 bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm text-white text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {forgotLoading ? "Đang gửi..." : "Gửi mật khẩu mới"}
+                  </button>
+
+                  {forgotMessage && (
+                    <div className="text-sm text-gray-700 dark:text-gray-300">
+                      {forgotMessage}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
@@ -229,7 +336,7 @@ export default function WelcomePage() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <img
-                    src="/assets/stickers/đang tải 2.gif"
+                    src="/assets/stickers/dang-tai-2.gif"
                     alt="Loading"
                     className="w-6 h-6"
                   />
@@ -407,7 +514,7 @@ export default function WelcomePage() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <img
-                    src="/assets/stickers/đang tải 2.gif"
+                    src="/assets/stickers/dang-tai-2.gif"
                     alt="Loading"
                     className="w-6 h-6"
                   />
@@ -507,7 +614,7 @@ export default function WelcomePage() {
           >
             <div className="text-center space-y-6 px-8">
               <img
-                src="/assets/stickers/đăng nhập.gif"
+                src="/assets/stickers/dang-nhap.gif"
                 alt="Đăng nhập"
                 className="w-80 h-80 mx-auto drop-shadow-2xl object-contain"
               />
@@ -546,7 +653,7 @@ export default function WelcomePage() {
           >
             <div className="text-center space-y-6 px-8">
               <img
-                src="/assets/stickers/đăng kí.gif"
+                src="/assets/stickers/dang-ki.gif"
                 alt="Đăng ký"
                 className="w-80 h-80 mx-auto drop-shadow-2xl object-contain"
               />

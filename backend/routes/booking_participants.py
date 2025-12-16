@@ -9,6 +9,8 @@ from datetime import datetime
 import io
 import csv
 
+from utils.participant_onboarding import ensure_user_for_participant, try_send_participant_account_email, reset_user_password
+
 # Try to import openpyxl for Excel export
 try:
     from openpyxl import Workbook
@@ -108,6 +110,121 @@ def get_participants(booking_id):
         return jsonify({'error': f'Error fetching participants: {str(e)}'}), 500
 
 
+@booking_participants_bp.route('/booking/<int:booking_id>/send-credentials', methods=['POST'])
+@jwt_required()
+def send_participant_credentials(booking_id):
+    """Send (or reset+send) login credentials to all participants of a booking.
+
+    Intended for tour guides on the Tour Journey page.
+    Body:
+      - reset_existing (bool): if true, reset password for existing accounts before sending.
+    """
+    try:
+        current_user_id = int(get_jwt_identity())
+        user = User.query.get(current_user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        booking = Booking.query.get(booking_id)
+        if not booking:
+            return jsonify({'error': 'Booking not found'}), 404
+
+        tour = Tour.query.get(booking.tour_id)
+        from models.tour_assignment import TourAssignment
+        assignment = TourAssignment.query.filter_by(booking_id=booking_id).first()
+
+        is_seller = tour and tour.seller_id == current_user_id
+        is_guide = assignment and assignment.tour_guide_id == current_user_id
+        is_admin = user.role == 'admin'
+
+        if not (is_seller or is_guide or is_admin):
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        data = request.get_json(silent=True) or {}
+        reset_existing = bool(data.get('reset_existing', False))
+
+        seller_for_emails = User.query.get(tour.seller_id) if tour and tour.seller_id else None
+
+        participants = BookingParticipant.query.filter_by(booking_id=booking_id).all()
+        results = []
+
+        for p in participants:
+            recipient = (p.email or '').strip()
+            if not recipient:
+                results.append({
+                    'participant_id': p.id,
+                    'email': None,
+                    'status': 'skipped',
+                    'reason': 'missing_email',
+                })
+                continue
+
+            ensure_result = ensure_user_for_participant(recipient, full_name=p.full_name)
+
+            # If we just created a user, we can email the generated password.
+            if ensure_result.created and ensure_result.user and ensure_result.plain_password:
+                sent, err = try_send_participant_account_email(
+                    recipient_email=ensure_result.user.email,
+                    username=ensure_result.user.username,
+                    plain_password=ensure_result.plain_password,
+                    full_name=ensure_result.user.full_name,
+                    seller=seller_for_emails,
+                )
+                results.append({
+                    'participant_id': p.id,
+                    'email': ensure_result.user.email,
+                    'username': ensure_result.user.username,
+                    'created': True,
+                    'password_reset': False,
+                    'email_sent': bool(sent),
+                    'email_error': err,
+                })
+                continue
+
+            # Existing user: we don't know old password, so only send if reset is requested.
+            if ensure_result.user and reset_existing:
+                new_password = reset_user_password(ensure_result.user)
+                db.session.commit()
+
+                sent, err = try_send_participant_account_email(
+                    recipient_email=ensure_result.user.email,
+                    username=ensure_result.user.username,
+                    plain_password=new_password,
+                    full_name=ensure_result.user.full_name,
+                    seller=seller_for_emails,
+                )
+
+                results.append({
+                    'participant_id': p.id,
+                    'email': ensure_result.user.email,
+                    'username': ensure_result.user.username,
+                    'created': False,
+                    'password_reset': True,
+                    'email_sent': bool(sent),
+                    'email_error': err,
+                })
+                continue
+
+            results.append({
+                'participant_id': p.id,
+                'email': recipient,
+                'status': 'skipped',
+                'reason': 'existing_account_no_reset',
+            })
+
+        sent_count = sum(1 for r in results if r.get('email_sent'))
+        return jsonify({
+            'message': 'Processed participant credential emails',
+            'sent': sent_count,
+            'total': len(results),
+            'results': results,
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Error sending participant credentials: {str(e)}'}), 500
+
+
 @booking_participants_bp.route('', methods=['POST'])
 @jwt_required()
 def create_participant():
@@ -156,6 +273,12 @@ def create_participant():
             emergency_contact_phone=data.get('emergency_contact_phone'),
             emergency_contact_relationship=data.get('emergency_contact_relationship')
         )
+
+        # Ensure participant has an account (by email) so they can log in and receive notifications.
+        ensure_result = ensure_user_for_participant(
+            email=data.get('email'),
+            full_name=data.get('full_name'),
+        )
         
         # Parse date of birth if provided
         if 'date_of_birth' in data and data['date_of_birth']:
@@ -166,10 +289,29 @@ def create_participant():
         
         db.session.add(participant)
         db.session.commit()
+
+        # Best-effort: send credentials email when we created a new user.
+        email_sent = False
+        email_error = None
+        created_username = None
+        if ensure_result.created and ensure_result.user and ensure_result.plain_password:
+            created_username = ensure_result.user.username
+            seller_for_participant_emails = User.query.get(tour.seller_id) if tour and tour.seller_id else None
+            email_sent, email_error = try_send_participant_account_email(
+                recipient_email=ensure_result.user.email,
+                username=ensure_result.user.username,
+                plain_password=ensure_result.plain_password,
+                full_name=ensure_result.user.full_name,
+                seller=seller_for_participant_emails,
+            )
         
         return jsonify({
             'message': 'Participant added successfully',
-            'participant': participant.to_dict()
+            'participant': participant.to_dict(),
+            'account_created': bool(ensure_result.created and ensure_result.user),
+            'account_username': created_username,
+            'account_email_sent': bool(email_sent),
+            'account_email_error': email_error
         }), 201
         
     except Exception as e:
@@ -210,6 +352,7 @@ def create_participants_batch(booking_id):
             BookingParticipant.query.filter_by(booking_id=booking_id).delete()
         
         created_participants = []
+        created_accounts = []  # [{email, username, email_sent, email_error}]
         
         for p_data in data['participants']:
             if 'full_name' not in p_data:
@@ -230,6 +373,19 @@ def create_participants_batch(booking_id):
                 emergency_contact_phone=p_data.get('emergency_contact_phone'),
                 emergency_contact_relationship=p_data.get('emergency_contact_relationship')
             )
+
+            # Ensure account exists for this participant (by email).
+            ensure_result = ensure_user_for_participant(
+                email=p_data.get('email'),
+                full_name=p_data.get('full_name'),
+            )
+            if ensure_result.created and ensure_result.user and ensure_result.plain_password:
+                created_accounts.append({
+                    'email': ensure_result.user.email,
+                    'username': ensure_result.user.username,
+                    'password': ensure_result.plain_password,
+                    'full_name': ensure_result.user.full_name,
+                })
             
             if 'date_of_birth' in p_data and p_data['date_of_birth']:
                 try:
@@ -241,10 +397,30 @@ def create_participants_batch(booking_id):
             created_participants.append(participant)
         
         db.session.commit()
+
+        # Best-effort: send credential emails after commit.
+        seller_for_participant_emails = User.query.get(tour.seller_id) if tour and tour.seller_id else None
+        email_results = []
+        for acc in created_accounts:
+            sent, err = try_send_participant_account_email(
+                recipient_email=acc['email'],
+                username=acc['username'],
+                plain_password=acc['password'],
+                full_name=acc.get('full_name'),
+                seller=seller_for_participant_emails,
+            )
+            email_results.append({
+                'email': acc['email'],
+                'username': acc['username'],
+                'email_sent': bool(sent),
+                'email_error': err,
+            })
         
         return jsonify({
             'message': f'{len(created_participants)} participants added successfully',
-            'participants': [p.to_dict() for p in created_participants]
+            'participants': [p.to_dict() for p in created_participants],
+            'accounts_created': len(created_accounts),
+            'account_emails': email_results
         }), 201
         
     except Exception as e:

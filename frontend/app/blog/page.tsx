@@ -117,7 +117,7 @@ const HomePage = () => {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 max-w-2xl">
+          <div className="flex-1 max-w-5xl">
             {/* Stories Section */}
             <StoriesSection />
 

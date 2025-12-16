@@ -411,6 +411,15 @@ def send_message():
         receiver = User.query.get(receiver_id)
         if not receiver:
             return jsonify({'error': 'Người nhận không tồn tại'}), 404
+
+        # Respect receiver privacy settings
+        try:
+            from models.user_settings import UserSettings
+            receiver_settings = UserSettings.query.filter_by(user_id=receiver_id).first()
+            if receiver_settings and not receiver_settings.privacy_allow_messages:
+                return jsonify({'error': 'Người dùng này đang tắt nhắn tin'}), 403
+        except Exception as e:
+            print(f"[Chat] Warning: cannot check privacy settings: {e}")
         
         # Check if users are friends
         sender = User.query.get(current_user_id)

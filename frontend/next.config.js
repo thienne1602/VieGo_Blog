@@ -99,6 +99,8 @@ const nextConfig = {
       },
     ],
     formats: ["image/webp", "image/avif"],
+    // Match app usage (e.g. PostCard uses 80/85)
+    qualities: [75, 80, 85],
     minimumCacheTTL: 31536000, // 1 year cache for images
     dangerouslyAllowSVG: true,
     unoptimized: false,

@@ -40,7 +40,7 @@ export default function GoodbyePage() {
         className="relative z-10 text-center px-6"
       >
         <motion.img
-          src="/assets/stickers/đăng xuất.gif"
+          src="/assets/stickers/dang-xuat.gif"
           alt="Đăng xuất"
           className="w-[400px] h-[400px] mx-auto mb-10 drop-shadow-2xl"
           animate={{

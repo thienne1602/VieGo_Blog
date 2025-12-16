@@ -12,6 +12,7 @@ def init_db(app):
 # Import models so they are registered with SQLAlchemy when package is imported
 try:
     from .user import User  # noqa: F401
+    from .user_settings import UserSettings  # noqa: F401
     from .tour import Tour  # noqa: F401
     from .booking import Booking  # noqa: F401
     from .booking_participant import BookingParticipant  # noqa: F401

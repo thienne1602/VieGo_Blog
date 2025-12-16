@@ -181,6 +181,50 @@ class Post(db.Model):
         word_count = len(re.findall(r'\w+', self.content))
         # Average reading speed: 200 words per minute
         self.reading_time = max(1, round(word_count / 200))
+
+    def get_excerpt(self, max_length=220):
+        """Return excerpt or generate a short preview from content."""
+        if self.excerpt and str(self.excerpt).strip():
+            return self.excerpt
+
+        raw = self.content or ''
+        text = ''
+
+        # Some editors store content as JSON (e.g. Quill delta). Try to extract readable text.
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, dict) and isinstance(parsed.get('ops'), list):
+                parts = []
+                for op in parsed['ops']:
+                    if not isinstance(op, dict):
+                        continue
+                    insert_value = op.get('insert')
+                    if isinstance(insert_value, str):
+                        parts.append(insert_value)
+                text = ''.join(parts)
+            elif isinstance(parsed, dict) and isinstance(parsed.get('content'), str):
+                text = parsed['content']
+            else:
+                text = raw
+        except Exception:
+            text = raw
+
+        # Strip basic HTML tags and normalize whitespace.
+        import re
+        text = re.sub(r'<[^>]+>', ' ', text)
+        text = re.sub(r'\s+', ' ', text).strip()
+
+        if not text:
+            return None
+
+        if len(text) <= max_length:
+            return text
+
+        trimmed = text[:max_length].rstrip()
+        last_space = trimmed.rfind(' ')
+        if last_space > int(max_length * 0.6):
+            trimmed = trimmed[:last_space]
+        return trimmed + '...'
     
     def get_engagement_score(self):
         """Calculate engagement score"""
@@ -207,7 +251,7 @@ class Post(db.Model):
             'id': self.id,
             'title': self.title,
             'slug': self.slug,
-            'excerpt': self.excerpt,
+            'excerpt': self.get_excerpt(),
             'content_type': self.content_type,
             'language': self.language,
             'reading_time': self.reading_time,

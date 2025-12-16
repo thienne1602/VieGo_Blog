@@ -32,8 +32,16 @@ const HeaderWeatherWidget = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; name?: string } | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number; name?: string } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+    name?: string;
+  } | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<{
+    lat: number;
+    lng: number;
+    name?: string;
+  } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Get user's current location on mount
@@ -51,7 +59,10 @@ const HeaderWeatherWidget = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setShowLocationSelector(false);
       }
     };
@@ -62,7 +73,9 @@ const HeaderWeatherWidget = () => {
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      console.warn("[Weather] Geolocation not supported, using default location");
+      console.warn(
+        "[Weather] Geolocation not supported, using default location"
+      );
       // Default to Hanoi if geolocation not available
       const defaultLocation = { lat: 21.0285, lng: 105.8542, name: "Hà Nội" };
       setSelectedLocation(defaultLocation);
@@ -75,22 +88,29 @@ const HeaderWeatherWidget = () => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         console.log("[Weather] Got position:", lat, lng);
-        
+
         // Try to get location name using reverse geocoding
         try {
           const response = await fetch(
             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=vi`
           );
           const data = await response.json();
-          const locationName = data.city || data.locality || `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
-          
+          const locationName =
+            data.city ||
+            data.locality ||
+            `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+
           const location = { lat, lng, name: locationName };
           setUserLocation(location);
           setSelectedLocation(location);
           console.log("[Weather] Location name:", locationName);
         } catch (err) {
           console.warn("[Weather] Reverse geocoding failed, using coordinates");
-          const location = { lat, lng, name: `${lat.toFixed(2)}, ${lng.toFixed(2)}` };
+          const location = {
+            lat,
+            lng,
+            name: `${lat.toFixed(2)}, ${lng.toFixed(2)}`,
+          };
           setUserLocation(location);
           setSelectedLocation(location);
         }
@@ -105,7 +125,7 @@ const HeaderWeatherWidget = () => {
       {
         timeout: 10000,
         enableHighAccuracy: false,
-        maximumAge: 300000 // 5 minutes
+        maximumAge: 300000, // 5 minutes
       }
     );
   };
@@ -115,18 +135,18 @@ const HeaderWeatherWidget = () => {
       setLoading(true);
       setError(null);
       console.log("[Weather] Fetching weather for:", lat, lng);
-      
+
       // Try backend API first
       const response = await api.getWeather(lat, lng);
       console.log("[Weather] Response:", response);
-      
+
       if (response && response.success && response.data) {
         setWeather(response.data);
         console.log("[Weather] Weather data set:", response.data);
         setLoading(false);
         return;
       }
-      
+
       // If backend fails, use mock data (backend should return mock data on error, but just in case)
       console.log("[Weather] Backend failed, using mock data");
       const mockTemp = 28 + Math.floor(Math.random() * 5) - 2; // 26-30°C
@@ -134,51 +154,53 @@ const HeaderWeatherWidget = () => {
         { main: "Clear", description: "trời quang", icon: "01d", emoji: "☀️" },
         { main: "Clouds", description: "có mây", icon: "02d", emoji: "☁️" },
         { main: "Rain", description: "có mưa", icon: "10d", emoji: "🌧️" },
-        { main: "Clear", description: "trời quang", icon: "01d", emoji: "☀️" }
+        { main: "Clear", description: "trời quang", icon: "01d", emoji: "☀️" },
       ];
-      const randomCondition = weatherConditions[Math.floor(Math.random() * weatherConditions.length)];
-      
+      const randomCondition =
+        weatherConditions[Math.floor(Math.random() * weatherConditions.length)];
+
       const mockData = {
         location: {
           lat,
           lng,
-          name: selectedLocation?.name || "Vị trí"
+          name: selectedLocation?.name || "Vị trí",
         },
         current: {
           temp: mockTemp,
           feels_like: mockTemp + 2,
           humidity: 70 + Math.floor(Math.random() * 10),
           wind_speed: 5 + Math.floor(Math.random() * 5),
-          weather: [randomCondition]
-        }
+          weather: [randomCondition],
+        },
       };
-      
+
       setWeather(mockData);
       console.log("[Weather] Using mock data:", mockData);
-      
     } catch (err: any) {
       console.error("[Weather] Exception:", err);
-      
+
       // Even on error, show mock data so widget is always visible
       const mockData = {
         location: {
           lat,
           lng,
-          name: selectedLocation?.name || "Vị trí"
+          name: selectedLocation?.name || "Vị trí",
         },
         current: {
           temp: 28,
           feels_like: 30,
           humidity: 75,
           wind_speed: 5,
-          weather: [{
-            main: "Clear",
-            description: "trời quang",
-            icon: "01d"
-          }]
-        }
+          weather: [
+            {
+              main: "Clear",
+              description: "trời quang",
+              icon: "01d",
+            },
+          ],
+        },
       };
-      
+
       setWeather(mockData);
     } finally {
       setLoading(false);
@@ -195,16 +217,18 @@ const HeaderWeatherWidget = () => {
     try {
       // Use OpenStreetMap Nominatim API for geocoding
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=vi`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          query
+        )}&limit=5&accept-language=vi`
       );
       const data = await response.json();
-      
+
       const results = data.map((item: any) => ({
         name: item.display_name,
         lat: parseFloat(item.lat),
         lng: parseFloat(item.lon),
       }));
-      
+
       setSearchResults(results);
     } catch (err) {
       console.error("Location search error:", err);
@@ -214,7 +238,11 @@ const HeaderWeatherWidget = () => {
     }
   };
 
-  const handleLocationSelect = (location: { lat: number; lng: number; name: string }) => {
+  const handleLocationSelect = (location: {
+    lat: number;
+    lng: number;
+    name: string;
+  }) => {
     setSelectedLocation(location);
     setShowLocationSelector(false);
     setSearchQuery("");
@@ -223,7 +251,7 @@ const HeaderWeatherWidget = () => {
 
   const getWeatherIcon = (iconCode: string) => {
     // WeatherAPI.com returns full URLs, OpenWeatherMap returns icon codes
-    if (iconCode.startsWith('http://') || iconCode.startsWith('https://')) {
+    if (iconCode.startsWith("http://") || iconCode.startsWith("https://")) {
       return iconCode;
     }
     return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
@@ -254,7 +282,7 @@ const HeaderWeatherWidget = () => {
   const getCuteWeatherIcon = (main: string, description: string) => {
     const desc = description?.toLowerCase() || "";
     const mainLower = main?.toLowerCase() || "";
-    
+
     // Cute emoji based on weather condition
     if (mainLower.includes("clear") || desc.includes("sun")) {
       return "☀️";
@@ -291,14 +319,16 @@ const HeaderWeatherWidget = () => {
       >
         {loading ? (
           <>
-            <motion.div 
+            <motion.div
               className="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center"
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             >
               <span className="text-2xl sm:text-3xl">🌤️</span>
             </motion.div>
-            <span className="hidden sm:inline text-sm font-medium text-gray-600 dark:text-gray-400">Đang tải...</span>
+            <span className="hidden sm:inline text-sm font-medium text-gray-600 dark:text-gray-400">
+              Đang tải...
+            </span>
           </>
         ) : error ? (
           <>
@@ -306,7 +336,9 @@ const HeaderWeatherWidget = () => {
               <span className="text-2xl sm:text-3xl">😢</span>
             </div>
             <div className="hidden sm:flex flex-col items-start">
-              <span className="text-xs font-semibold text-red-600 dark:text-red-400">Lỗi</span>
+              <span className="text-xs font-semibold text-red-600 dark:text-red-400">
+                Lỗi
+              </span>
               <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate max-w-[100px]">
                 {error.length > 20 ? error.substring(0, 20) + "..." : error}
               </span>
@@ -316,15 +348,15 @@ const HeaderWeatherWidget = () => {
           <>
             {weather.current.weather && weather.current.weather[0] ? (
               <>
-                <motion.div 
+                <motion.div
                   className="relative flex-shrink-0"
-                  animate={{ 
+                  animate={{
                     rotate: [0, 5, -5, 0],
                   }}
-                  transition={{ 
+                  transition={{
                     duration: 2,
                     repeat: Infinity,
-                    repeatDelay: 3
+                    repeatDelay: 3,
                   }}
                 >
                   <div className="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center">
@@ -341,27 +373,31 @@ const HeaderWeatherWidget = () => {
                     <span className="text-lg sm:text-xl font-bold text-gray-700 dark:text-gray-200 leading-none">
                       {Math.round(weather.current.temp)}
                     </span>
-                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">°C</span>
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                      °C
+                    </span>
                   </div>
                   <div className="flex items-center space-x-1 mt-0.5">
                     <MapPin className="w-3 h-3 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                     <span className="text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-300 leading-tight truncate max-w-[90px] sm:max-w-[110px]">
-                      {selectedLocation?.name || weather.location?.name || "Vị trí"}
+                      {selectedLocation?.name ||
+                        weather.location?.name ||
+                        "Vị trí"}
                     </span>
                   </div>
                 </div>
               </>
             ) : (
               <>
-                <motion.div 
+                <motion.div
                   className="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center"
-                  animate={{ 
+                  animate={{
                     rotate: [0, 5, -5, 0],
                   }}
-                  transition={{ 
+                  transition={{
                     duration: 2,
                     repeat: Infinity,
-                    repeatDelay: 3
+                    repeatDelay: 3,
                   }}
                 >
                   <span className="text-2xl sm:text-3xl">☁️</span>
@@ -379,20 +415,22 @@ const HeaderWeatherWidget = () => {
           </>
         ) : (
           <>
-                <motion.div 
-                  className="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center"
-                  animate={{ 
-                    rotate: [0, 10, -10, 0],
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    repeat: Infinity,
-                    repeatDelay: 2
-                  }}
-                >
-                  <span className="text-2xl sm:text-3xl">🌤️</span>
-                </motion.div>
-                <span className="hidden sm:inline text-sm font-medium text-gray-600 dark:text-gray-400">Thời tiết</span>
+            <motion.div
+              className="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center"
+              animate={{
+                rotate: [0, 10, -10, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatDelay: 2,
+              }}
+            >
+              <span className="text-2xl sm:text-3xl">🌤️</span>
+            </motion.div>
+            <span className="hidden sm:inline text-sm font-medium text-gray-600 dark:text-gray-400">
+              Thời tiết
+            </span>
           </>
         )}
       </motion.button>
@@ -420,7 +458,7 @@ const HeaderWeatherWidget = () => {
                   <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
-              
+
               {/* Search Input */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-sky-500 dark:text-sky-400" />
@@ -441,7 +479,13 @@ const HeaderWeatherWidget = () => {
               {/* Use Current Location */}
               {userLocation && (
                 <button
-                  onClick={() => handleLocationSelect(userLocation)}
+                  onClick={() =>
+                    handleLocationSelect({
+                      lat: userLocation.lat,
+                      lng: userLocation.lng,
+                      name: userLocation.name ?? "Vị trí hiện tại",
+                    })
+                  }
                   className={`w-full px-4 py-3 text-left hover:bg-gradient-to-r hover:from-sky-50/50 hover:to-cyan-50/50 dark:hover:from-slate-700/50 dark:hover:to-slate-600/50 transition-all duration-200 border-b border-gray-100/50 dark:border-gray-700/50 ${
                     selectedLocation?.lat === userLocation.lat &&
                     selectedLocation?.lng === userLocation.lng
@@ -450,18 +494,22 @@ const HeaderWeatherWidget = () => {
                   }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={`p-1.5 rounded-lg ${
-                      selectedLocation?.lat === userLocation.lat &&
-                      selectedLocation?.lng === userLocation.lng
-                        ? "bg-sky-500 dark:bg-sky-600"
-                        : "bg-sky-100 dark:bg-slate-700"
-                    }`}>
-                      <MapPin className={`w-4 h-4 ${
+                    <div
+                      className={`p-1.5 rounded-lg ${
                         selectedLocation?.lat === userLocation.lat &&
                         selectedLocation?.lng === userLocation.lng
-                          ? "text-white"
-                          : "text-sky-600 dark:text-sky-400"
-                      }`} />
+                          ? "bg-sky-500 dark:bg-sky-600"
+                          : "bg-sky-100 dark:bg-slate-700"
+                      }`}
+                    >
+                      <MapPin
+                        className={`w-4 h-4 ${
+                          selectedLocation?.lat === userLocation.lat &&
+                          selectedLocation?.lng === userLocation.lng
+                            ? "text-white"
+                            : "text-sky-600 dark:text-sky-400"
+                        }`}
+                      />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -483,7 +531,9 @@ const HeaderWeatherWidget = () => {
               {searching && (
                 <div className="px-4 py-8 text-center">
                   <Loader2 className="w-5 h-5 text-primary-600 dark:text-primary-400 animate-spin mx-auto mb-2" />
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Đang tìm kiếm...</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Đang tìm kiếm...
+                  </p>
                 </div>
               )}
 
@@ -537,4 +587,3 @@ const HeaderWeatherWidget = () => {
 };
 
 export default HeaderWeatherWidget;
-

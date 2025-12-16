@@ -20,7 +20,7 @@ Tất cả GIF stickers được lưu trong thư mục: `/frontend/public/assets
 
 ```tsx
 <img
-  src="/assets/stickers/đang tải 2.gif"
+  src="/assets/stickers/dang-tai-2.gif"
   alt="Loading"
   className="w-24 h-24 object-contain"
 />
@@ -117,7 +117,7 @@ Website đã được cập nhật với bộ màu pastel sinh động:
   loading && (
     <div className="flex flex-col items-center">
       <img
-        src="/assets/stickers/đang tải 2.gif"
+        src="/assets/stickers/dang-tai-2.gif"
         alt="Loading"
         className="w-24 h-24 object-contain mb-2"
       />
@@ -134,7 +134,7 @@ Website đã được cập nhật với bộ màu pastel sinh động:
   success && (
     <div className="text-center">
       <img
-        src="/assets/stickers/đặt thành công.gif"
+        src="/assets/stickers/dat-thanh-cong.gif"
         alt="Success"
         className="w-32 h-32 mx-auto mb-4"
       />

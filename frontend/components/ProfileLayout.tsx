@@ -206,9 +206,13 @@ export default function ProfileLayout({ children }: ProfileLayoutProps) {
 
                 {/* Action Buttons */}
                 <div className="flex items-center space-x-1">
-                  <button className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300">
+                  <Link
+                    href="/profile/settings"
+                    className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300"
+                    title="Cài đặt"
+                  >
                     <Settings className="w-4 h-4" />
-                  </button>
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="p-2 text-white/70 hover:text-red-200 hover:bg-red-500/20 rounded-lg transition-all duration-300"

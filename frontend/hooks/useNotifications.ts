@@ -131,7 +131,11 @@ export function useNotifications() {
       if (!user) return;
 
       try {
-        const token = localStorage.getItem("access_token");
+        const token = getAccessToken();
+        if (!token) {
+          console.warn("[Notifications] No token available for markAsRead");
+          return;
+        }
         const API_BASE_URL =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
         const response = await fetch(
@@ -163,7 +167,11 @@ export function useNotifications() {
     if (!user) return;
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getAccessToken();
+      if (!token) {
+        console.warn("[Notifications] No token available for markAllAsRead");
+        return;
+      }
       const API_BASE_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
       const response = await fetch(`${API_BASE_URL}/notifications/read-all`, {
@@ -189,7 +197,13 @@ export function useNotifications() {
       if (!user) return;
 
       try {
-        const token = localStorage.getItem("access_token");
+        const token = getAccessToken();
+        if (!token) {
+          console.warn(
+            "[Notifications] No token available for deleteNotification"
+          );
+          return;
+        }
         const API_BASE_URL =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
         const response = await fetch(

@@ -19,6 +19,10 @@ if backend_dir not in sys.path:
 pymysql.install_as_MySQLdb()
 
 # Load environment variables
+# Load backend/.env reliably even if the server is started from a different CWD.
+dotenv_path = os.path.join(backend_dir, '.env')
+load_dotenv(dotenv_path)
+# Also load a .env from the current working directory if present.
 load_dotenv()
 
 # Initialize Flask app

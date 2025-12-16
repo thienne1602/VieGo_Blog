@@ -1,11 +1,28 @@
-import React, { useState, useEffect, useCallback, useMemo, Suspense, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+  useRef,
+} from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import PostCard from "@/components/blog/PostCard";
 import SkeletonLoader from "@/components/common/SkeletonLoader";
 import { useAuth } from "@/lib/AuthContext";
-import { X, Video, Image as ImageIcon, Send, Upload, ChevronLeft, ChevronRight, ArrowUp } from "lucide-react";
+import { getAccessToken } from "@/lib/storage-utils";
+import {
+  X,
+  Video,
+  Image as ImageIcon,
+  Send,
+  Upload,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUp,
+} from "lucide-react";
 
 // Lazy load PostModal (heavy component with images and comments)
 const PostModal = dynamic(() => import("@/components/common/PostModal"), {
@@ -42,8 +59,12 @@ const NewsFeed = () => {
   const [showStoryViewer, setShowStoryViewer] = useState(false);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [storyProgress, setStoryProgress] = useState(0);
-  const [userStoriesMap, setUserStoriesMap] = useState<Record<number, any[]>>({}); // Map user_id to all their stories
-  const [currentViewingUserStories, setCurrentViewingUserStories] = useState<any[]>([]); // Stories currently being viewed
+  const [userStoriesMap, setUserStoriesMap] = useState<Record<number, any[]>>(
+    {}
+  ); // Map user_id to all their stories
+  const [currentViewingUserStories, setCurrentViewingUserStories] = useState<
+    any[]
+  >([]); // Stories currently being viewed
   const [currentViewingUser, setCurrentViewingUser] = useState<any>(null); // User whose stories are being viewed
 
   // Story creation states
@@ -69,15 +90,29 @@ const NewsFeed = () => {
   const safeParseJSON = (value: any, fallback: any = []): any => {
     if (Array.isArray(value)) return value;
     if (!value) return fallback;
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       try {
         return JSON.parse(value);
       } catch (e) {
-        console.warn('Failed to parse JSON:', value);
+        console.warn("Failed to parse JSON:", value);
         return fallback;
       }
     }
     return value;
+  };
+
+  const normalizePostContent = (post: any): string => {
+    const content =
+      typeof post?.content === "string" ? post.content.trim() : "";
+    if (content) return content;
+    const excerpt =
+      typeof post?.excerpt === "string" ? post.excerpt.trim() : "";
+    return excerpt;
+  };
+
+  const getAuthToken = (): string | null => {
+    // Current app stores tokens with port-scoped keys; keep a fallback for older sessions.
+    return getAccessToken() || localStorage.getItem("access_token");
   };
 
   const fetchPosts = async (pageNum = 1, append = false) => {
@@ -89,7 +124,7 @@ const NewsFeed = () => {
       }
       setErrorPosts(null);
 
-      const token = localStorage.getItem("access_token");
+      const token = getAuthToken();
       const headers: any = { "Content-Type": "application/json" };
       if (token) {
         headers.Authorization = `Bearer ${token}`;
@@ -108,7 +143,7 @@ const NewsFeed = () => {
           signal: controller.signal,
         }
       );
-      
+
       clearTimeout(timeoutId);
 
       if (!response.ok) {
@@ -122,7 +157,7 @@ const NewsFeed = () => {
         id: post.id,
         slug: post.slug,
         title: post.title || "",
-        content: post.excerpt || (post.content && typeof post.content === 'string' ? post.content.substring(0, 200) : ""),
+        content: normalizePostContent(post),
         author_name:
           post.author?.full_name || post.author?.username || "Anonymous",
         author_id: post.author_id,
@@ -130,7 +165,8 @@ const NewsFeed = () => {
         location: post.location_name || null,
         featured_image: post.featured_image || null,
         images: safeParseJSON(post.images, []),
-        published_at: post.published_at || post.created_at || new Date().toISOString(),
+        published_at:
+          post.published_at || post.created_at || new Date().toISOString(),
         like_count: post.likes_count || 0,
         comment_count: post.comments_count || 0,
         views_count: post.views_count || 0,
@@ -141,9 +177,38 @@ const NewsFeed = () => {
       }));
 
       if (append) {
-        setPosts((prev) => [...prev, ...transformedPosts]);
+        // Prevent duplicate items (API pagination or repeated fetch can overlap)
+        setPosts((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const newUniquePosts = transformedPosts.filter(
+            (p: any) => !existingIds.has(p.id)
+          );
+          return [...prev, ...newUniquePosts];
+        });
       } else {
-        setPosts(transformedPosts);
+        // Defensive: also de-dupe in case backend returns duplicates
+        const seen = new Set<number>();
+        const uniquePosts = transformedPosts.filter((p: any) => {
+          if (seen.has(p.id)) return false;
+          seen.add(p.id);
+          return true;
+        });
+        setPosts((prev) => {
+          const now = Date.now();
+          const recentOptimistic = prev.filter(
+            (p: any) =>
+              p?._optimistic === true &&
+              typeof p?._optimisticCreatedAt === "number" &&
+              now - p._optimisticCreatedAt < 2 * 60 * 1000 // keep for 2 minutes
+          );
+
+          const ids = new Set(uniquePosts.map((p: any) => p.id));
+          const optimisticNotInApi = recentOptimistic.filter(
+            (p: any) => !ids.has(p.id)
+          );
+
+          return [...optimisticNotInApi, ...uniquePosts];
+        });
       }
 
       // Check if there are more posts
@@ -154,10 +219,12 @@ const NewsFeed = () => {
       }
     } catch (error: any) {
       console.error("NewsFeed: Error fetching posts:", error);
-      
+
       // Handle timeout errors gracefully
-      if (error.name === 'AbortError' || error instanceof TypeError) {
-        setErrorPosts("Không thể kết nối với máy chủ. Vui lòng đảm bảo backend đang chạy.");
+      if (error.name === "AbortError" || error instanceof TypeError) {
+        setErrorPosts(
+          "Không thể kết nối với máy chủ. Vui lòng đảm bảo backend đang chạy."
+        );
       } else {
         setErrorPosts("Không thể tải bài viết. Vui lòng thử lại.");
       }
@@ -171,14 +238,14 @@ const NewsFeed = () => {
   const fetchStories = async () => {
     try {
       setLoadingStories(true);
-      const token = localStorage.getItem("access_token");
+      const token = getAuthToken();
       const headers: any = { "Content-Type": "application/json" };
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
 
-      const response = await fetch('http://localhost:5000/api/stories', {
-        method: 'GET',
+      const response = await fetch("http://localhost:5000/api/stories", {
+        method: "GET",
         headers,
         credentials: "include",
       });
@@ -187,7 +254,7 @@ const NewsFeed = () => {
         const data = await response.json();
         // Transform API stories to match component format
         const transformedStories = [];
-        
+
         // Add "Create Story" button first
         transformedStories.push({
           name: "Create Story",
@@ -202,17 +269,19 @@ const NewsFeed = () => {
           data.data.forEach((userStories: any) => {
             const user = userStories.user;
             const userStoriesList = userStories.stories || [];
-            
+
             if (userStoriesList.length > 0) {
               // Store all stories for this user
-              newUserStoriesMap[user.id] = userStoriesList.map((story: any) => ({
-                storyId: story.id,
-                mediaUrl: `http://localhost:5000${story.media_url}`,
-                mediaType: story.media_type,
-                content: story.content || "",
-                viewCount: story.view_count || 0,
-              }));
-              
+              newUserStoriesMap[user.id] = userStoriesList.map(
+                (story: any) => ({
+                  storyId: story.id,
+                  mediaUrl: `http://localhost:5000${story.media_url}`,
+                  mediaType: story.media_type,
+                  content: story.content || "",
+                  viewCount: story.view_count || 0,
+                })
+              );
+
               // Get the latest story for display in the story circle
               const latestStory = userStoriesList[0];
               transformedStories.push({
@@ -220,9 +289,10 @@ const NewsFeed = () => {
                 avatar: user.avatar_url || "👤",
                 hasNew: true,
                 location: latestStory.content || "",
-                background: latestStory.media_type === 'video' 
-                  ? "from-purple-400 to-pink-400" 
-                  : "from-blue-400 to-cyan-400",
+                background:
+                  latestStory.media_type === "video"
+                    ? "from-purple-400 to-pink-400"
+                    : "from-blue-400 to-cyan-400",
                 viewers: latestStory.view_count || "0",
                 storyId: latestStory.id,
                 mediaUrl: `http://localhost:5000${latestStory.media_url}`,
@@ -232,29 +302,33 @@ const NewsFeed = () => {
             }
           });
         }
-        
+
         // Update user stories map
         setUserStoriesMap(newUserStoriesMap);
 
         setStories(transformedStories);
       } else {
         // Set default "Create Story" button on API error
-        setStories([{
+        setStories([
+          {
+            name: "Create Story",
+            avatar: "➕",
+            isAdd: true,
+            gradient: "from-blue-500 to-purple-500",
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error("Error fetching stories:", error);
+      // Set default "Create Story" button on error
+      setStories([
+        {
           name: "Create Story",
           avatar: "➕",
           isAdd: true,
           gradient: "from-blue-500 to-purple-500",
-        }]);
-      }
-    } catch (error) {
-      console.error('Error fetching stories:', error);
-      // Set default "Create Story" button on error
-      setStories([{
-        name: "Create Story",
-        avatar: "➕",
-        isAdd: true,
-        gradient: "from-blue-500 to-purple-500",
-      }]);
+        },
+      ]);
     } finally {
       setLoadingStories(false);
     }
@@ -295,9 +369,9 @@ const NewsFeed = () => {
   // Check for posts update flag and refetch
   useEffect(() => {
     const checkPostsUpdate = () => {
-      const postsUpdated = localStorage.getItem('posts_updated');
+      const postsUpdated = localStorage.getItem("posts_updated");
       if (postsUpdated) {
-        localStorage.removeItem('posts_updated');
+        localStorage.removeItem("posts_updated");
         // Refetch posts to get the new one
         fetchPosts(1, false);
       }
@@ -311,11 +385,11 @@ const NewsFeed = () => {
     const intervalId = setInterval(checkPostsUpdate, 1000);
 
     // Also listen for storage events (in case of multiple tabs)
-    window.addEventListener('storage', checkPostsUpdate);
-    
+    window.addEventListener("storage", checkPostsUpdate);
+
     return () => {
       clearInterval(intervalId);
-      window.removeEventListener('storage', checkPostsUpdate);
+      window.removeEventListener("storage", checkPostsUpdate);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -335,18 +409,18 @@ const NewsFeed = () => {
     if (!file) return;
 
     // Validate file type
-    const isVideo = file.type.startsWith('video/');
-    const isImage = file.type.startsWith('image/');
-    
+    const isVideo = file.type.startsWith("video/");
+    const isImage = file.type.startsWith("image/");
+
     if (!isVideo && !isImage) {
-      alert('Chỉ chấp nhận file ảnh hoặc video');
+      alert("Chỉ chấp nhận file ảnh hoặc video");
       return;
     }
 
     // Validate file size (50MB for video, 10MB for image)
     const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      alert(`File quá lớn. Tối đa ${isVideo ? '50MB' : '10MB'}`);
+      alert(`File quá lớn. Tối đa ${isVideo ? "50MB" : "10MB"}`);
       return;
     }
 
@@ -368,90 +442,99 @@ const NewsFeed = () => {
   // Upload story
   const handleUploadStory = async () => {
     if (!storyFile) {
-      alert('Vui lòng chọn file ảnh hoặc video');
+      alert("Vui lòng chọn file ảnh hoặc video");
       return;
     }
 
     try {
       setUploadingStory(true);
-      const token = localStorage.getItem("access_token");
-      
-      if (!token) {
-        alert('Vui lòng đăng nhập để đăng story');
-        return;
-      }
+      const token = getAuthToken();
 
       const formData = new FormData();
-      formData.append('file', storyFile);
+      formData.append("file", storyFile);
       if (storyContent.trim()) {
-        formData.append('content', storyContent);
+        formData.append("content", storyContent);
       }
 
-      const response = await fetch('http://localhost:5000/api/stories', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch("http://localhost:5000/api/stories", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        credentials: "include",
         body: formData,
       });
+
+      if (response.status === 401) {
+        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        return;
+      }
 
       const data = await response.json();
 
       if (data.success) {
-        alert('Đăng story thành công!');
+        alert("Đăng story thành công!");
         setShowStoryModal(false);
         setStoryFile(null);
         setStoryPreview(null);
         setStoryContent("");
         if (storyFileInputRef.current) {
-          storyFileInputRef.current.value = '';
+          storyFileInputRef.current.value = "";
         }
         // Refresh stories list immediately
         setTimeout(() => {
           fetchStories();
         }, 500);
       } else {
-        alert(data.error || 'Có lỗi xảy ra khi đăng story');
+        alert(data.error || "Có lỗi xảy ra khi đăng story");
       }
     } catch (error) {
-      console.error('Error uploading story:', error);
-      alert('Có lỗi xảy ra khi đăng story');
+      console.error("Error uploading story:", error);
+      alert("Có lỗi xảy ra khi đăng story");
     } finally {
       setUploadingStory(false);
     }
   };
 
   // Handle post image upload
-  const handlePostImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePostImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     try {
       setUploadingPostImages(true);
-      const token = localStorage.getItem("access_token");
-      
-      if (!token) {
-        alert('Vui lòng đăng nhập');
-        return;
-      }
+      const token = getAuthToken();
 
       const uploadedUrls: string[] = [];
 
       for (let i = 0; i < files.length; i++) {
         const formData = new FormData();
-        formData.append('file', files[i]);
+        formData.append("file", files[i]);
 
-        const response = await fetch('http://localhost:5000/api/upload/image', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await fetch("http://localhost:5000/api/upload/image", {
+          method: "POST",
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          credentials: "include",
           body: formData,
         });
+
+        if (response.status === 401) {
+          alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+          return;
+        }
 
         if (response.ok) {
           const data = await response.json();
           uploadedUrls.push(`http://localhost:5000${data.url}`);
+        } else {
+          let errMsg = "Có lỗi xảy ra khi upload ảnh";
+          try {
+            const errData = await response.json();
+            errMsg = errData?.error || errData?.message || errMsg;
+          } catch {
+            // ignore
+          }
+          alert(errMsg);
         }
       }
 
@@ -460,8 +543,8 @@ const NewsFeed = () => {
         images: [...prev.images, ...uploadedUrls],
       }));
     } catch (error) {
-      console.error('Error uploading images:', error);
-      alert('Có lỗi xảy ra khi upload ảnh');
+      console.error("Error uploading images:", error);
+      alert("Có lỗi xảy ra khi upload ảnh");
     } finally {
       setUploadingPostImages(false);
     }
@@ -470,31 +553,32 @@ const NewsFeed = () => {
   // Create post
   const handleCreatePost = async () => {
     if (!postFormData.title.trim() || !postFormData.content.trim()) {
-      alert('Vui lòng nhập tiêu đề và nội dung');
+      alert("Vui lòng nhập tiêu đề và nội dung");
       return;
     }
 
     try {
-      const token = localStorage.getItem("access_token");
-      
+      const token = getAuthToken();
+
       if (!token) {
-        alert('Vui lòng đăng nhập');
+        alert("Vui lòng đăng nhập");
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/posts', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5000/api/posts", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({
           title: postFormData.title,
           content: postFormData.content,
           category: postFormData.category,
           images: postFormData.images,
-          content_type: 'blog',
-          status: 'published',
+          content_type: "blog",
+          status: "published",
         }),
       });
 
@@ -508,16 +592,33 @@ const NewsFeed = () => {
             id: postData.id,
             slug: postData.slug,
             title: postData.title || postFormData.title || "",
-            content: postData.excerpt || 
-              (postData.content && typeof postData.content === 'string' ? postData.content.substring(0, 200) : 
-              (postFormData.content && typeof postFormData.content === 'string' ? postFormData.content.substring(0, 200) : "")),
-            author_name: postData.author?.full_name || postData.author?.username || user?.full_name || "Anonymous",
+            content:
+              normalizePostContent(postData) ||
+              (typeof postFormData.content === "string"
+                ? postFormData.content
+                : ""),
+            _optimistic: true,
+            _optimisticCreatedAt: Date.now(),
+            author_name:
+              postData.author?.full_name ||
+              postData.author?.username ||
+              user?.full_name ||
+              "Anonymous",
             author_id: postData.author_id || postData.author?.id || user?.id,
             author_avatar: postData.author?.avatar_url || user?.avatar_url,
             location: postData.location_name || null,
-            featured_image: postData.featured_image || (postFormData.images && postFormData.images.length > 0 ? postFormData.images[0] : null),
-            images: postData.images ? safeParseJSON(postData.images, postFormData.images) : postFormData.images,
-            published_at: postData.published_at || postData.created_at || new Date().toISOString(),
+            featured_image:
+              postData.featured_image ||
+              (postFormData.images && postFormData.images.length > 0
+                ? postFormData.images[0]
+                : null),
+            images: postData.images
+              ? safeParseJSON(postData.images, postFormData.images)
+              : postFormData.images,
+            published_at:
+              postData.published_at ||
+              postData.created_at ||
+              new Date().toISOString(),
             like_count: postData.likes_count || 0,
             comment_count: postData.comments_count || 0,
             views_count: postData.views_count || 0,
@@ -530,18 +631,18 @@ const NewsFeed = () => {
           // Reset page to 1
           setPage(1);
           setHasMore(true);
-          
+
           // Add new post to the top immediately for instant feedback
           setPosts((prev) => {
             // Check if already exists to avoid duplicates
-            const exists = prev.some(p => p.id === newPost.id);
+            const exists = prev.some((p) => p.id === newPost.id);
             if (!exists) {
               return [newPost, ...prev];
             }
             return prev;
           });
-          
-          alert('Đăng bài thành công!');
+
+          alert("Đăng bài thành công!");
           setShowPostForm(false);
           setPostFormData({
             title: "",
@@ -551,17 +652,17 @@ const NewsFeed = () => {
           });
           setPostText("");
           setShowCreatePost(false);
-          
+
           // Refresh posts to ensure data is in sync (after a short delay to allow backend to process)
           setTimeout(() => {
             fetchPosts(1, false);
           }, 1000);
         } catch (error) {
-          console.error('Error processing post data:', error);
+          console.error("Error processing post data:", error);
           // If processing fails, just refresh the list
           setPage(1);
           setHasMore(true);
-          alert('Đăng bài thành công! Đang tải lại danh sách...');
+          alert("Đăng bài thành công! Đang tải lại danh sách...");
           setShowPostForm(false);
           setPostFormData({
             title: "",
@@ -576,11 +677,11 @@ const NewsFeed = () => {
           }, 500);
         }
       } else {
-        alert(data.error || 'Có lỗi xảy ra khi đăng bài');
+        alert(data.error || "Có lỗi xảy ra khi đăng bài");
       }
     } catch (error) {
-      console.error('Error creating post:', error);
-      alert('Có lỗi xảy ra khi đăng bài');
+      console.error("Error creating post:", error);
+      alert("Có lỗi xảy ra khi đăng bài");
     }
   };
 
@@ -625,14 +726,17 @@ const NewsFeed = () => {
   ];
 
   // Use stories from state, default to just "Create Story" button if empty
-  const displayStories = stories.length > 0 ? stories : [
-    {
-      name: "Create Story",
-      avatar: "➕",
-      isAdd: true,
-      gradient: "from-blue-500 to-purple-500",
-    },
-  ];
+  const displayStories =
+    stories.length > 0
+      ? stories
+      : [
+          {
+            name: "Create Story",
+            avatar: "➕",
+            isAdd: true,
+            gradient: "from-blue-500 to-purple-500",
+          },
+        ];
 
   const toggleLike = (postId: number) => {
     setLikedPosts((prev) => {
@@ -647,7 +751,7 @@ const NewsFeed = () => {
   };
 
   // Get actual stories (excluding "Create Story")
-  const actualStories = displayStories.filter(s => !s.isAdd);
+  const actualStories = displayStories.filter((s) => !s.isAdd);
 
   // Handle story navigation - use currentViewingUserStories
   const handleNextStory = () => {
@@ -670,9 +774,13 @@ const NewsFeed = () => {
 
   // Track story view when story viewer opens
   useEffect(() => {
-    if (showStoryViewer && currentViewingUserStories.length > 0 && currentViewingUserStories[currentStoryIndex]?.storyId) {
+    if (
+      showStoryViewer &&
+      currentViewingUserStories.length > 0 &&
+      currentViewingUserStories[currentStoryIndex]?.storyId
+    ) {
       const storyId = currentViewingUserStories[currentStoryIndex].storyId;
-      const token = localStorage.getItem("access_token");
+      const token = getAuthToken();
       const headers: any = { "Content-Type": "application/json" };
       if (token) {
         headers.Authorization = `Bearer ${token}`;
@@ -680,10 +788,10 @@ const NewsFeed = () => {
 
       // Track view
       fetch(`http://localhost:5000/api/stories/${storyId}/view`, {
-        method: 'POST',
+        method: "POST",
         headers,
         credentials: "include",
-      }).catch(err => console.error('Error tracking story view:', err));
+      }).catch((err) => console.error("Error tracking story view:", err));
     }
   }, [showStoryViewer, currentStoryIndex, currentViewingUserStories]);
 
@@ -720,16 +828,16 @@ const NewsFeed = () => {
       setShowScrollTop(window.scrollY > 300);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Enhanced Stories Section */}
       <motion.div
         className="bg-gradient-to-br from-white via-blue-50/50 to-purple-50/50 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/20"
@@ -766,18 +874,26 @@ const NewsFeed = () => {
                   if (userId && userStoriesMap[userId]) {
                     // Use the stories from the map
                     const userStories = userStoriesMap[userId];
-                    const clickedStoryIndex = userStories.findIndex((s: any) => s.storyId === story.storyId);
-                    
+                    const clickedStoryIndex = userStories.findIndex(
+                      (s: any) => s.storyId === story.storyId
+                    );
+
                     // Set current viewing stories to this user's stories
                     setCurrentViewingUserStories(userStories);
                     setCurrentViewingUser(story); // Store user info from the story card
-                    setCurrentStoryIndex(clickedStoryIndex >= 0 ? clickedStoryIndex : 0);
+                    setCurrentStoryIndex(
+                      clickedStoryIndex >= 0 ? clickedStoryIndex : 0
+                    );
                     setShowStoryViewer(true);
                     setStoryProgress(0);
                   } else {
                     // Fallback: filter out "Create Story" and find the index
-                    const actualStories = displayStories.filter(s => !s.isAdd);
-                    const storyIndex = actualStories.findIndex(s => s.storyId === story.storyId);
+                    const actualStories = displayStories.filter(
+                      (s) => !s.isAdd
+                    );
+                    const storyIndex = actualStories.findIndex(
+                      (s) => s.storyId === story.storyId
+                    );
                     if (storyIndex >= 0) {
                       // Convert to story format
                       const fallbackStories = actualStories.map((s: any) => ({
@@ -858,7 +974,6 @@ const NewsFeed = () => {
                         </div>
                       )}
                     </div>
-
                   </>
                 )}
               </div>
@@ -969,7 +1084,9 @@ const NewsFeed = () => {
                           onClick={() =>
                             setPostFormData({
                               ...postFormData,
-                              images: postFormData.images.filter((_, i) => i !== idx),
+                              images: postFormData.images.filter(
+                                (_, i) => i !== idx
+                              ),
                             })
                           }
                           className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
@@ -1104,7 +1221,7 @@ const NewsFeed = () => {
                     setStoryPreview(null);
                     setStoryContent("");
                     if (storyFileInputRef.current) {
-                      storyFileInputRef.current.value = '';
+                      storyFileInputRef.current.value = "";
                     }
                   }}
                   className="text-gray-500 hover:text-gray-700"
@@ -1119,7 +1236,9 @@ const NewsFeed = () => {
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                       <Video className="w-12 h-12 text-gray-400 mb-4" />
                       <p className="mb-2 text-sm text-gray-500">
-                        <span className="font-semibold">Chọn ảnh hoặc video</span>
+                        <span className="font-semibold">
+                          Chọn ảnh hoặc video
+                        </span>
                       </p>
                       <p className="text-xs text-gray-500">
                         Video tối đa 50MB, Ảnh tối đa 10MB
@@ -1143,7 +1262,7 @@ const NewsFeed = () => {
               ) : (
                 <div className="space-y-4">
                   <div className="relative w-full h-64 rounded-xl overflow-hidden bg-black">
-                    {storyFile?.type.startsWith('video/') ? (
+                    {storyFile?.type.startsWith("video/") ? (
                       <video
                         src={storyPreview}
                         controls
@@ -1170,7 +1289,7 @@ const NewsFeed = () => {
                         setStoryFile(null);
                         setStoryPreview(null);
                         if (storyFileInputRef.current) {
-                          storyFileInputRef.current.value = '';
+                          storyFileInputRef.current.value = "";
                         }
                       }}
                       className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
@@ -1232,9 +1351,7 @@ const NewsFeed = () => {
               className="space-y-4"
             >
               <div className="text-6xl mb-4">📝</div>
-              <p className="text-gray-600 mb-4 text-lg">
-                Chưa có bài viết nào
-              </p>
+              <p className="text-gray-600 mb-4 text-lg">Chưa có bài viết nào</p>
             </motion.div>
           </div>
         ) : (
@@ -1286,135 +1403,146 @@ const NewsFeed = () => {
 
       {/* Story Viewer Modal */}
       <AnimatePresence>
-        {showStoryViewer && currentViewingUserStories.length > 0 && currentViewingUserStories[currentStoryIndex] && (
-          <motion.div
-            className="fixed inset-0 z-[100] bg-black"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => {
-              setShowStoryViewer(false);
-              setCurrentViewingUserStories([]);
-              setCurrentViewingUser(null);
-            }}
-          >
-            {/* Progress Bar */}
-            <div className="absolute top-0 left-0 right-0 p-4 z-10">
-              <div className="flex gap-2">
-                {currentViewingUserStories.map((_, index) => (
-                  <div
-                    key={index}
-                    className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden"
-                  >
-                    <motion.div
-                      className="h-full bg-white rounded-full"
-                      initial={{ width: index < currentStoryIndex ? '100%' : '0%' }}
-                      animate={{
-                        width:
-                          index === currentStoryIndex
-                            ? `${storyProgress}%`
-                            : index < currentStoryIndex
-                            ? '100%'
-                            : '0%',
-                      }}
-                      transition={{ duration: 0.1 }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Story Content */}
-            <div className="relative w-full h-full flex items-center justify-center">
-              {/* Previous Button */}
-              {currentStoryIndex > 0 && (
-                <motion.button
-                  className="absolute left-4 z-20 w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handlePrevStory();
-                  }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <ChevronLeft className="w-6 h-6 text-white" />
-                </motion.button>
-              )}
-
-              {/* Next Button */}
-              {currentStoryIndex < currentViewingUserStories.length - 1 && (
-                <motion.button
-                  className="absolute right-4 z-20 w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleNextStory();
-                  }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <ChevronRight className="w-6 h-6 text-white" />
-                </motion.button>
-              )}
-
-              {/* Close Button */}
-              <motion.button
-                className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowStoryViewer(false);
-                  setCurrentViewingUserStories([]);
-                  setCurrentViewingUser(null);
-                }}
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <X className="w-5 h-5 text-white" />
-              </motion.button>
-
-              {/* Story Media */}
-              <div
-                className="relative w-full h-full flex items-center justify-center"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {currentViewingUserStories[currentStoryIndex]?.mediaType === 'video' ? (
-                  <video
-                    src={currentViewingUserStories[currentStoryIndex].mediaUrl}
-                    className="max-w-full max-h-full object-contain"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                  />
-                ) : (
-                  <img
-                    src={currentViewingUserStories[currentStoryIndex].mediaUrl}
-                    alt="Story"
-                    className="max-w-full max-h-full object-contain"
-                  />
-                )}
-              </div>
-
-              {/* Story Info */}
-              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/50 to-transparent">
-                <div className="flex items-center space-x-3 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-lg font-bold">
-                    {currentViewingUser?.avatar || '👤'}
-                  </div>
-                  <div>
-                    <div className="text-white font-semibold">
-                      {currentViewingUser?.name || 'User'}
+        {showStoryViewer &&
+          currentViewingUserStories.length > 0 &&
+          currentViewingUserStories[currentStoryIndex] && (
+            <motion.div
+              className="fixed inset-0 z-[100] bg-black"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setShowStoryViewer(false);
+                setCurrentViewingUserStories([]);
+                setCurrentViewingUser(null);
+              }}
+            >
+              {/* Progress Bar */}
+              <div className="absolute top-0 left-0 right-0 p-4 z-10">
+                <div className="flex gap-2">
+                  {currentViewingUserStories.map((_, index) => (
+                    <div
+                      key={index}
+                      className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden"
+                    >
+                      <motion.div
+                        className="h-full bg-white rounded-full"
+                        initial={{
+                          width: index < currentStoryIndex ? "100%" : "0%",
+                        }}
+                        animate={{
+                          width:
+                            index === currentStoryIndex
+                              ? `${storyProgress}%`
+                              : index < currentStoryIndex
+                              ? "100%"
+                              : "0%",
+                        }}
+                        transition={{ duration: 0.1 }}
+                      />
                     </div>
-                    {currentViewingUserStories[currentStoryIndex]?.content && (
-                      <div className="text-white/80 text-sm">
-                        📍 {currentViewingUserStories[currentStoryIndex].content}
+                  ))}
+                </div>
+              </div>
+
+              {/* Story Content */}
+              <div className="relative w-full h-full flex items-center justify-center">
+                {/* Previous Button */}
+                {currentStoryIndex > 0 && (
+                  <motion.button
+                    className="absolute left-4 z-20 w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePrevStory();
+                    }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <ChevronLeft className="w-6 h-6 text-white" />
+                  </motion.button>
+                )}
+
+                {/* Next Button */}
+                {currentStoryIndex < currentViewingUserStories.length - 1 && (
+                  <motion.button
+                    className="absolute right-4 z-20 w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNextStory();
+                    }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <ChevronRight className="w-6 h-6 text-white" />
+                  </motion.button>
+                )}
+
+                {/* Close Button */}
+                <motion.button
+                  className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowStoryViewer(false);
+                    setCurrentViewingUserStories([]);
+                    setCurrentViewingUser(null);
+                  }}
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="w-5 h-5 text-white" />
+                </motion.button>
+
+                {/* Story Media */}
+                <div
+                  className="relative w-full h-full flex items-center justify-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {currentViewingUserStories[currentStoryIndex]?.mediaType ===
+                  "video" ? (
+                    <video
+                      src={
+                        currentViewingUserStories[currentStoryIndex].mediaUrl
+                      }
+                      className="max-w-full max-h-full object-contain"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                    />
+                  ) : (
+                    <img
+                      src={
+                        currentViewingUserStories[currentStoryIndex].mediaUrl
+                      }
+                      alt="Story"
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  )}
+                </div>
+
+                {/* Story Info */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/50 to-transparent">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-lg font-bold">
+                      {currentViewingUser?.avatar || "👤"}
+                    </div>
+                    <div>
+                      <div className="text-white font-semibold">
+                        {currentViewingUser?.name || "User"}
                       </div>
-                    )}
+                      {currentViewingUserStories[currentStoryIndex]
+                        ?.content && (
+                        <div className="text-white/80 text-sm">
+                          📍{" "}
+                          {currentViewingUserStories[currentStoryIndex].content}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
       </AnimatePresence>
 
       {/* Scroll to Top Button - Giữa màn hình */}

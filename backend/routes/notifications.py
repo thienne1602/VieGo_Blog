@@ -2,12 +2,27 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.notification import Notification
 from models.user import User
+from models.booking import Booking
 from models import db
 from utils.socket_utils import emit_to_user
+from utils.booking_audience import get_user_ids_for_tour_bookings
 from datetime import datetime, timedelta
 import json
 
 notifications_bp = Blueprint('notifications', __name__, url_prefix='/api/notifications')
+
+
+def _coerce_jwt_user_id_to_int():
+    """Best-effort conversion of JWT identity to integer user_id."""
+    raw = get_jwt_identity()
+    if raw is None:
+        return None
+    try:
+        if isinstance(raw, int):
+            return raw
+        return int(str(raw).strip())
+    except (ValueError, TypeError):
+        return None
 
 @notifications_bp.route('', methods=['GET'])
 @jwt_required()
@@ -180,10 +195,9 @@ def get_unread_count():
 def mark_as_read(notification_id):
     """Mark a notification as read"""
     try:
-        current_user_id = get_jwt_identity()
-        # Convert to int if it's a string (JWT identity might be stored as string)
-        if isinstance(current_user_id, str) and current_user_id.isdigit():
-            current_user_id = int(current_user_id)
+        current_user_id = _coerce_jwt_user_id_to_int()
+        if current_user_id is None:
+            return jsonify({'error': 'ID người dùng không hợp lệ'}), 401
         
         notification = Notification.query.filter_by(
             id=notification_id,
@@ -207,19 +221,18 @@ def mark_as_read(notification_id):
 def mark_all_as_read():
     """Mark all notifications as read"""
     try:
-        current_user_id = get_jwt_identity()
-        # Convert to int if it's a string (JWT identity might be stored as string)
-        if isinstance(current_user_id, str) and current_user_id.isdigit():
-            current_user_id = int(current_user_id)
-        
-        Notification.query.filter_by(
+        current_user_id = _coerce_jwt_user_id_to_int()
+        if current_user_id is None:
+            return jsonify({'error': 'ID người dùng không hợp lệ'}), 401
+
+        updated = Notification.query.filter_by(
             user_id=current_user_id,
             is_read=False
         ).update({'is_read': True, 'read_at': datetime.utcnow()})
         
         db.session.commit()
-        
-        return jsonify({'message': 'Đã đánh dấu tất cả là đã đọc'}), 200
+
+        return jsonify({'message': 'Đã đánh dấu tất cả là đã đọc', 'updated': int(updated or 0)}), 200
         
     except Exception as e:
         db.session.rollback()
@@ -230,10 +243,9 @@ def mark_all_as_read():
 def delete_notification(notification_id):
     """Delete a notification"""
     try:
-        current_user_id = get_jwt_identity()
-        # Convert to int if it's a string (JWT identity might be stored as string)
-        if isinstance(current_user_id, str) and current_user_id.isdigit():
-            current_user_id = int(current_user_id)
+        current_user_id = _coerce_jwt_user_id_to_int()
+        if current_user_id is None:
+            return jsonify({'error': 'ID người dùng không hợp lệ'}), 401
         
         notification = Notification.query.filter_by(
             id=notification_id,
@@ -257,10 +269,9 @@ def delete_notification(notification_id):
 def delete_all_notifications():
     """Delete all notifications for current user"""
     try:
-        current_user_id = get_jwt_identity()
-        # Convert to int if it's a string
-        if isinstance(current_user_id, str) and current_user_id.isdigit():
-            current_user_id = int(current_user_id)
+        current_user_id = _coerce_jwt_user_id_to_int()
+        if current_user_id is None:
+            return jsonify({'error': 'ID người dùng không hợp lệ'}), 401
         
         # Delete all notifications
         deleted_count = Notification.query.filter_by(
@@ -283,10 +294,9 @@ def delete_all_notifications():
 def delete_read_notifications():
     """Delete all read notifications for current user"""
     try:
-        current_user_id = get_jwt_identity()
-        # Convert to int if it's a string
-        if isinstance(current_user_id, str) and current_user_id.isdigit():
-            current_user_id = int(current_user_id)
+        current_user_id = _coerce_jwt_user_id_to_int()
+        if current_user_id is None:
+            return jsonify({'error': 'ID người dùng không hợp lệ'}), 401
         
         # Delete read notifications
         deleted_count = Notification.query.filter_by(
@@ -310,10 +320,9 @@ def delete_read_notifications():
 def get_notification_stats():
     """Get notification statistics for current user"""
     try:
-        current_user_id = get_jwt_identity()
-        # Convert to int if it's a string
-        if isinstance(current_user_id, str) and current_user_id.isdigit():
-            current_user_id = int(current_user_id)
+        current_user_id = _coerce_jwt_user_id_to_int()
+        if current_user_id is None:
+            return jsonify({'error': 'ID người dùng không hợp lệ'}), 401
         
         # Get total count
         total = Notification.query.filter_by(user_id=current_user_id).count()
@@ -353,6 +362,83 @@ def get_notification_stats():
         
     except Exception as e:
         return jsonify({'error': f'Lỗi lấy thống kê: {str(e)}'}), 500
+
+
+@notifications_bp.route('/tour-journey/<int:booking_id>', methods=['POST'])
+@jwt_required()
+def send_tour_journey_notification(booking_id: int):
+    """Tour guide sends a journey notification to all users linked with the tour.
+
+    This is used by the /tour-journey UI. Notifications are persisted and emitted
+    realtime via Socket.IO (new_notification) to each recipient's personal room.
+    """
+    try:
+        current_user_id = get_jwt_identity()
+        if isinstance(current_user_id, str) and current_user_id.isdigit():
+            current_user_id = int(current_user_id)
+
+        sender = User.query.get(current_user_id)
+        if not sender:
+            return jsonify({'error': 'Không tìm thấy người dùng'}), 404
+
+        if sender.role != 'tour_guide':
+            return jsonify({'error': 'Bạn không có quyền gửi thông báo hành trình'}), 403
+
+        payload = request.get_json(silent=True) or {}
+        category = (payload.get('category') or 'other').strip().lower()
+        message = (payload.get('message') or '').strip()
+
+        if not message:
+            return jsonify({'error': 'Nội dung thông báo không được để trống'}), 400
+
+        if len(message) > 1000:
+            return jsonify({'error': 'Nội dung thông báo quá dài'}), 400
+
+        booking = Booking.query.get(booking_id)
+        if not booking:
+            return jsonify({'error': 'Không tìm thấy booking'}), 404
+
+        tour_id = int(booking.tour_id) if booking.tour_id is not None else None
+        if not tour_id:
+            return jsonify({'error': 'Booking chưa liên kết tour'}), 400
+
+        # Notify all confirmed bookings of this tour to match "users linked with the trip"
+        recipient_ids = get_user_ids_for_tour_bookings(tour_id)
+
+        # If no confirmed recipients found, fall back to notifying the booking owner
+        if not recipient_ids and booking.user_id:
+            recipient_ids = {int(booking.user_id)}
+
+        action_url = f'/tour-journey/{booking_id}'
+        title = 'Thông báo hành trình'
+
+        sent = 0
+        for uid in sorted(recipient_ids):
+            notif = create_notification(
+                user_id=uid,
+                type='booking',
+                message=message,
+                title=title,
+                actor_id=current_user_id,
+                related_type='tour',
+                related_id=tour_id,
+                action_url=action_url,
+                metadata={
+                    'source': 'tour_journey',
+                    'category': category,
+                    'booking_id': booking_id,
+                    'tour_id': tour_id,
+                },
+                emit_realtime=True,
+            )
+            if notif:
+                sent += 1
+
+        return jsonify({'message': 'Đã gửi thông báo', 'sent': sent}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi gửi thông báo hành trình: {str(e)}'}), 500
 
 def create_notification(user_id, type, message, title=None, actor_id=None, 
                        related_type=None, related_id=None, action_url=None, metadata=None, emit_realtime=True):

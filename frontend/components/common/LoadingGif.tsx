@@ -25,8 +25,8 @@ export default function LoadingGif({
 }: LoadingGifProps) {
   const gifSrc =
     type === "alt"
-      ? "/assets/stickers/đang tải.gif"
-      : "/assets/stickers/đang tải 2.gif";
+      ? "/assets/stickers/dang-tai.gif"
+      : "/assets/stickers/dang-tai-2.gif";
 
   return (
     <div className={`flex flex-col items-center justify-center ${className}`}>
