@@ -468,4 +468,426 @@ def register_socket_handlers(socketio):
         except Exception as e:
             print(f'[Socket.IO] Error leaving conversation: {str(e)}')
     
+    # =====================================================
+    # TOUR LOCATION TRACKING - Realtime member tracking
+    # =====================================================
+    
+    @socketio.on('join_tour_tracking')
+    def on_join_tour_tracking(data):
+        """Join a tour tracking room for realtime location updates"""
+        try:
+            booking_id = data.get('booking_id')
+            user_id = data.get('user_id')
+            member_type = data.get('member_type', 'participant')  # tour_guide, participant, leader
+            
+            if booking_id and user_id:
+                # Create tour tracking room
+                room = f'tour_tracking_{booking_id}'
+                join_room(room)
+                
+                # Get user info
+                user = User.query.get(user_id)
+                member_name = user.full_name or user.username if user else f'Member {user_id}'
+                
+                # Notify others in the tour that a new member joined tracking
+                socketio.emit('member_joined_tracking', {
+                    'booking_id': booking_id,
+                    'user_id': user_id,
+                    'member_name': member_name,
+                    'member_type': member_type,
+                    'timestamp': datetime.utcnow().isoformat()
+                }, room=room, include_self=False)
+                
+                emit('tour_tracking_joined', {
+                    'room': room,
+                    'booking_id': booking_id,
+                    'message': f'Đã tham gia theo dõi vị trí tour #{booking_id}'
+                })
+                
+                print(f'[Socket.IO] User {user_id} joined tour tracking room {room}')
+        except Exception as e:
+            print(f'[Socket.IO] Error joining tour tracking: {str(e)}')
+            emit('error', {'message': f'Lỗi tham gia theo dõi tour: {str(e)}'})
+    
+    @socketio.on('leave_tour_tracking')
+    def on_leave_tour_tracking(data):
+        """Leave tour tracking room"""
+        try:
+            booking_id = data.get('booking_id')
+            user_id = data.get('user_id')
+            
+            if booking_id and user_id:
+                room = f'tour_tracking_{booking_id}'
+                leave_room(room)
+                
+                # Get user info
+                user = User.query.get(user_id)
+                member_name = user.full_name or user.username if user else f'Member {user_id}'
+                
+                # Notify others
+                socketio.emit('member_left_tracking', {
+                    'booking_id': booking_id,
+                    'user_id': user_id,
+                    'member_name': member_name,
+                    'timestamp': datetime.utcnow().isoformat()
+                }, room=room)
+                
+                emit('tour_tracking_left', {
+                    'booking_id': booking_id,
+                    'message': 'Đã rời khỏi theo dõi vị trí tour'
+                })
+                
+                print(f'[Socket.IO] User {user_id} left tour tracking room {room}')
+        except Exception as e:
+            print(f'[Socket.IO] Error leaving tour tracking: {str(e)}')
+    
+    @socketio.on('update_member_location')
+    def on_update_member_location(data):
+        """
+        Update member location in realtime
+        This is the main handler for continuous location updates
+        """
+        try:
+            from models.tour_member_location import TourMemberLocation, TourLocationHistory, TourGeofence
+            from models.booking import Booking
+            
+            booking_id = data.get('booking_id')
+            user_id = data.get('user_id')
+            participant_id = data.get('participant_id')
+            latitude = data.get('latitude')
+            longitude = data.get('longitude')
+            
+            if not booking_id or (latitude is None or longitude is None):
+                emit('error', {'message': 'Thiếu thông tin vị trí hoặc booking_id'})
+                return
+            
+            # Verify booking exists
+            booking = Booking.query.get(booking_id)
+            if not booking:
+                emit('error', {'message': 'Không tìm thấy booking'})
+                return
+            
+            # Find or create member location record
+            member_location = None
+            if user_id:
+                member_location = TourMemberLocation.query.filter_by(
+                    booking_id=booking_id,
+                    user_id=user_id,
+                    is_active=True
+                ).first()
+            elif participant_id:
+                member_location = TourMemberLocation.query.filter_by(
+                    booking_id=booking_id,
+                    participant_id=participant_id,
+                    is_active=True
+                ).first()
+            
+            if not member_location:
+                # Create new location record
+                user = User.query.get(user_id) if user_id else None
+                member_name = data.get('member_name')
+                if not member_name and user:
+                    member_name = user.full_name or user.username
+                elif not member_name:
+                    member_name = f'Thành viên {participant_id or user_id}'
+                
+                member_location = TourMemberLocation(
+                    booking_id=booking_id,
+                    user_id=user_id,
+                    participant_id=participant_id,
+                    member_type=data.get('member_type', 'participant'),
+                    member_name=member_name,
+                    latitude=latitude,
+                    longitude=longitude
+                )
+                db.session.add(member_location)
+            else:
+                # Update existing location
+                member_location.update_location(
+                    latitude=latitude,
+                    longitude=longitude,
+                    accuracy=data.get('accuracy'),
+                    altitude=data.get('altitude'),
+                    heading=data.get('heading'),
+                    speed=data.get('speed'),
+                    battery_level=data.get('battery_level'),
+                    location_source=data.get('location_source', 'gps')
+                )
+            
+            db.session.commit()
+            
+            # Save to history (every 30 seconds or significant movement)
+            should_save_history = True
+            last_history = TourLocationHistory.query.filter_by(
+                member_location_id=member_location.id
+            ).order_by(TourLocationHistory.recorded_at.desc()).first()
+            
+            if last_history:
+                # Check if 30 seconds have passed or significant movement
+                from datetime import timedelta
+                time_diff = datetime.utcnow() - last_history.recorded_at
+                if time_diff < timedelta(seconds=30):
+                    # Check distance moved (simple approximation)
+                    lat_diff = abs(latitude - last_history.latitude)
+                    lng_diff = abs(longitude - last_history.longitude)
+                    # Skip if minimal movement (roughly < 10m)
+                    if lat_diff < 0.0001 and lng_diff < 0.0001:
+                        should_save_history = False
+            
+            if should_save_history:
+                history = TourLocationHistory(
+                    member_location_id=member_location.id,
+                    booking_id=booking_id,
+                    user_id=user_id,
+                    participant_id=participant_id,
+                    member_type=member_location.member_type,
+                    latitude=latitude,
+                    longitude=longitude,
+                    accuracy=data.get('accuracy'),
+                    altitude=data.get('altitude'),
+                    heading=data.get('heading'),
+                    speed=data.get('speed')
+                )
+                db.session.add(history)
+                db.session.commit()
+            
+            # Broadcast location update to tour tracking room
+            room = f'tour_tracking_{booking_id}'
+            location_data = member_location.to_dict()
+            
+            socketio.emit('member_location_updated', {
+                'booking_id': booking_id,
+                'member': location_data,
+                'timestamp': datetime.utcnow().isoformat()
+            }, room=room)
+            
+            # Check geofences
+            active_geofences = TourGeofence.query.filter_by(
+                booking_id=booking_id,
+                is_active=True
+            ).all()
+            
+            for fence in active_geofences:
+                is_inside = fence.is_point_inside(latitude, longitude)
+                
+                # Check for geofence violations
+                if fence.alert_on_exit and not is_inside:
+                    # Member is outside safety zone
+                    socketio.emit('geofence_alert', {
+                        'booking_id': booking_id,
+                        'alert_type': 'geofence_exit',
+                        'severity': 'warning',
+                        'member': location_data,
+                        'geofence': fence.to_dict(),
+                        'message': f'{member_location.member_name} đã rời khỏi khu vực {fence.name}',
+                        'timestamp': datetime.utcnow().isoformat()
+                    }, room=room)
+                
+                elif fence.alert_on_enter and is_inside:
+                    # Member entered restricted zone
+                    socketio.emit('geofence_alert', {
+                        'booking_id': booking_id,
+                        'alert_type': 'geofence_enter',
+                        'severity': 'info',
+                        'member': location_data,
+                        'geofence': fence.to_dict(),
+                        'message': f'{member_location.member_name} đã đến {fence.name}',
+                        'timestamp': datetime.utcnow().isoformat()
+                    }, room=room)
+            
+            print(f'[Socket.IO] Location updated for member {member_location.member_name} in booking {booking_id}')
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f'[Socket.IO] Error updating member location: {str(e)}')
+            import traceback
+            print(traceback.format_exc())
+            emit('error', {'message': f'Lỗi cập nhật vị trí: {str(e)}'})
+    
+    @socketio.on('trigger_sos')
+    def on_trigger_sos(data):
+        """Trigger SOS emergency alert"""
+        try:
+            from models.tour_member_location import TourMemberLocation
+            
+            booking_id = data.get('booking_id')
+            user_id = data.get('user_id')
+            message = data.get('message', 'Cần hỗ trợ khẩn cấp!')
+            latitude = data.get('latitude')
+            longitude = data.get('longitude')
+            
+            if not booking_id or not user_id:
+                emit('error', {'message': 'Thiếu thông tin booking_id hoặc user_id'})
+                return
+            
+            # Find member location
+            member_location = TourMemberLocation.query.filter_by(
+                booking_id=booking_id,
+                user_id=user_id,
+                is_active=True
+            ).first()
+            
+            if member_location:
+                member_location.trigger_sos(message)
+                if latitude and longitude:
+                    member_location.latitude = latitude
+                    member_location.longitude = longitude
+                db.session.commit()
+            
+            # Get user info
+            user = User.query.get(user_id)
+            member_name = user.full_name or user.username if user else f'Thành viên {user_id}'
+            
+            # Broadcast SOS to entire tour
+            room = f'tour_tracking_{booking_id}'
+            
+            sos_data = {
+                'booking_id': booking_id,
+                'alert_type': 'sos',
+                'severity': 'critical',
+                'user_id': user_id,
+                'member_name': member_name,
+                'message': message,
+                'location': {
+                    'latitude': latitude or (member_location.latitude if member_location else None),
+                    'longitude': longitude or (member_location.longitude if member_location else None)
+                },
+                'timestamp': datetime.utcnow().isoformat()
+            }
+            
+            socketio.emit('sos_alert', sos_data, room=room)
+            
+            # Also notify tour guide specifically if they have a user room
+            from models.tour_assignment import TourAssignment
+            assignment = TourAssignment.query.filter_by(booking_id=booking_id).first()
+            if assignment and assignment.tour_guide_id:
+                socketio.emit('sos_alert', sos_data, room=f'user_{assignment.tour_guide_id}')
+            
+            emit('sos_triggered', {
+                'message': 'Đã gửi tín hiệu SOS đến hướng dẫn viên và các thành viên trong tour',
+                'timestamp': datetime.utcnow().isoformat()
+            })
+            
+            print(f'[Socket.IO] SOS triggered by user {user_id} in booking {booking_id}')
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f'[Socket.IO] Error triggering SOS: {str(e)}')
+            emit('error', {'message': f'Lỗi gửi SOS: {str(e)}'})
+    
+    @socketio.on('clear_sos')
+    def on_clear_sos(data):
+        """Clear SOS alert (typically by tour guide)"""
+        try:
+            from models.tour_member_location import TourMemberLocation
+            
+            booking_id = data.get('booking_id')
+            target_user_id = data.get('target_user_id')  # The user whose SOS to clear
+            cleared_by = data.get('cleared_by')  # Who is clearing (tour guide)
+            
+            if not booking_id or not target_user_id:
+                emit('error', {'message': 'Thiếu thông tin'})
+                return
+            
+            # Find and clear SOS
+            member_location = TourMemberLocation.query.filter_by(
+                booking_id=booking_id,
+                user_id=target_user_id,
+                is_sos=True
+            ).first()
+            
+            if member_location:
+                member_location.clear_sos()
+                db.session.commit()
+            
+            # Notify all members
+            room = f'tour_tracking_{booking_id}'
+            
+            clearer = User.query.get(cleared_by) if cleared_by else None
+            clearer_name = clearer.full_name or clearer.username if clearer else 'Hướng dẫn viên'
+            
+            socketio.emit('sos_cleared', {
+                'booking_id': booking_id,
+                'target_user_id': target_user_id,
+                'cleared_by': cleared_by,
+                'cleared_by_name': clearer_name,
+                'message': f'SOS đã được xử lý bởi {clearer_name}',
+                'timestamp': datetime.utcnow().isoformat()
+            }, room=room)
+            
+            print(f'[Socket.IO] SOS cleared for user {target_user_id} in booking {booking_id}')
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f'[Socket.IO] Error clearing SOS: {str(e)}')
+            emit('error', {'message': f'Lỗi xóa SOS: {str(e)}'})
+    
+    @socketio.on('request_all_locations')
+    def on_request_all_locations(data):
+        """Request current locations of all tour members"""
+        try:
+            from models.tour_member_location import TourMemberLocation
+            
+            booking_id = data.get('booking_id')
+            
+            if not booking_id:
+                emit('error', {'message': 'Thiếu booking_id'})
+                return
+            
+            # Get all active member locations
+            locations = TourMemberLocation.query.filter_by(
+                booking_id=booking_id,
+                is_active=True
+            ).all()
+            
+            members_data = [loc.to_dict(include_user=True) for loc in locations]
+            
+            emit('all_locations_response', {
+                'booking_id': booking_id,
+                'members': members_data,
+                'count': len(members_data),
+                'timestamp': datetime.utcnow().isoformat()
+            })
+            
+            print(f'[Socket.IO] Sent {len(members_data)} member locations for booking {booking_id}')
+            
+        except Exception as e:
+            print(f'[Socket.IO] Error getting all locations: {str(e)}')
+            emit('error', {'message': f'Lỗi lấy vị trí: {str(e)}'})
+    
+    @socketio.on('ping_member')
+    def on_ping_member(data):
+        """Ping a specific member to request their location update"""
+        try:
+            booking_id = data.get('booking_id')
+            target_user_id = data.get('target_user_id')
+            requester_id = data.get('requester_id')
+            
+            if not booking_id or not target_user_id:
+                emit('error', {'message': 'Thiếu thông tin'})
+                return
+            
+            requester = User.query.get(requester_id) if requester_id else None
+            requester_name = requester.full_name or requester.username if requester else 'Hướng dẫn viên'
+            
+            # Send ping to target member's personal room
+            socketio.emit('location_ping', {
+                'booking_id': booking_id,
+                'requester_id': requester_id,
+                'requester_name': requester_name,
+                'message': f'{requester_name} yêu cầu cập nhật vị trí của bạn',
+                'timestamp': datetime.utcnow().isoformat()
+            }, room=f'user_{target_user_id}')
+            
+            emit('ping_sent', {
+                'target_user_id': target_user_id,
+                'message': 'Đã gửi yêu cầu cập nhật vị trí'
+            })
+            
+            print(f'[Socket.IO] Location ping sent to user {target_user_id} from {requester_id}')
+            
+        except Exception as e:
+            print(f'[Socket.IO] Error pinging member: {str(e)}')
+            emit('error', {'message': f'Lỗi ping: {str(e)}'})
+    
     return socketio

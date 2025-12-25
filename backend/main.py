@@ -203,6 +203,7 @@ try:
     from routes.chat import chat_bp
     from routes.moderator import moderator_bp
     from routes.contact import contact_bp
+    from routes.tour_location import tour_location_bp  # NEW: realtime location tracking
     
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -228,7 +229,8 @@ try:
     app.register_blueprint(chat_bp)       # NEW: chat routes
     app.register_blueprint(moderator_bp)  # NEW: moderator routes
     app.register_blueprint(contact_bp)    # NEW: contact routes
-    print("[OK] Routes registered successfully (including tour features: participants, assignments, progress, itinerary)")
+    app.register_blueprint(tour_location_bp)  # NEW: realtime tour location tracking
+    print("[OK] Routes registered successfully (including tour features: participants, assignments, progress, itinerary, location tracking)")
 except ImportError as e:
     print(f"[WARNING] Some routes not found: {e}")
 

@@ -21,6 +21,7 @@ try:
     from .seller_tour_guide import SellerTourGuide  # noqa: F401
     from .tour_itinerary import TourItineraryTemplate, TourItineraryDay, ItineraryCheckpoint  # noqa: F401
     from .booking_itinerary import BookingItineraryDay, CheckpointCheckin  # noqa: F401
+    from .tour_member_location import TourMemberLocation, TourLocationHistory, TourGeofence  # noqa: F401
     from .chat import Chat  # noqa: F401
     from .notification import Notification  # noqa: F401
     from .friendship import FriendRequest  # noqa: F401

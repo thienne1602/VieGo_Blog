@@ -33,11 +33,15 @@ import {
   Users,
   UserRound,
   Baby,
+  Locate,
+  Radio,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import Toast from "@/components/common/Toast";
 import { useAuth } from "@/lib/AuthContext";
+import { useTourLocationTracking } from "@/hooks/useTourLocationTracking";
+import MemberLocationMap from "@/components/tour/MemberLocationMap";
 
 interface TourProgress {
   id: number;
@@ -141,6 +145,16 @@ export default function TourJourneyPageClient({
   >("start");
   const [journeyNoticeMessage, setJourneyNoticeMessage] = useState("");
   const [journeyNoticeSending, setJourneyNoticeSending] = useState(false);
+
+  // Location tracking state
+  const [showLocationTracking, setShowLocationTracking] = useState(false);
+
+  // Location tracking hook
+  const locationTracking = useTourLocationTracking({
+    bookingId: parseInt(bookingId),
+    autoConnect: showLocationTracking,
+    enableTracking: showLocationTracking,
+  });
 
   // Convert old itinerary format {day1: {...}, day2: {...}} to new array format
   const convertItineraryFormat = (itinerary: any): any[] => {
@@ -2167,10 +2181,11 @@ export default function TourJourneyPageClient({
 
           {/* Map Toggle */}
           {progress.length > 0 && (
-            <div className="mb-6 flex justify-center">
+            <div className="mb-6 flex justify-center gap-3 flex-wrap">
               <button
                 onClick={() => {
                   setShowMap(!showMap);
+                  if (showLocationTracking) setShowLocationTracking(false);
                   if (!showMap && progress.length > 0) {
                     const activeCheckpoint =
                       progress.find((cp) => cp.status === "in_progress") ||
@@ -2186,10 +2201,38 @@ export default function TourJourneyPageClient({
                     }
                   }
                 }}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-blue-600 text-white rounded-xl font-semibold hover:from-teal-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl ${
+                  showMap
+                    ? "bg-gradient-to-r from-teal-600 to-blue-600 text-white"
+                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                }`}
               >
                 <MapIcon className="w-5 h-5" />
                 {showMap ? "Ẩn bản đồ" : "Xem bản đồ"}
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowLocationTracking(!showLocationTracking);
+                  if (showMap) setShowMap(false);
+                }}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl ${
+                  showLocationTracking
+                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white"
+                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-white border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                }`}
+              >
+                <Radio
+                  className={`w-5 h-5 ${
+                    showLocationTracking ? "animate-pulse" : ""
+                  }`}
+                />
+                {showLocationTracking ? "Tắt định vị" : "Định vị thành viên"}
+                {locationTracking.sosAlerts.length > 0 && (
+                  <span className="ml-1 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full animate-pulse">
+                    SOS
+                  </span>
+                )}
               </button>
             </div>
           )}
@@ -2203,6 +2246,28 @@ export default function TourJourneyPageClient({
               {typeof window !== "undefined" && (
                 <div id="tour-journey-map" className="w-full h-96 rounded-lg" />
               )}
+            </div>
+          )}
+
+          {/* Location Tracking Map */}
+          {showLocationTracking && (
+            <div className="mb-8">
+              <MemberLocationMap
+                members={locationTracking.members}
+                sosAlerts={locationTracking.sosAlerts}
+                geofenceAlerts={locationTracking.geofenceAlerts}
+                geofences={locationTracking.geofences}
+                myLocation={locationTracking.myLocation}
+                isTracking={locationTracking.isTracking}
+                isGuide={isGuide}
+                currentUserId={user?.id || null}
+                onTriggerSOS={(message) => locationTracking.triggerSOS(message)}
+                onClearSOS={(userId) => locationTracking.clearSOS(userId)}
+                onPingMember={(userId) => locationTracking.pingMember(userId)}
+                onRefresh={() => locationTracking.requestAllLocations()}
+                onStartTracking={() => locationTracking.startTracking()}
+                onStopTracking={() => locationTracking.stopTracking()}
+              />
             </div>
           )}
 
