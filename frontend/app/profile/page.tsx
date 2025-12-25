@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../lib/AuthContext";
 import AdminDashboard from "../dashboard/admin/page";
 import ModeratorDashboard from "../dashboard/moderator/page";
@@ -12,6 +13,7 @@ import TourGuideDashboard from "../dashboard/tour-guide/page";
 export default function ProfileRouter() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation("profile");
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export default function ProfileRouter() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-200 dark:border-gray-700 border-t-primary-600 dark:border-t-primary-400 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Đang tải...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">{t("loading")}</p>
         </div>
       </div>
     );
@@ -73,19 +75,18 @@ export default function ProfileRouter() {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Lỗi Quyền Truy Cập
+              {t("accessError.title")}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-2">
-              Role không hợp lệ hoặc chưa được hỗ trợ.
+              {t("accessError.description")}
             </p>
             {user.role && (
               <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">
-                Role hiện tại: <strong>{user.role}</strong>
+                {t("accessError.currentRole")} <strong>{user.role}</strong>
               </p>
             )}
             <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">
-              Vui lòng đăng nhập lại hoặc liên hệ quản trị viên nếu bạn có quyền
-              truy cập.
+              {t("accessError.helpText")}
             </p>
             <button
               onClick={() => {
@@ -96,7 +97,7 @@ export default function ProfileRouter() {
               }}
               className="bg-primary-600 dark:bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
             >
-              Đăng nhập lại
+              {t("accessError.loginAgain")}
             </button>
           </div>
         </div>

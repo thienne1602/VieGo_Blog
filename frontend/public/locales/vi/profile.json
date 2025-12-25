@@ -1,0 +1,51 @@
+{
+  "loading": "Đang tải...",
+  "accessError": {
+    "title": "Lỗi Quyền Truy Cập",
+    "description": "Role không hợp lệ hoặc chưa được hỗ trợ.",
+    "currentRole": "Role hiện tại:",
+    "helpText": "Vui lòng đăng nhập lại hoặc liên hệ quản trị viên nếu bạn có quyền truy cập.",
+    "loginAgain": "Đăng nhập lại"
+  },
+  "navigation": {
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt",
+    "posts": "Bài viết",
+    "favorites": "Yêu thích",
+    "bookings": "Đặt tour",
+    "reviews": "Đánh giá"
+  },
+  "userProfile": {
+    "editProfile": "Chỉnh sửa hồ sơ",
+    "followers": "Người theo dõi",
+    "following": "Đang theo dõi",
+    "posts": "Bài viết",
+    "bio": "Tiểu sử",
+    "location": "Địa điểm",
+    "joined": "Tham gia",
+    "lastActive": "Hoạt động lần cuối",
+    "verified": "Đã xác minh",
+    "notVerified": "Chưa xác minh"
+  },
+  "settings": {
+    "title": "Cài đặt tài khoản",
+    "profile": "Hồ sơ cá nhân",
+    "privacy": "Riêng tư",
+    "notifications": "Thông báo",
+    "security": "Bảo mật",
+    "appearance": "Giao diện",
+    "language": "Ngôn ngữ",
+    "saveChanges": "Lưu thay đổi",
+    "cancel": "Hủy"
+  },
+  "actions": {
+    "edit": "Chỉnh sửa",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "follow": "Theo dõi",
+    "unfollow": "Bỏ theo dõi",
+    "message": "Nhắn tin",
+    "report": "Báo cáo"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "loading": "加载中...",
+  "search": {
+    "placeholder": "搜索对话...",
+    "placeholderFriends": "搜索朋友...",
+    "search": "搜索"
+  },
+  "tabs": {
+    "messages": "消息",
+    "groups": "群组",
+    "settings": "设置"
+  },
+  "actions": {
+    "createGroup": "创建群聊",
+    "createGroupTitle": "创建群聊",
+    "createGroupSubmit": "创建群组 ({count} 个成员)",
+    "startConversation": "开始对话",
+    "sendMessage": "发送",
+    "send": "发送",
+    "cancel": "取消"
+  },
+  "messages": {
+    "noConversations": "没有对话",
+    "noConversationsDesc": "与您的朋友开始新对话",
+    "typeMessage": "输入消息...",
+    "online": "在线",
+    "offline": "离线",
+    "lastSeen": "最后上线"
+  },
+  "groups": {
+    "title": "群聊",
+    "create": "创建新群组",
+    "members": "成员",
+    "admin": "管理员",
+    "leave": "离开群组",
+    "addMembers": "添加成员"
+  },
+  "time": {
+    "justNow": "刚刚",
+    "minutes": "分钟",
+    "hours": "小时",
+    "days": "天",
+    "ago": "前"
+  },
+  "errors": {
+    "loadFailed": "无法加载消息",
+    "sendFailed": "无法发送消息",
+    "createGroupFailed": "无法创建群组"
+  }
+}

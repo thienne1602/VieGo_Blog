@@ -9,6 +9,7 @@ import React, {
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import PostCard from "@/components/blog/PostCard";
 import SkeletonLoader from "@/components/common/SkeletonLoader";
 import { useAuth } from "@/lib/AuthContext";
@@ -30,7 +31,7 @@ const PostModal = dynamic(() => import("@/components/common/PostModal"), {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-teal-600 mx-auto mb-4"></div>
-        <p className="text-center text-gray-600">Đang tải bài viết...</p>
+        <p className="text-center text-gray-600">Loading post...</p>
       </div>
     </div>
   ),
@@ -39,6 +40,7 @@ const PostModal = dynamic(() => import("@/components/common/PostModal"), {
 
 const NewsFeed = () => {
   const { user } = useAuth();
+  const { t } = useTranslation("home");
   const [postText, setPostText] = useState("");
   const [activeStoryIndex, setActiveStoryIndex] = useState(0);
   const [showCreatePost, setShowCreatePost] = useState(false);
@@ -932,7 +934,7 @@ const NewsFeed = () => {
                       <span className="text-white text-xl">➕</span>
                     </motion.div>
                     <span className="text-xs font-semibold text-gray-700 text-center leading-tight">
-                      Tạo Story
+                      {t("newsfeed.createStory")}
                     </span>
                   </div>
                 ) : (
@@ -1002,7 +1004,7 @@ const NewsFeed = () => {
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Bạn đang nghĩ gì về Việt Nam? ✨"
+              placeholder={t("newsfeed.writeSomething")}
               className="w-full bg-gradient-to-r from-gray-50 to-blue-50 rounded-full px-6 py-3 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-300"
               value={postText}
               onChange={(e) => setPostText(e.target.value)}
@@ -1059,7 +1061,7 @@ const NewsFeed = () => {
                 <label className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200">
                   <ImageIcon className="w-5 h-5 text-gray-600" />
                   <span className="text-sm text-gray-600">
-                    {uploadingPostImages ? "Đang upload..." : "Thêm ảnh"}
+                    {uploadingPostImages ? t("newsfeed.uploading") : t("newsfeed.addImages")}
                   </span>
                   <input
                     ref={postImageInputRef}
@@ -1115,14 +1117,14 @@ const NewsFeed = () => {
                   }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 >
-                  Hủy
+                  {t("newsfeed.cancel")}
                 </button>
                 <button
                   onClick={handleCreatePost}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
                 >
                   <Send className="w-4 h-4" />
-                  <span>Đăng bài</span>
+                  <span>{t("newsfeed.post")}</span>
                 </button>
               </div>
             </motion.div>
@@ -1212,7 +1214,7 @@ const NewsFeed = () => {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-gray-800">
-                  Tạo Story mới
+                  {t("newsfeed.createPostTitle")}
                 </h3>
                 <button
                   onClick={() => {
@@ -1277,7 +1279,7 @@ const NewsFeed = () => {
                     )}
                   </div>
                   <textarea
-                    placeholder="Thêm mô tả (tùy chọn)..."
+                    placeholder={t("newsfeed.storyContent")}
                     rows={3}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     value={storyContent}
@@ -1309,7 +1311,7 @@ const NewsFeed = () => {
                       ) : (
                         <>
                           <Upload className="w-4 h-4" />
-                          <span>Đăng Story</span>
+                          <span>{t("newsfeed.post")}</span>
                         </>
                       )}
                     </button>

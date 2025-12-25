@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { MapPin, Clock, Users, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -9,6 +10,7 @@ type Props = { tour: any };
 
 export default function TourCard({ tour }: Props) {
   const router = useRouter();
+  const { t } = useTranslation("tours");
   const image =
     tour.featured_image ||
     (tour.gallery_images &&
@@ -43,12 +45,7 @@ export default function TourCard({ tour }: Props) {
   };
 
   const getDifficultyLabel = (difficulty: string) => {
-    const labels: any = {
-      easy: "Dễ",
-      moderate: "Trung Bình",
-      hard: "Khó",
-    };
-    return labels[difficulty] || difficulty;
+    return t(`filters.difficultyLevels.${difficulty}`) || difficulty;
   };
 
   return (
@@ -94,7 +91,7 @@ export default function TourCard({ tour }: Props) {
             <div className="absolute top-4 left-4 z-20">
               <div className="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg flex items-center gap-1">
                 <Star className="w-3 h-3 fill-current" />
-                <span>Nổi bật</span>
+                <span>{t("tourCard.featured")}</span>
               </div>
             </div>
           )}
@@ -141,7 +138,7 @@ export default function TourCard({ tour }: Props) {
                 {tour.rating.toFixed(1)}
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                ({tour.reviews_count || 0})
+                ({tour.reviews_count || 0} {t("tourCard.reviews")})
               </span>
             </div>
           )}

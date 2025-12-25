@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import {
   Search,
   SlidersHorizontal,
@@ -24,6 +25,7 @@ import api from "../../lib/api";
 import TourCard from "./TourCard";
 
 const TourShowcase = () => {
+  const { t } = useTranslation("tours");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [tours, setTours] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -492,7 +494,7 @@ const TourShowcase = () => {
       {/* Search */}
       <div className="mb-8">
         <label className="block text-sm font-bold mb-4 text-gray-800 dark:text-gray-200">
-          Tìm kiếm
+          {t("search.search")}
         </label>
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -500,7 +502,7 @@ const TourShowcase = () => {
           </div>
           <input
             type="text"
-            placeholder="Tìm kiếm điểm đến..."
+            placeholder={t("search.placeholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl leading-5 bg-gray-50 dark:bg-gray-800 placeholder-gray-400 focus:outline-none focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 sm:text-sm text-gray-900 dark:text-white"
@@ -555,11 +557,11 @@ const TourShowcase = () => {
       {/* Difficulty Filter */}
       <div className="mb-8">
         <label className="block text-sm font-bold mb-4 text-gray-800 dark:text-gray-200">
-          Độ khó
+          {t("filters.difficulty")}
         </label>
         <div className="flex flex-wrap gap-2">
           {[
-            { value: "all", label: "Tất cả" },
+            { value: "all", label: t("filters.all") },
             { value: "easy", label: "Dễ" },
             { value: "moderate", label: "Trung bình" },
             { value: "hard", label: "Khó" },
@@ -709,7 +711,7 @@ const TourShowcase = () => {
             </div>
             <input
               type="text"
-              placeholder="Tìm kiếm tour..."
+              placeholder={t("search.placeholderMobile")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl leading-5 bg-white dark:bg-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 sm:text-sm text-gray-900 dark:text-white shadow-sm"

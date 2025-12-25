@@ -1,0 +1,85 @@
+{
+  "loading": "Loading journey...",
+  "loadingPassengers": "Loading passenger list...",
+  "back": "Back",
+  "journey": {
+    "title": "Journey",
+    "ongoing": "Journey in progress",
+    "completed": "Journey completed",
+    "notStarted": "Journey not started"
+  },
+  "tabs": {
+    "journey": "Journey",
+    "map": "Map",
+    "members": "Members",
+    "notifications": "Notifications"
+  },
+  "checkpoints": {
+    "title": "Checkpoint",
+    "description": "Description",
+    "location": "Location",
+    "scheduledTime": "Scheduled Time",
+    "arrivalTime": "Arrival Time",
+    "departureTime": "Departure Time",
+    "status": {
+      "pending": "Not arrived",
+      "arrived": "Arrived",
+      "departed": "Departed",
+      "completed": "Completed"
+    },
+    "addCheckpoint": "Add Checkpoint",
+    "editCheckpoint": "Edit Checkpoint"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "sendNotification": "Send Notification",
+    "sendNotificationTitle": "Send Notification",
+    "message": "Message",
+    "send": "Send",
+    "sending": "Sending...",
+    "categories": {
+      "start": "Start",
+      "rest": "Rest",
+      "gather": "Gather",
+      "other": "Other"
+    }
+  },
+  "members": {
+    "title": "Members",
+    "passengers": "Passengers",
+    "tourGuide": "Tour Guide",
+    "search": "Search members...",
+    "filters": {
+      "all": "All",
+      "adult": "Adult",
+      "child": "Child",
+      "infant": "Infant"
+    },
+    "sendCredentials": "Send Login Credentials",
+    "sendingCredentials": "Sending..."
+  },
+  "map": {
+    "title": "Journey Map",
+    "currentLocation": "Current Location",
+    "destination": "Destination",
+    "route": "Route"
+  },
+  "actions": {
+    "viewDetails": "View Details",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "refresh": "Refresh",
+    "download": "Download"
+  },
+  "errors": {
+    "loadFailed": "Unable to load journey information",
+    "updateFailed": "Unable to update information",
+    "sendFailed": "Unable to send notification"
+  },
+  "success": {
+    "updated": "Updated successfully",
+    "sent": "Sent successfully"
+  }
+}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/lib/AuthContext";
 import { useRouter } from "next/navigation";
@@ -11,6 +12,7 @@ import { Flame, Award, MessageCircle } from "lucide-react";
 const RightSidebar = () => {
   const { user } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation("home");
   const { conversations, fetchConversations, loading: chatLoading } = useChat();
   const [hotTours, setHotTours] = useState<any[]>([]);
   const [topSellers, setTopSellers] = useState<any[]>([]);
@@ -165,13 +167,13 @@ const RightSidebar = () => {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-gray-800 dark:text-gray-200 font-bold text-base flex items-center">
             <Flame className="w-5 h-5 mr-2 text-accent-500" />
-            Tour đang hot
+            {t("rightSidebar.hotTours")}
           </h3>
           <Link
             href="/tours?hot=true"
             className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
           >
-            Xem tất cả
+            {t("rightSidebar.viewAll")}
           </Link>
         </div>
         {loadingTours ? (
@@ -180,7 +182,7 @@ const RightSidebar = () => {
           </div>
         ) : hotTours.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
-            Chưa có tour nào
+            {t("rightSidebar.noTours")}
           </div>
         ) : (
           <div className="space-y-3">
@@ -236,7 +238,7 @@ const RightSidebar = () => {
                           </span>
                         </div>
                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                          • {tour.reviews_count || 0} đánh giá
+                          • {tour.reviews_count || 0} {t("rightSidebar.rating")}
                         </span>
                       </div>
                       <div className="text-sm font-bold text-primary-600 dark:text-primary-400">
@@ -258,13 +260,13 @@ const RightSidebar = () => {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-gray-800 dark:text-gray-200 font-bold text-base flex items-center">
             <Award className="w-5 h-5 mr-2 text-yellow-500" />
-            Seller top uy tín
+            {t("rightSidebar.topSellers")}
           </h3>
           <Link
             href="/sellers"
             className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
           >
-            Xem tất cả
+            {t("rightSidebar.viewAll")}
           </Link>
         </div>
         {loadingSellers ? (
@@ -273,7 +275,7 @@ const RightSidebar = () => {
           </div>
         ) : topSellers.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
-            Chưa có seller nào
+            {t("rightSidebar.noSellers")}
           </div>
         ) : (
           <div className="space-y-3">
@@ -340,7 +342,7 @@ const RightSidebar = () => {
                         </span>
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {seller.totalReviews || 0} đánh giá
+                        {seller.totalReviews || 0} {t("rightSidebar.rating")}
                       </div>
                     </div>
                   </div>
@@ -356,18 +358,18 @@ const RightSidebar = () => {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-gray-800 dark:text-gray-200 font-bold text-base flex items-center">
             <MessageCircle className="w-5 h-5 mr-2 text-primary-500" />
-            List trò chuyện
+            {t("rightSidebar.chatList")}
           </h3>
           <Link
             href="/messages"
             className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
           >
-            Xem tất cả
+            {t("rightSidebar.viewAll")}
           </Link>
         </div>
         {!user ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
-            Vui lòng đăng nhập để xem tin nhắn
+            {t("rightSidebar.loginToViewMessages")}
           </div>
         ) : chatLoading ? (
           <div className="flex items-center justify-center py-8">
@@ -375,7 +377,7 @@ const RightSidebar = () => {
           </div>
         ) : renderableConversations.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
-            Chưa có cuộc trò chuyện nào
+            {t("rightSidebar.noConversations")}
           </div>
         ) : (
           <div className="space-y-2">
@@ -385,10 +387,10 @@ const RightSidebar = () => {
                 .map((conversation: any, index) => {
                   const isGroup = isGroupConversation(conversation);
                   const title = isGroup
-                    ? conversation.group?.name || "Nhóm chat"
+                    ? conversation.group?.name || t("rightSidebar.groupChat", "Nhóm chat")
                     : conversation.other_user?.full_name ||
                       conversation.other_user?.username ||
-                      "Người dùng";
+                      t("rightSidebar.user", "Người dùng");
 
                   const avatarUrl = isGroup
                     ? conversation.group?.avatar_url

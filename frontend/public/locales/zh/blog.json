@@ -1,0 +1,80 @@
+{
+  "loading": "加载中...",
+  "error": {
+    "generic": "加载帖子时发生错误",
+    "loadFailed": "无法加载帖子"
+  },
+  "buttons": {
+    "retry": "重试",
+    "loadMore": "加载更多帖子",
+    "readMore": "阅读更多",
+    "share": "分享",
+    "like": "点赞",
+    "comment": "评论",
+    "save": "保存",
+    "follow": "关注",
+    "unfollow": "取消关注"
+  },
+  "post": {
+    "by": "由",
+    "in": "在",
+    "readTime": "分钟阅读",
+    "views": "查看",
+    "likes": "点赞",
+    "comments": "评论",
+    "tags": "标签",
+    "relatedPosts": "相关帖子",
+    "author": "作者",
+    "published": "发布于",
+    "updated": "最后更新",
+    "shareOn": "分享到"
+  },
+  "create": {
+    "writePost": "写帖子",
+    "title": "帖子标题",
+    "content": "帖子内容...",
+    "category": "类别",
+    "selectCategory": "选择类别",
+    "addImage": "添加图片",
+    "publish": "发布",
+    "draft": "保存草稿",
+    "preview": "预览"
+  },
+  "comments": {
+    "title": "评论",
+    "writeComment": "写评论...",
+    "submit": "提交评论",
+    "reply": "回复",
+    "showReplies": "显示回复",
+    "hideReplies": "隐藏回复",
+    "noComments": "暂无评论",
+    "loginToComment": "登录后评论"
+  },
+  "stories": {
+    "title": "故事",
+    "viewStory": "查看故事",
+    "addStory": "添加故事",
+    "noStories": "没有故事"
+  },
+  "categories": {
+    "travel": "旅行",
+    "food": "美食",
+    "culture": "文化",
+    "lifestyle": "生活方式",
+    "tips": "技巧",
+    "reviews": "评价"
+  },
+  "search": {
+    "placeholder": "搜索帖子...",
+    "search": "搜索",
+    "noResults": "未找到帖子",
+    "resultsFor": "搜索结果"
+  },
+  "sidebar": {
+    "popularPosts": "热门帖子",
+    "categories": "类别",
+    "tags": "标签",
+    "recentPosts": "最新帖子",
+    "archives": "档案"
+  }
+}

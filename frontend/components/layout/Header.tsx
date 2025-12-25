@@ -5,11 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "next-i18next";
 import { useAuth } from "@/lib/AuthContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useChat } from "@/hooks/useChat";
 import ThemeToggle from "@/components/common/ThemeToggle";
 import HeaderWeatherWidget from "@/components/common/HeaderWeatherWidget";
+import LanguageSelector from "@/components/common/LanguageSelector";
 import {
   Search,
   UserPlus,
@@ -24,6 +26,7 @@ import NotificationDetailModal from "@/components/common/NotificationDetailModal
 import LoginRequestPopup from "@/components/common/LoginRequestPopup";
 
 const Header = () => {
+  const { t } = useTranslation("common");
   const [searchValue, setSearchValue] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
@@ -350,8 +353,8 @@ const Header = () => {
             const errorMsg =
               response.error ||
               response.data?.error ||
-              "Có lỗi xảy ra khi chấp nhận lời mời";
-            alert(errorMsg);
+              t("header.acceptFriendError");
+            alert(errorMsg || t("header.acceptFriendError"));
             // Refresh status to get correct state
             const refreshResponse = await api.get(
               `/social/friends/check/${targetUserId}`,
@@ -370,7 +373,7 @@ const Header = () => {
           const errorMsg =
             acceptError.response?.data?.error ||
             acceptError.error ||
-            "Có lỗi xảy ra khi chấp nhận lời mời";
+            t("header.acceptFriendError");
           alert(errorMsg);
           // Refresh status on error
           try {
@@ -417,7 +420,7 @@ const Header = () => {
                 ...prev,
                 [targetUserId]: latestFriendship,
               }));
-              alert("Đã gửi lời mời kết bạn trước đó");
+              alert(t("header.friendRequestAlreadySent"));
               return;
             }
 
@@ -426,9 +429,7 @@ const Header = () => {
                 ...prev,
                 [targetUserId]: latestFriendship,
               }));
-              alert(
-                "Người này đã gửi lời mời kết bạn cho bạn. Vui lòng chấp nhận hoặc từ chối."
-              );
+              alert(t("header.friendRequestReceived"));
               return;
             }
           }
@@ -453,8 +454,8 @@ const Header = () => {
             const errorMsg =
               response.error ||
               response.data?.error ||
-              "Có lỗi xảy ra khi gửi lời mời";
-            alert(errorMsg);
+              t("header.sendFriendError");
+            alert(errorMsg || t("header.acceptFriendError"));
             // Refresh status to get correct state
             try {
               const refreshResponse = await api.get(
@@ -496,8 +497,8 @@ const Header = () => {
               const errorMsg =
                 response.error ||
                 response.data?.error ||
-                "Có lỗi xảy ra khi gửi lời mời";
-              alert(errorMsg);
+                t("header.sendFriendError");
+              alert(errorMsg || t("header.acceptFriendError"));
               // Refresh status
               try {
                 const refreshResponse = await api.get(
@@ -519,8 +520,8 @@ const Header = () => {
             const errorMsg =
               sendError.response?.data?.error ||
               sendError.error ||
-              "Có lỗi xảy ra khi gửi lời mời";
-            alert(errorMsg);
+              t("header.sendFriendError");
+            alert(errorMsg || t("header.acceptFriendError"));
             // Refresh status on error
             try {
               const refreshResponse = await api.get(
@@ -610,16 +611,16 @@ const Header = () => {
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    if (diffInSeconds < 60) return "Vừa xong";
+    if (diffInSeconds < 60) return t("header.justNow");
     if (diffInSeconds < 3600)
-      return `${Math.floor(diffInSeconds / 60)} phút trước`;
+      return `${Math.floor(diffInSeconds / 60)} ${t("header.minutesAgo")}`;
     if (diffInSeconds < 86400)
-      return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+      return `${Math.floor(diffInSeconds / 3600)} ${t("header.hoursAgo")}`;
     if (diffInSeconds < 604800)
-      return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
+      return `${Math.floor(diffInSeconds / 86400)} ${t("header.daysAgo")}`;
     if (diffInSeconds < 2592000)
-      return `${Math.floor(diffInSeconds / 604800)} tuần trước`;
-    return `${Math.floor(diffInSeconds / 2592000)} tháng trước`;
+      return `${Math.floor(diffInSeconds / 604800)} ${t("header.weeksAgo")}`;
+    return `${Math.floor(diffInSeconds / 2592000)} ${t("header.monthsAgo")}`;
   };
 
   const handleNotificationClick = (notification: any) => {
@@ -702,14 +703,14 @@ const Header = () => {
         // Refresh notifications
         fetchNotificationsList();
       } else {
-        alert(response.error || "Có lỗi xảy ra khi chấp nhận lời mời");
+        alert(response.error || t("header.acceptFriendError"));
       }
     } catch (error: any) {
       console.error("Error accepting friend request:", error);
       alert(
         error.response?.data?.error ||
           error.error ||
-          "Có lỗi xảy ra khi chấp nhận lời mời"
+          t("header.acceptFriendError")
       );
     }
   };
@@ -735,21 +736,21 @@ const Header = () => {
         // Refresh notifications
         fetchNotificationsList();
       } else {
-        alert(response.error || "Có lỗi xảy ra khi từ chối lời mời");
+        alert(response.error || t("header.rejectFriendError"));
       }
     } catch (error: any) {
       console.error("Error rejecting friend request:", error);
       alert(
         error.response?.data?.error ||
           error.error ||
-          "Có lỗi xảy ra khi từ chối lời mời"
+          t("header.rejectFriendError")
       );
     }
   };
 
   const navItems = [
     {
-      name: "Trang chủ",
+      name: t("nav.home"),
       href: "/",
       icon: (
         <svg
@@ -769,7 +770,7 @@ const Header = () => {
       protected: false,
     },
     {
-      name: "Tours",
+      name: t("nav.tours"),
       href: "/tours",
       icon: (
         <svg
@@ -789,7 +790,7 @@ const Header = () => {
       protected: false,
     },
     {
-      name: "Hành trình",
+      name: t("nav.journey"),
       href: "/tour-journey",
       icon: (
         <svg
@@ -809,7 +810,7 @@ const Header = () => {
       protected: true,
     },
     {
-      name: "Liên hệ",
+      name: t("nav.contact"),
       href: "/contact",
       icon: (
         <svg
@@ -965,7 +966,7 @@ const Header = () => {
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder={user ? "Tìm kiếm bạn bè..." : "Tìm kiếm..."}
+                  placeholder={user ? t("header.searchPlaceholder") : t("header.searchPlaceholderGuest")}
                   className="w-full px-3 sm:px-4 py-2 sm:py-2.5 pl-9 sm:pl-11 bg-gray-100 dark:bg-gray-800 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:bg-white dark:focus:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-300"
                   value={searchValue}
                   onChange={(e) => {
@@ -994,7 +995,7 @@ const Header = () => {
                   >
                     {searchLoading ? (
                       <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-                        Đang tìm kiếm...
+                        {t("header.loading")}
                       </div>
                     ) : !searchValue.trim() ? (
                       <div className="py-2">
@@ -1002,7 +1003,7 @@ const Header = () => {
                           <>
                             <div className="px-4 py-2 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
                               <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                                Lịch sử tìm kiếm
+                                {t("header.searchHistory")}
                               </span>
                               <button
                                 onClick={(e) => {
@@ -1011,7 +1012,7 @@ const Header = () => {
                                 }}
                                 className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
                               >
-                                Xóa tất cả
+                                {t("header.clearAll")}
                               </button>
                             </div>
                             {searchHistory.map((historyItem, idx) => (
@@ -1048,10 +1049,10 @@ const Header = () => {
                           <div className="p-4 text-center text-gray-500 dark:text-gray-400">
                             <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
                             <p className="text-sm">
-                              Nhập tên để tìm kiếm bạn bè
+                              {t("header.searchFriendsHint")}
                             </p>
                             <p className="text-xs mt-1">
-                              Lịch sử tìm kiếm sẽ hiển thị ở đây
+                              {t("header.historyHint")}
                             </p>
                           </div>
                         )}
@@ -1122,7 +1123,7 @@ const Header = () => {
                                     className="p-1.5 rounded-lg bg-blue-500 dark:bg-blue-600 text-white hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
-                                    title="Xem hồ sơ"
+                                    title={t("header.viewProfile")}
                                     onMouseDown={(e) => e.stopPropagation()}
                                   >
                                     <User className="w-4 h-4" />
@@ -1147,7 +1148,7 @@ const Header = () => {
                                         onMouseDown={(e) => e.stopPropagation()}
                                       >
                                         <UserCheck className="w-3 h-3" />
-                                        <span>Bạn bè</span>
+                                        <span>{t("header.friends")}</span>
                                       </motion.button>
                                     );
                                   } else if (requestStatus === "sent") {
@@ -1161,10 +1162,10 @@ const Header = () => {
                                         className="flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        title="Hủy lời mời"
+                                        title={t("header.cancel")}
                                       >
                                         <X className="w-3 h-3" />
-                                        <span>Đã gửi</span>
+                                        <span>{t("header.sent")}</span>
                                       </motion.button>
                                     );
                                   } else if (requestStatus === "received") {
@@ -1178,7 +1179,7 @@ const Header = () => {
                                         className="flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-500 dark:bg-primary-400 text-white hover:bg-primary-600 dark:hover:bg-primary-500"
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        title="Chấp nhận"
+                                        title={t("header.accept")}
                                       >
                                         <Check className="w-3 h-3" />
                                         <span>Chấp nhận</span>
@@ -1197,7 +1198,7 @@ const Header = () => {
                                         whileTap={{ scale: 0.95 }}
                                       >
                                         <UserPlus className="w-3 h-3" />
-                                        <span>Kết bạn</span>
+                                        <span>{t("header.addFriend")}</span>
                                       </motion.button>
                                     );
                                   }
@@ -1218,7 +1219,7 @@ const Header = () => {
                                     className="p-1.5 rounded-lg bg-green-500 dark:bg-green-600 text-white hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
-                                    title="Nhắn tin"
+                                    title={t("header.message")}
                                   >
                                     <MessageCircle className="w-4 h-4" />
                                   </motion.button>
@@ -1230,7 +1231,7 @@ const Header = () => {
                       </div>
                     ) : searchValue.trim() ? (
                       <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-                        Không tìm thấy người dùng
+                        {t("header.noUsers")}
                       </div>
                     ) : null}
                   </motion.div>
@@ -1240,6 +1241,9 @@ const Header = () => {
 
             {/* Right Actions */}
             <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+              {/* Language Selector */}
+              <LanguageSelector />
+
               {/* Dark Mode Toggle */}
               <ThemeToggle />
 
@@ -1262,7 +1266,7 @@ const Header = () => {
                   }
                 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                title="Thông báo"
+                title={t("header.notifications")}
               >
                 <svg
                   className="w-4 h-4 sm:w-5 sm:h-5"
@@ -1303,7 +1307,7 @@ const Header = () => {
                   }
                 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                title="Tin nhắn"
+                title={t("header.messages")}
               >
                 <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                 {unreadMessagesCount > 0 && (
@@ -1337,7 +1341,7 @@ const Header = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      Đăng nhập
+                      {t("header.login")}
                     </motion.button>
                   </Link>
                   <Link href="/register">
@@ -1351,7 +1355,7 @@ const Header = () => {
                         damping: 17,
                       }}
                     >
-                      Đăng ký
+                      {t("header.register")}
                     </motion.button>
                   </Link>
                 </div>
@@ -1429,7 +1433,7 @@ const Header = () => {
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <button className="w-full px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium text-left rounded-lg hover:bg-primary-50 dark:hover:bg-gray-800 transition-all duration-300">
-                      Đăng nhập
+                      {t("header.login")}
                     </button>
                   </Link>
                   <Link
@@ -1437,7 +1441,7 @@ const Header = () => {
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <button className="w-full px-4 py-2.5 bg-primary-500 dark:bg-primary-400 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-300">
-                      Đăng ký
+                      {t("header.register")}
                     </button>
                   </Link>
                 </div>
@@ -1460,7 +1464,7 @@ const Header = () => {
             {!user ? (
               <div className="p-8 text-center">
                 <div className="text-gray-500 dark:text-gray-400 mb-4">
-                  Vui lòng đăng nhập để xem thông báo
+                  {t("header.loginToViewNotifications")}
                 </div>
                 <Link href="/welcome?force=true">
                   <motion.button
@@ -1477,14 +1481,14 @@ const Header = () => {
               <>
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                   <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Thông báo
+                    {t("header.notifications")}
                   </h3>
                   {nonMessageUnreadCount > 0 && (
                     <button
                       onClick={markAllNotificationsAsRead}
                       className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
                     >
-                      Đánh dấu tất cả đã đọc
+                      {t("header.markAllRead")}
                     </button>
                   )}
                 </div>
@@ -1492,7 +1496,7 @@ const Header = () => {
                   {realNotifications.filter((notif) => notif.type !== "message")
                     .length === 0 ? (
                     <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                      Không có thông báo
+                      {t("header.noNotifications")}
                     </div>
                   ) : (
                     (() => {
@@ -1628,7 +1632,7 @@ const Header = () => {
             {!user ? (
               <div className="p-8 text-center">
                 <div className="text-gray-500 dark:text-gray-400 mb-4">
-                  Vui lòng đăng nhập để xem tin nhắn
+                  {t("header.loginToViewMessages")}
                 </div>
                 <Link href="/welcome?force=true">
                   <motion.button
@@ -1645,23 +1649,23 @@ const Header = () => {
               <>
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                   <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Tin nhắn
+                    {t("header.messages")}
                   </h3>
                   <Link
                     href="/messages"
                     onClick={() => setShowMessages(false)}
                     className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
                   >
-                    Xem tất cả
+                    {t("header.viewAll")}
                   </Link>
                 </div>
                 <div className="overflow-y-auto flex-1">
                   {conversations.length === 0 ? (
                     <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                       <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p className="text-sm">Không có cuộc trò chuyện</p>
+                      <p className="text-sm">{t("header.noConversations")}</p>
                       <p className="text-xs mt-1">
-                        Tìm kiếm bạn bè để bắt đầu trò chuyện
+                        {t("header.findFriendsHint")}
                       </p>
                     </div>
                   ) : (

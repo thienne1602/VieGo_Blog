@@ -1,0 +1,85 @@
+{
+  "loading": "Loading tours...",
+  "search": {
+    "placeholder": "Search destinations...",
+    "placeholderMobile": "Search tours...",
+    "search": "Search"
+  },
+  "filters": {
+    "all": "All",
+    "difficulty": "Difficulty",
+    "difficultyLevels": {
+      "easy": "Easy",
+      "moderate": "Moderate",
+      "hard": "Hard"
+    },
+    "priceRange": "Price Range",
+    "minPrice": "Minimum Price",
+    "maxPrice": "Maximum Price",
+    "featured": "Featured",
+    "applyFilters": "Apply Filters",
+    "clearFilters": "Clear Filters"
+  },
+  "categories": {
+    "all": "All Categories",
+    "adventure": "Adventure",
+    "cultural": "Cultural",
+    "food": "Food",
+    "nature": "Nature",
+    "urban": "Urban",
+    "spiritual": "Spiritual"
+  },
+  "sorting": {
+    "sortBy": "Sort by",
+    "priceLowToHigh": "Price: Low to High",
+    "priceHighToLow": "Price: High to Low",
+    "rating": "Rating",
+    "popularity": "Popularity",
+    "newest": "Newest"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "of": "of"
+  },
+  "tourCard": {
+    "featured": "Featured",
+    "reviews": "reviews",
+    "days": "days",
+    "people": "people",
+    "from": "from"
+  },
+  "sections": {
+    "allTours": "All Tours",
+    "exploreAllDestinations": "Explore All Destinations",
+    "allToursDescription": "Search and filter tours according to your preferences. Hundreds of exciting journeys await your discovery.",
+    "ctaHeading": "Can't Find a Suitable Tour?",
+    "ctaDescription": "Contact us for free consultation and create a custom tour according to your needs",
+    "contactConsultation": "Contact Consultation",
+    "customTour": "Create Custom Tour"
+  },
+  "features": {
+    "qualityTours": {
+      "title": "Quality Tours",
+      "description": "Designed by travel experts with many years of experience in the profession"
+    },
+    "professionalGuides": {
+      "title": "Professional Guides",
+      "description": "Team of local guides who are enthusiastic and deeply knowledgeable about culture"
+    },
+    "uniqueExperiences": {
+      "title": "Unique Experiences",
+      "description": "Discover new perspectives on Vietnam's culture and nature"
+    }
+  },
+  "noResults": {
+    "title": "No tours found",
+    "description": "Try adjusting the filters or searching for different keywords",
+    "resetFilters": "Reset Filters"
+  },
+  "errors": {
+    "loadingFailed": "Unable to load tour list",
+    "retry": "Retry"
+  }
+}

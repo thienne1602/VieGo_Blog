@@ -1,0 +1,96 @@
+{
+  "loading": "Loading tour...",
+  "error": "Unable to load tour information",
+  "notFound": "Tour not found",
+  "backToTours": "Back to tours list",
+  "share": {
+    "copied": "Link copied to clipboard!",
+    "failed": "Failed to copy link"
+  },
+  "favorite": {
+    "add": "Add to favorites",
+    "remove": "Remove from favorites"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "itinerary": "Itinerary",
+    "reviews": "Reviews",
+    "booking": "Booking"
+  },
+  "fitnessLevels": {
+    "low": "Suitable for everyone",
+    "moderate": "Moderate fitness required",
+    "high": "Good physical condition required"
+  },
+  "details": {
+    "duration": "Duration",
+    "groupSize": "Group Size",
+    "difficulty": "Difficulty",
+    "location": "Location",
+    "price": "Price",
+    "rating": "Rating",
+    "reviews": "reviews",
+    "days": "days",
+    "people": "people",
+    "from": "from",
+    "perPerson": "per person"
+  },
+  "booking": {
+    "bookNow": "Book Now",
+    "selectDate": "Select departure date",
+    "guests": "Number of guests",
+    "total": "Total",
+    "proceed": "Proceed to booking",
+    "loginRequired": "Please login to book tour"
+  },
+  "reviews": {
+    "writeReview": "Write a review",
+    "rating": "Your rating",
+    "content": "Review content...",
+    "submit": "Submit review",
+    "submitting": "Submitting...",
+    "submitSuccess": "Your review has been submitted successfully!",
+    "noReviews": "No reviews yet",
+    "averageRating": "Average rating"
+  },
+  "gallery": {
+    "viewAll": "View all photos",
+    "photos": "photos"
+  },
+  "highlights": {
+    "title": "Highlights",
+    "included": "Included",
+    "excluded": "Excluded"
+  },
+  "policies": {
+    "title": "Policies",
+    "cancellation": "Cancellation policy",
+    "payment": "Payment",
+    "insurance": "Insurance"
+  },
+  "map": {
+    "checkpoint": "Checkpoint",
+    "day": "Day",
+    "tourLocation": "📍 Tour Location",
+    "routeMap": "Route map for day"
+  },
+  "itinerary": {
+    "dayTitle": "Day",
+    "routeMap": "Route map for day"
+  },
+  "booking": {
+    "featuredDeparture": "Featured Departure Date"
+  },
+  "reviews": {
+    "sectionTitle": "Reviews",
+    "submitButton": "Submit Review",
+    "submitYourReview": "Submit Your Review",
+    "anonymousUser": "Anonymous User",
+    "submitError": "An error occurred while submitting the review."
+  },
+  "details": {
+    "price": "Price:",
+    "duration": "Duration:",
+    "days": "days"
+  }
+}

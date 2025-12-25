@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Star,
   MapPin,
@@ -41,17 +42,12 @@ interface TourDetailPageClientProps {
   initialId: string;
 }
 
-const FITNESS_LEVEL_LABELS: Record<string, string> = {
-  low: "Phù hợp mọi đối tượng",
-  moderate: "Cần sức khỏe trung bình",
-  high: "Yêu cầu thể lực tốt",
-};
-
 export default function TourDetailPageClient({
   initialId,
 }: TourDetailPageClientProps) {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation("tourDetail");
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [tour, setTour] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -112,9 +108,10 @@ export default function TourDetailPageClient({
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      alert("Đã sao chép liên kết vào bộ nhớ tạm!");
+      alert(t("share.copied"));
     } catch (err) {
       console.error("Failed to copy:", err);
+      alert(t("share.failed"));
     }
   };
 
@@ -241,13 +238,13 @@ export default function TourDetailPageClient({
                   ? `<p style="margin: 4px 0; font-size: 13px; color: #666;">${checkpoint.description}</p>`
                   : ""
               }
-              <p style="margin: 4px 0; font-size: 13px; color: #666;">Điểm dừng ${
+              <p style="margin: 4px 0; font-size: 13px; color: #666;">${t("map.checkpoint")} ${
                 index + 1
               }${
-            checkpoint.dayNumber ? ` - Ngày ${checkpoint.dayNumber}` : ""
+            checkpoint.dayNumber ? ` - ${t("map.day")} ${checkpoint.dayNumber}` : ""
           } trong hành trình</p>
               <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
-                <p style="margin: 0; font-size: 11px; color: #999;">📍 Địa điểm du lịch</p>
+                <p style="margin: 0; font-size: 11px; color: #999;">${t("map.tourLocation")}</p>
               </div>
             </div>
           `);
@@ -343,13 +340,13 @@ export default function TourDetailPageClient({
       if (res.success) {
         setReviews([res.data, ...reviews]);
         setNewReview({ rating: 5, content: "" });
-        alert("Đánh giá của bạn đã được gửi thành công!");
+        alert(t("reviews.submitSuccess"));
       } else {
-        alert(res.error || "Có lỗi xảy ra khi gửi đánh giá.");
+        alert(res.error || t("reviews.submitError"));
       }
     } catch (error) {
       console.error("Error submitting review:", error);
-      alert("Có lỗi xảy ra khi gửi đánh giá.");
+      alert(t("reviews.submitError"));
     } finally {
       setSubmittingReview(false);
     }
@@ -468,7 +465,7 @@ export default function TourDetailPageClient({
         day.checkpoints.forEach((cp: any) => {
           if (cp.latitude && cp.longitude) {
             checkpoints.push({
-              name: cp.checkpoint_name || cp.name || "Điểm dừng",
+              name: cp.checkpoint_name || cp.name || t("map.checkpoint"),
               lat: parseFloat(cp.latitude),
               lng: parseFloat(cp.longitude),
               description: cp.description || cp.checkpoint_description,
@@ -489,7 +486,7 @@ export default function TourDetailPageClient({
         day.checkpoints.forEach((cp: any) => {
           if (cp.latitude && cp.longitude) {
             checkpoints.push({
-              name: cp.checkpoint_name || cp.name || "Điểm dừng",
+              name: cp.checkpoint_name || cp.name || t("map.checkpoint"),
               lat: parseFloat(cp.latitude),
               lng: parseFloat(cp.longitude),
               description: cp.description || cp.checkpoint_description,
@@ -830,7 +827,7 @@ export default function TourDetailPageClient({
         day?.title ||
         day?.name ||
         day?.heading ||
-        `Ngày ${dayNumber.toString().padStart(2, "0")}`;
+        `${t("itinerary.dayTitle")} ${dayNumber.toString().padStart(2, "0")}`;
       const description =
         day?.description || day?.summary || day?.details || day?.overview;
       const activitiesSource =
@@ -867,7 +864,7 @@ export default function TourDetailPageClient({
                 <div>
                   <div className="flex items-center gap-2 text-sm font-semibold text-teal-700 dark:text-teal-300">
                     <CalendarDays className="w-4 h-4" />
-                    <span>Ngày {dayNumber}</span>
+                    <span>{t("itinerary.dayTitle")} {dayNumber}</span>
                   </div>
                   <h4 className="font-bold text-xl text-gray-900 dark:text-white">
                     {dayTitle}
@@ -953,7 +950,7 @@ export default function TourDetailPageClient({
                     <div className="mt-4">
                       <h5 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white flex items-center gap-2">
                         <MapIcon className="w-5 h-5" />
-                        Bản đồ hành trình ngày {dayNumber}
+                        {t("itinerary.routeMap")} {dayNumber}
                       </h5>
                       <div
                         id={`day-${dayNumber}-map`}
@@ -1021,7 +1018,7 @@ export default function TourDetailPageClient({
                     {dayNumber}
                   </div>
                   <h4 className="font-bold text-xl text-gray-900 dark:text-white capitalize">
-                    {key.replace("day", "Ngày ")}
+                    {key.replace("day", `${t("itinerary.dayTitle")} `)}
                   </h4>
                 </div>
                 {isExpanded ? (
@@ -1094,7 +1091,7 @@ export default function TourDetailPageClient({
                       <div className="mt-6">
                         <h5 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white flex items-center gap-2">
                           <MapIcon className="w-5 h-5" />
-                          Bản đồ hành trình ngày {dayNumber}
+                          {t("itinerary.routeMap")} {dayNumber}
                         </h5>
                         <div
                           id={`day-${dayNumber}-map`}
@@ -1114,12 +1111,12 @@ export default function TourDetailPageClient({
   };
 
   const tabs = [
-    { id: "overview", label: "Tổng Quan" },
-    { id: "itinerary", label: "Lịch Trình" },
+    { id: "overview", label: t("tabs.overview") },
+    { id: "itinerary", label: t("tabs.itinerary") },
     { id: "map", label: "Bản Đồ" },
-    { id: "includes", label: "Bao Gồm" },
-    { id: "policies", label: "Chính Sách" },
-    { id: "reviews", label: "Đánh Giá" },
+    { id: "includes", label: t("highlights.included") },
+    { id: "policies", label: t("policies.title") },
+    { id: "reviews", label: t("tabs.reviews") },
   ];
 
   useEffect(() => {
@@ -1216,9 +1213,9 @@ export default function TourDetailPageClient({
                     ? `<p style="margin: 4px 0; font-size: 13px; color: #666;">${checkpoint.description}</p>`
                     : ""
                 }
-                <p style="margin: 4px 0; font-size: 12px; color: #999;">Điểm dừng ${
+                <p style="margin: 4px 0; font-size: 12px; color: #999;">${t("map.checkpoint")} ${
                   index + 1
-                } - Ngày ${dayNumber}</p>
+                } - ${t("map.day")} ${dayNumber}</p>
               </div>
             `);
             markers.push(marker);
@@ -1353,7 +1350,7 @@ export default function TourDetailPageClient({
     insuranceFromInclusions ||
     "Tour chưa ghi nhận thông tin bảo hiểm cụ thể. VieGo sẽ hỗ trợ bạn bổ sung gói bảo hiểm phù hợp khi xác nhận đặt chỗ.";
   const fitnessLabel = tour.fitness_requirement
-    ? FITNESS_LEVEL_LABELS[tour.fitness_requirement] || tour.fitness_requirement
+    ? t(`fitnessLevels.${tour.fitness_requirement}`) || tour.fitness_requirement
     : undefined;
 
   const otherInfoEntries = [
@@ -1410,7 +1407,7 @@ export default function TourDetailPageClient({
           day.checkpoints.forEach((cp: any) => {
             if (cp.latitude && cp.longitude) {
               checkpoints.push({
-                name: cp.checkpoint_name || cp.name || "Điểm dừng",
+                name: cp.checkpoint_name || cp.name || t("map.checkpoint"),
                 lat: parseFloat(cp.latitude),
                 lng: parseFloat(cp.longitude),
                 description: cp.description || cp.checkpoint_description,
@@ -1430,7 +1427,7 @@ export default function TourDetailPageClient({
               day.checkpoints.forEach((cp: any) => {
                 if (cp.latitude && cp.longitude) {
                   checkpoints.push({
-                    name: cp.checkpoint_name || cp.name || "Điểm dừng",
+                    name: cp.checkpoint_name || cp.name || t("map.checkpoint"),
                     lat: parseFloat(cp.latitude),
                     lng: parseFloat(cp.longitude),
                     description: cp.description || cp.checkpoint_description,
@@ -1472,7 +1469,7 @@ export default function TourDetailPageClient({
         aria-label="Quay lại trang tours"
       >
         <ArrowLeft className="w-5 h-5" />
-        <span className="font-medium text-sm hidden sm:inline">Quay lại</span>
+        <span className="font-medium text-sm hidden sm:inline">{t("backToTours")}</span>
       </button>
 
       <div className="container mx-auto px-4 py-8 relative z-10">
@@ -1897,7 +1894,7 @@ export default function TourDetailPageClient({
 
                       <div className="mt-6 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 p-4">
                         <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-3">
-                          Ngày khởi hành nổi bật
+                          {t("booking.featuredDeparture")}
                         </p>
                         {availableDatePreview.length > 0 ? (
                           <div className="flex flex-wrap gap-2">
@@ -1924,7 +1921,7 @@ export default function TourDetailPageClient({
                 {activeTab === "reviews" && (
                   <div>
                     <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-                      Đánh Giá ({reviews.length || tour.reviews_count || 0})
+                      {t("reviews.sectionTitle")} ({reviews.length || tour.reviews_count || 0})
                     </h3>
 
                     {/* Review Form */}
@@ -1935,7 +1932,7 @@ export default function TourDetailPageClient({
                       <form onSubmit={handleSubmitReview}>
                         <div className="mb-4">
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Đánh giá sao
+                            {t("reviews.rating")}
                           </label>
                           <div className="flex gap-2">
                             {[1, 2, 3, 4, 5].map((star) => (
@@ -1984,10 +1981,10 @@ export default function TourDetailPageClient({
                           {submittingReview ? (
                             <>
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              Đang gửi...
+                              {t("reviews.submitting")}
                             </>
                           ) : (
-                            "Gửi đánh giá"
+                            t("reviews.submit")
                           )}
                         </button>
                       </form>
@@ -2021,7 +2018,7 @@ export default function TourDetailPageClient({
                                 <div className="flex items-center justify-between mb-2">
                                   <h4 className="font-bold text-gray-900 dark:text-white">
                                     {review.user?.full_name ||
-                                      "Người dùng ẩn danh"}
+                                      t("reviews.anonymousUser")}
                                   </h4>
                                   <span className="text-sm text-gray-500">
                                     {new Date(
@@ -2062,12 +2059,12 @@ export default function TourDetailPageClient({
                     {/* Submit Review Form */}
                     <div className="mt-8 pt-6 border-t border-gray-200">
                       <h4 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">
-                        Gửi Đánh Giá Của Bạn
+                        {t("reviews.submitYourReview")}
                       </h4>
                       <form onSubmit={handleSubmitReview} className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Đánh giá của bạn
+                            {t("reviews.writeReview")}
                           </label>
                           <div className="flex items-center gap-2">
                             <div className="flex gap-1">
@@ -2120,7 +2117,7 @@ export default function TourDetailPageClient({
                               Đang gửi đánh giá...
                             </>
                           ) : (
-                            "Gửi Đánh Giá"
+                            t("reviews.submitButton")
                           )}
                         </motion.button>
                       </form>
@@ -2184,7 +2181,7 @@ export default function TourDetailPageClient({
             <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-xl p-8 border-2 border-teal-100/50 dark:border-teal-900/50">
               {/* Price Display */}
               <div className="mb-6 pb-6 border-b-2 border-gray-200">
-                <div className="text-sm text-gray-600 mb-2">Giá:</div>
+                <div className="text-sm text-gray-600 mb-2">{t("details.price")}</div>
                 {tour.discount_percentage && tour.discount_percentage > 0 ? (
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -2212,7 +2209,7 @@ export default function TourDetailPageClient({
                 <div className="flex items-center gap-2 text-gray-600 text-sm">
                   <Calendar className="w-4 h-4 text-teal-600" />
                   <span>
-                    Thời gian: {tour.duration_days || tour.duration || "-"} ngày
+                    {t("details.duration")} {tour.duration_days || tour.duration || "-"} {t("details.days")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-600 text-sm">

@@ -1,0 +1,51 @@
+{
+  "loading": "Loading...",
+  "accessError": {
+    "title": "Access Permission Error",
+    "description": "Invalid role or not yet supported.",
+    "currentRole": "Current role:",
+    "helpText": "Please log in again or contact administrator if you have access rights.",
+    "loginAgain": "Login Again"
+  },
+  "navigation": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "posts": "Posts",
+    "favorites": "Favorites",
+    "bookings": "Bookings",
+    "reviews": "Reviews"
+  },
+  "userProfile": {
+    "editProfile": "Edit Profile",
+    "followers": "Followers",
+    "following": "Following",
+    "posts": "Posts",
+    "bio": "Bio",
+    "location": "Location",
+    "joined": "Joined",
+    "lastActive": "Last Active",
+    "verified": "Verified",
+    "notVerified": "Not Verified"
+  },
+  "settings": {
+    "title": "Account Settings",
+    "profile": "Personal Profile",
+    "privacy": "Privacy",
+    "notifications": "Notifications",
+    "security": "Security",
+    "appearance": "Appearance",
+    "language": "Language",
+    "saveChanges": "Save Changes",
+    "cancel": "Cancel"
+  },
+  "actions": {
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "message": "Message",
+    "report": "Report"
+  }
+}

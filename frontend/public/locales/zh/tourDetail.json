@@ -1,0 +1,96 @@
+{
+  "loading": "加载旅游...",
+  "error": "无法加载旅游信息",
+  "notFound": "未找到旅游",
+  "backToTours": "返回旅游列表",
+  "share": {
+    "copied": "链接已复制到剪贴板！",
+    "failed": "无法复制链接"
+  },
+  "favorite": {
+    "add": "添加到收藏",
+    "remove": "从收藏中移除"
+  },
+  "tabs": {
+    "overview": "概述",
+    "itinerary": "行程",
+    "reviews": "评价",
+    "booking": "预订"
+  },
+  "fitnessLevels": {
+    "low": "适合所有人",
+    "moderate": "需要中等体能",
+    "high": "需要良好体能"
+  },
+  "details": {
+    "duration": "持续时间",
+    "groupSize": "团队规模",
+    "difficulty": "难度",
+    "location": "地点",
+    "price": "价格",
+    "rating": "评分",
+    "reviews": "评价",
+    "days": "天",
+    "people": "人",
+    "from": "起",
+    "perPerson": "每人"
+  },
+  "booking": {
+    "bookNow": "立即预订",
+    "selectDate": "选择出发日期",
+    "guests": "游客数量",
+    "total": "总计",
+    "proceed": "继续预订",
+    "loginRequired": "请登录预订旅游"
+  },
+  "reviews": {
+    "writeReview": "写评价",
+    "rating": "您的评分",
+    "content": "评价内容...",
+    "submit": "提交评价",
+    "submitting": "提交中...",
+    "submitSuccess": "您的评价已成功提交！",
+    "noReviews": "暂无评价",
+    "averageRating": "平均评分"
+  },
+  "gallery": {
+    "viewAll": "查看所有照片",
+    "photos": "照片"
+  },
+  "highlights": {
+    "title": "亮点",
+    "included": "包含",
+    "excluded": "不包含"
+  },
+  "policies": {
+    "title": "政策",
+    "cancellation": "取消政策",
+    "payment": "支付",
+    "insurance": "保险"
+  },
+  "map": {
+    "checkpoint": "检查点",
+    "day": "天",
+    "tourLocation": "📍 旅游地点",
+    "routeMap": "路线图"
+  },
+  "itinerary": {
+    "dayTitle": "天",
+    "routeMap": "路线图"
+  },
+  "booking": {
+    "featuredDeparture": "特色出发日期"
+  },
+  "reviews": {
+    "sectionTitle": "评价",
+    "submitButton": "提交评价",
+    "submitYourReview": "提交您的评价",
+    "anonymousUser": "匿名用户",
+    "submitError": "提交评价时发生错误。"
+  },
+  "details": {
+    "price": "价格：",
+    "duration": "持续时间：",
+    "days": "天"
+  }
+}

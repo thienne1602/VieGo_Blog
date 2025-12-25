@@ -1,0 +1,85 @@
+{
+  "loading": "加载旅游...",
+  "search": {
+    "placeholder": "搜索目的地...",
+    "placeholderMobile": "搜索旅游...",
+    "search": "搜索"
+  },
+  "filters": {
+    "all": "全部",
+    "difficulty": "难度",
+    "difficultyLevels": {
+      "easy": "简单",
+      "moderate": "中等",
+      "hard": "困难"
+    },
+    "priceRange": "价格范围",
+    "minPrice": "最低价格",
+    "maxPrice": "最高价格",
+    "featured": "精选",
+    "applyFilters": "应用筛选",
+    "clearFilters": "清除筛选"
+  },
+  "categories": {
+    "all": "所有类别",
+    "adventure": "冒险",
+    "cultural": "文化",
+    "food": "美食",
+    "nature": "自然",
+    "urban": "城市",
+    "spiritual": "心灵"
+  },
+  "sorting": {
+    "sortBy": "排序方式",
+    "priceLowToHigh": "价格：从低到高",
+    "priceHighToLow": "价格：从高到低",
+    "rating": "评分",
+    "popularity": "热门",
+    "newest": "最新"
+  },
+  "pagination": {
+    "previous": "上一页",
+    "next": "下一页",
+    "page": "页",
+    "of": "共"
+  },
+  "tourCard": {
+    "featured": "精选",
+    "reviews": "评价",
+    "days": "天",
+    "people": "人",
+    "from": "起"
+  },
+  "sections": {
+    "allTours": "所有旅游",
+    "exploreAllDestinations": "探索所有目的地",
+    "allToursDescription": "根据您的喜好搜索和筛选旅游。数百个精彩旅程等待您的发现。",
+    "ctaHeading": "找不到合适的旅游？",
+    "ctaDescription": "联系我们免费咨询并根据您的需求创建定制旅游",
+    "contactConsultation": "联系咨询",
+    "customTour": "创建定制旅游"
+  },
+  "features": {
+    "qualityTours": {
+      "title": "优质旅游",
+      "description": "由具有多年经验的旅游专家设计"
+    },
+    "professionalGuides": {
+      "title": "专业导游",
+      "description": "热情且深入了解文化的本地导游团队"
+    },
+    "uniqueExperiences": {
+      "title": "独特体验",
+      "description": "探索越南文化和自然的新的视角"
+    }
+  },
+  "noResults": {
+    "title": "未找到旅游",
+    "description": "尝试调整筛选条件或搜索其他关键词",
+    "resetFilters": "重置筛选"
+  },
+  "errors": {
+    "loadingFailed": "无法加载旅游列表",
+    "retry": "重试"
+  }
+}

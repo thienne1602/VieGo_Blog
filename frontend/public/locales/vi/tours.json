@@ -1,0 +1,85 @@
+{
+  "loading": "Đang tải tours...",
+  "search": {
+    "placeholder": "Tìm kiếm điểm đến...",
+    "placeholderMobile": "Tìm kiếm tour...",
+    "search": "Tìm kiếm"
+  },
+  "filters": {
+    "all": "Tất cả",
+    "difficulty": "Độ khó",
+    "difficultyLevels": {
+      "easy": "Dễ",
+      "moderate": "Trung Bình",
+      "hard": "Khó"
+    },
+    "priceRange": "Khoảng giá",
+    "minPrice": "Giá tối thiểu",
+    "maxPrice": "Giá tối đa",
+    "featured": "Nổi bật",
+    "applyFilters": "Áp dụng bộ lọc",
+    "clearFilters": "Xóa bộ lọc"
+  },
+  "categories": {
+    "all": "Tất cả danh mục",
+    "adventure": "Phiêu lưu",
+    "cultural": "Văn hóa",
+    "food": "Ẩm thực",
+    "nature": "Thiên nhiên",
+    "urban": "Đô thị",
+    "spiritual": "Tâm linh"
+  },
+  "sorting": {
+    "sortBy": "Sắp xếp theo",
+    "priceLowToHigh": "Giá: Thấp đến cao",
+    "priceHighToLow": "Giá: Cao đến thấp",
+    "rating": "Đánh giá",
+    "popularity": "Phổ biến",
+    "newest": "Mới nhất"
+  },
+  "pagination": {
+    "previous": "Trước",
+    "next": "Sau",
+    "page": "Trang",
+    "of": "của"
+  },
+  "tourCard": {
+    "featured": "Nổi bật",
+    "reviews": "đánh giá",
+    "days": "ngày",
+    "people": "người",
+    "from": "từ"
+  },
+  "sections": {
+    "allTours": "Tất Cả Tours",
+    "exploreAllDestinations": "Khám Phá Tất Cả Điểm Đến",
+    "allToursDescription": "Tìm kiếm và lọc tours theo sở thích của bạn. Hàng trăm hành trình thú vị đang chờ đón bạn khám phá.",
+    "ctaHeading": "Chưa Tìm Thấy Tour Phù Hợp?",
+    "ctaDescription": "Liên hệ với chúng tôi để được tư vấn miễn phí và tạo tour riêng theo nhu cầu của bạn",
+    "contactConsultation": "Liên Hệ Tư Vấn",
+    "customTour": "Tạo Tour Tùy Chỉnh"
+  },
+  "features": {
+    "qualityTours": {
+      "title": "Tours Chất Lượng",
+      "description": "Được thiết kế bởi các chuyên gia du lịch với kinh nghiệm nhiều năm trong nghề"
+    },
+    "professionalGuides": {
+      "title": "Hướng Dẫn Viên Chuyên Nghiệp",
+      "description": "Đội ngũ hướng dẫn viên địa phương nhiệt tình và am hiểu sâu về văn hóa"
+    },
+    "uniqueExperiences": {
+      "title": "Trải Nghiệm Độc Đáo",
+      "description": "Khám phá những góc nhìn mới về văn hóa và thiên nhiên Việt Nam"
+    }
+  },
+  "noResults": {
+    "title": "Không tìm thấy tour nào",
+    "description": "Thử điều chỉnh bộ lọc hoặc tìm kiếm từ khóa khác",
+    "resetFilters": "Đặt lại bộ lọc"
+  },
+  "errors": {
+    "loadingFailed": "Không thể tải danh sách tour",
+    "retry": "Thử lại"
+  }
+}

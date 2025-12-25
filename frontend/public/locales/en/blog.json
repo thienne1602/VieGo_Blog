@@ -1,0 +1,80 @@
+{
+  "loading": "Loading...",
+  "error": {
+    "generic": "An error occurred while loading posts",
+    "loadFailed": "Unable to load posts"
+  },
+  "buttons": {
+    "retry": "Try again",
+    "loadMore": "Load more posts",
+    "readMore": "Read more",
+    "share": "Share",
+    "like": "Like",
+    "comment": "Comment",
+    "save": "Save",
+    "follow": "Follow",
+    "unfollow": "Unfollow"
+  },
+  "post": {
+    "by": "by",
+    "in": "in",
+    "readTime": "min read",
+    "views": "views",
+    "likes": "likes",
+    "comments": "comments",
+    "tags": "Tags",
+    "relatedPosts": "Related Posts",
+    "author": "Author",
+    "published": "Published",
+    "updated": "Last updated",
+    "shareOn": "Share on"
+  },
+  "create": {
+    "writePost": "Write a post",
+    "title": "Post title",
+    "content": "Post content...",
+    "category": "Category",
+    "selectCategory": "Select category",
+    "addImage": "Add image",
+    "publish": "Publish",
+    "draft": "Save draft",
+    "preview": "Preview"
+  },
+  "comments": {
+    "title": "Comments",
+    "writeComment": "Write a comment...",
+    "submit": "Submit comment",
+    "reply": "Reply",
+    "showReplies": "Show replies",
+    "hideReplies": "Hide replies",
+    "noComments": "No comments yet",
+    "loginToComment": "Login to comment"
+  },
+  "stories": {
+    "title": "Stories",
+    "viewStory": "View story",
+    "addStory": "Add story",
+    "noStories": "No stories available"
+  },
+  "categories": {
+    "travel": "Travel",
+    "food": "Food",
+    "culture": "Culture",
+    "lifestyle": "Lifestyle",
+    "tips": "Tips",
+    "reviews": "Reviews"
+  },
+  "search": {
+    "placeholder": "Search posts...",
+    "search": "Search",
+    "noResults": "No posts found",
+    "resultsFor": "Results for"
+  },
+  "sidebar": {
+    "popularPosts": "Popular Posts",
+    "categories": "Categories",
+    "tags": "Tags",
+    "recentPosts": "Recent Posts",
+    "archives": "Archives"
+  }
+}

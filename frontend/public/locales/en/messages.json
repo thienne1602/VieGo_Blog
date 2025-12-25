@@ -1,0 +1,50 @@
+{
+  "loading": "Loading...",
+  "search": {
+    "placeholder": "Search conversations...",
+    "placeholderFriends": "Search friends...",
+    "search": "Search"
+  },
+  "tabs": {
+    "messages": "Messages",
+    "groups": "Groups",
+    "settings": "Settings"
+  },
+  "actions": {
+    "createGroup": "Create group chat",
+    "createGroupTitle": "Create group chat",
+    "createGroupSubmit": "Create group ({count} members)",
+    "startConversation": "Start conversation",
+    "sendMessage": "Send",
+    "send": "Send",
+    "cancel": "Cancel"
+  },
+  "messages": {
+    "noConversations": "No conversations",
+    "noConversationsDesc": "Start a new conversation with your friends",
+    "typeMessage": "Type a message...",
+    "online": "Online",
+    "offline": "Offline",
+    "lastSeen": "Last seen"
+  },
+  "groups": {
+    "title": "Group chats",
+    "create": "Create new group",
+    "members": "Members",
+    "admin": "Admin",
+    "leave": "Leave group",
+    "addMembers": "Add members"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutes": "minutes",
+    "hours": "hours",
+    "days": "days",
+    "ago": "ago"
+  },
+  "errors": {
+    "loadFailed": "Unable to load messages",
+    "sendFailed": "Unable to send message",
+    "createGroupFailed": "Unable to create group"
+  }
+}

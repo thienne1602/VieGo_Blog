@@ -1,0 +1,59 @@
+{
+  "title": "Liên Hệ & Hỗ Trợ",
+  "subtitle": "Chúng tôi luôn sẵn sàng hỗ trợ bạn. Hãy gửi yêu cầu của bạn và chúng tôi sẽ phản hồi trong thời gian sớm nhất.",
+  "form": {
+    "title": "Gửi yêu cầu hỗ trợ",
+    "category": "Loại yêu cầu",
+    "categories": {
+      "technical": "Vấn đề kỹ thuật",
+      "account": "Tài khoản",
+      "content": "Nội dung",
+      "payment": "Thanh toán",
+      "general": "Chung",
+      "report": "Báo cáo",
+      "suggestion": "Đề xuất",
+      "other": "Khác"
+    },
+    "name": "Họ và tên *",
+    "namePlaceholder": "Nhập họ và tên của bạn",
+    "email": "Email *",
+    "emailPlaceholder": "your.email@example.com",
+    "phone": "Số điện thoại (tùy chọn)",
+    "phonePlaceholder": "0123-456-789",
+    "subject": "Tiêu đề *",
+    "subjectPlaceholder": "Tóm tắt vấn đề của bạn",
+    "message": "Nội dung chi tiết *",
+    "messagePlaceholder": "Mô tả chi tiết vấn đề hoặc yêu cầu của bạn...",
+    "submit": "Gửi yêu cầu hỗ trợ",
+    "sending": "Đang gửi...",
+    "success": {
+      "title": "Gửi yêu cầu thành công!",
+      "message": "Chúng tôi đã nhận được yêu cầu hỗ trợ của bạn. Chúng tôi sẽ phản hồi sớm nhất có thể qua email.",
+      "button": "Gửi yêu cầu khác"
+    },
+    "error": {
+      "generic": "Có lỗi xảy ra. Vui lòng thử lại.",
+      "submit": "Gửi yêu cầu thất bại"
+    }
+  },
+  "contactInfo": {
+    "title": "Thông tin liên hệ",
+    "email": "Email",
+    "hotline": "Hotline"
+  },
+  "responseTime": {
+    "title": "Thời gian phản hồi",
+    "general": "Yêu cầu thông thường",
+    "urgent": "Yêu cầu khẩn cấp",
+    "technical": "Vấn đề kỹ thuật",
+    "hours24": "24-48 giờ",
+    "hours2": "2-4 giờ",
+    "hours12": "12-24 giờ"
+  },
+  "tips": {
+    "title": "💡 Mẹo",
+    "tip1": "Mô tả chi tiết vấn đề để chúng tôi có thể hỗ trợ tốt hơn",
+    "tip2": "Đính kèm ảnh chụp màn hình nếu có thể",
+    "tip3": "Kiểm tra email thường xuyên để nhận phản hồi"
+  }
+}

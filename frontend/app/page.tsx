@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import Sidebar from "@/components/layout/Sidebar";
 import RightSidebar from "@/components/layout/RightSidebar";
 import NewsFeed from "@/components/layout/NewsFeed";
@@ -10,6 +11,7 @@ import { useAuth } from "@/lib/AuthContext";
 export default function HomePage() {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation("home");
 
   // Redirect to welcome if not authenticated (after loading is done)
   // NOTE: routing for unauthenticated users is handled by AuthGuard.

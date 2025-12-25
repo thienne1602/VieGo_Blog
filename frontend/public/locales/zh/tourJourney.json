@@ -1,0 +1,85 @@
+{
+  "loading": "加载行程...",
+  "loadingPassengers": "加载乘客列表...",
+  "back": "返回",
+  "journey": {
+    "title": "行程",
+    "ongoing": "行程进行中",
+    "completed": "行程已完成",
+    "notStarted": "行程未开始"
+  },
+  "tabs": {
+    "journey": "行程",
+    "map": "地图",
+    "members": "成员",
+    "notifications": "通知"
+  },
+  "checkpoints": {
+    "title": "检查点",
+    "description": "描述",
+    "location": "地点",
+    "scheduledTime": "预定时间",
+    "arrivalTime": "到达时间",
+    "departureTime": "出发时间",
+    "status": {
+      "pending": "未到达",
+      "arrived": "已到达",
+      "departed": "已出发",
+      "completed": "已完成"
+    },
+    "addCheckpoint": "添加检查点",
+    "editCheckpoint": "编辑检查点"
+  },
+  "notifications": {
+    "title": "通知",
+    "sendNotification": "发送通知",
+    "sendNotificationTitle": "发送通知",
+    "message": "消息",
+    "send": "发送",
+    "sending": "发送中...",
+    "categories": {
+      "start": "开始",
+      "rest": "休息",
+      "gather": "集合",
+      "other": "其他"
+    }
+  },
+  "members": {
+    "title": "成员",
+    "passengers": "乘客",
+    "tourGuide": "导游",
+    "search": "搜索成员...",
+    "filters": {
+      "all": "全部",
+      "adult": "成人",
+      "child": "儿童",
+      "infant": "婴儿"
+    },
+    "sendCredentials": "发送登录凭证",
+    "sendingCredentials": "发送中..."
+  },
+  "map": {
+    "title": "行程地图",
+    "currentLocation": "当前位置",
+    "destination": "目的地",
+    "route": "路线"
+  },
+  "actions": {
+    "viewDetails": "查看详情",
+    "edit": "编辑",
+    "delete": "删除",
+    "save": "保存",
+    "cancel": "取消",
+    "refresh": "刷新",
+    "download": "下载"
+  },
+  "errors": {
+    "loadFailed": "无法加载行程信息",
+    "updateFailed": "无法更新信息",
+    "sendFailed": "无法发送通知"
+  },
+  "success": {
+    "updated": "更新成功",
+    "sent": "发送成功"
+  }
+}

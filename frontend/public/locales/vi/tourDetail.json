@@ -1,0 +1,96 @@
+{
+  "loading": "Đang tải tour...",
+  "error": "Không thể tải thông tin tour",
+  "notFound": "Không tìm thấy tour",
+  "backToTours": "Quay lại danh sách tours",
+  "share": {
+    "copied": "Đã sao chép liên kết vào bộ nhớ tạm!",
+    "failed": "Không thể sao chép liên kết"
+  },
+  "favorite": {
+    "add": "Thêm vào yêu thích",
+    "remove": "Xóa khỏi yêu thích"
+  },
+  "tabs": {
+    "overview": "Tổng quan",
+    "itinerary": "Lịch trình",
+    "reviews": "Đánh giá",
+    "booking": "Đặt tour"
+  },
+  "fitnessLevels": {
+    "low": "Phù hợp mọi đối tượng",
+    "moderate": "Cần sức khỏe trung bình",
+    "high": "Yêu cầu thể lực tốt"
+  },
+  "details": {
+    "duration": "Thời gian",
+    "groupSize": "Số người",
+    "difficulty": "Độ khó",
+    "location": "Địa điểm",
+    "price": "Giá",
+    "rating": "Đánh giá",
+    "reviews": "đánh giá",
+    "days": "ngày",
+    "people": "người",
+    "from": "từ",
+    "perPerson": "mỗi người"
+  },
+  "booking": {
+    "bookNow": "Đặt ngay",
+    "selectDate": "Chọn ngày khởi hành",
+    "guests": "Số khách",
+    "total": "Tổng cộng",
+    "proceed": "Tiếp tục đặt tour",
+    "loginRequired": "Vui lòng đăng nhập để đặt tour"
+  },
+  "reviews": {
+    "writeReview": "Viết đánh giá",
+    "rating": "Đánh giá của bạn",
+    "content": "Nội dung đánh giá...",
+    "submit": "Gửi đánh giá",
+    "submitting": "Đang gửi...",
+    "submitSuccess": "Đánh giá của bạn đã được gửi thành công!",
+    "noReviews": "Chưa có đánh giá nào",
+    "averageRating": "Đánh giá trung bình"
+  },
+  "gallery": {
+    "viewAll": "Xem tất cả ảnh",
+    "photos": "ảnh"
+  },
+  "highlights": {
+    "title": "Điểm nổi bật",
+    "included": "Bao gồm",
+    "excluded": "Không bao gồm"
+  },
+  "policies": {
+    "title": "Chính sách",
+    "cancellation": "Chính sách hủy tour",
+    "payment": "Thanh toán",
+    "insurance": "Bảo hiểm"
+  },
+  "map": {
+    "checkpoint": "Điểm dừng",
+    "day": "Ngày",
+    "tourLocation": "📍 Địa điểm du lịch",
+    "routeMap": "Bản đồ hành trình ngày"
+  },
+  "itinerary": {
+    "dayTitle": "Ngày",
+    "routeMap": "Bản đồ hành trình ngày"
+  },
+  "booking": {
+    "featuredDeparture": "Ngày khởi hành nổi bật"
+  },
+  "reviews": {
+    "sectionTitle": "Đánh Giá",
+    "submitButton": "Gửi Đánh Giá",
+    "submitYourReview": "Gửi Đánh Giá Của Bạn",
+    "anonymousUser": "Người dùng ẩn danh",
+    "submitError": "Có lỗi xảy ra khi gửi đánh giá."
+  },
+  "details": {
+    "price": "Giá:",
+    "duration": "Thời gian:",
+    "days": "ngày"
+  }
+}

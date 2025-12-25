@@ -1,0 +1,80 @@
+{
+  "loading": "Đang tải...",
+  "error": {
+    "generic": "Đã xảy ra lỗi khi tải bài viết",
+    "loadFailed": "Không thể tải bài viết"
+  },
+  "buttons": {
+    "retry": "Thử lại",
+    "loadMore": "Xem thêm bài viết",
+    "readMore": "Đọc thêm",
+    "share": "Chia sẻ",
+    "like": "Thích",
+    "comment": "Bình luận",
+    "save": "Lưu",
+    "follow": "Theo dõi",
+    "unfollow": "Bỏ theo dõi"
+  },
+  "post": {
+    "by": "bởi",
+    "in": "trong",
+    "readTime": "phút đọc",
+    "views": "lượt xem",
+    "likes": "lượt thích",
+    "comments": "bình luận",
+    "tags": "Thẻ",
+    "relatedPosts": "Bài viết liên quan",
+    "author": "Tác giả",
+    "published": "Được xuất bản",
+    "updated": "Cập nhật lần cuối",
+    "shareOn": "Chia sẻ trên"
+  },
+  "create": {
+    "writePost": "Viết bài viết",
+    "title": "Tiêu đề bài viết",
+    "content": "Nội dung bài viết...",
+    "category": "Danh mục",
+    "selectCategory": "Chọn danh mục",
+    "addImage": "Thêm hình ảnh",
+    "publish": "Xuất bản",
+    "draft": "Lưu nháp",
+    "preview": "Xem trước"
+  },
+  "comments": {
+    "title": "Bình luận",
+    "writeComment": "Viết bình luận...",
+    "submit": "Gửi bình luận",
+    "reply": "Trả lời",
+    "showReplies": "Xem trả lời",
+    "hideReplies": "Ẩn trả lời",
+    "noComments": "Chưa có bình luận nào",
+    "loginToComment": "Đăng nhập để bình luận"
+  },
+  "stories": {
+    "title": "Tin tức",
+    "viewStory": "Xem tin",
+    "addStory": "Thêm tin",
+    "noStories": "Không có tin tức nào"
+  },
+  "categories": {
+    "travel": "Du lịch",
+    "food": "Ẩm thực",
+    "culture": "Văn hóa",
+    "lifestyle": "Lối sống",
+    "tips": "Mẹo vặt",
+    "reviews": "Đánh giá"
+  },
+  "search": {
+    "placeholder": "Tìm kiếm bài viết...",
+    "search": "Tìm kiếm",
+    "noResults": "Không tìm thấy bài viết nào",
+    "resultsFor": "Kết quả cho"
+  },
+  "sidebar": {
+    "popularPosts": "Bài viết phổ biến",
+    "categories": "Danh mục",
+    "tags": "Thẻ",
+    "recentPosts": "Bài viết gần đây",
+    "archives": "Lưu trữ"
+  }
+}

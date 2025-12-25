@@ -10,6 +10,8 @@ import AuthGuard from "@/components/AuthGuard";
 import NotificationPopup from "@/components/common/NotificationPopup";
 import DevCacheNotice from "@/components/common/DevCacheNotice";
 import Chatbot from "@/components/common/Chatbot";
+import I18nProvider from "@/components/I18nProvider";
+import ClientLayout from "@/components/ClientLayout";
 import { usePathname } from "next/navigation";
 
 const poppins = Poppins({
@@ -33,9 +35,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  const isWelcomePage = pathname === "/welcome";
-
   return (
     <html lang="vi" className={`${poppins.variable} ${quicksand.variable}`}>
       <head>
@@ -77,21 +76,9 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://storage.googleapis.com" />
       </head>
       <body className="min-h-screen bg-neutral-100 dark:bg-gray-900 font-poppins transition-colors duration-300">
-        <ThemeProvider>
-          <AuthProvider>
-            <SocketProvider>
-              <AuthGuard>
-                <div className="flex flex-col min-h-screen">
-                  {!isWelcomePage && <Header />}
-                  <main className="flex-grow">{children}</main>
-                  <NotificationPopup />
-                  <DevCacheNotice />
-                  <Chatbot />
-                </div>
-              </AuthGuard>
-            </SocketProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <I18nProvider>
+          <ClientLayout>{children}</ClientLayout>
+        </I18nProvider>
       </body>
     </html>
   );

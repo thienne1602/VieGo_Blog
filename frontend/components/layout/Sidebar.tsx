@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@/lib/ThemeContext";
 import { Tag, Clock, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 
 const Sidebar = () => {
   const { theme, toggleTheme } = useTheme();
+  const { t } = useTranslation("home");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -98,21 +100,8 @@ const Sidebar = () => {
   };
 
   const daysInMonth = getDaysInMonth(selectedDate);
-  const monthNames = [
-    "Tháng 1",
-    "Tháng 2",
-    "Tháng 3",
-    "Tháng 4",
-    "Tháng 5",
-    "Tháng 6",
-    "Tháng 7",
-    "Tháng 8",
-    "Tháng 9",
-    "Tháng 10",
-    "Tháng 11",
-    "Tháng 12",
-  ];
-  const weekDays = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+  const monthNames = t("sidebar.months", { returnObjects: true }) as string[];
+  const weekDays = t("sidebar.weekdays", { returnObjects: true }) as string[];
 
   const navigateMonth = (direction: number) => {
     setSelectedDate(
@@ -136,13 +125,13 @@ const Sidebar = () => {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-gray-800 dark:text-gray-200 font-bold text-base flex items-center">
             <Tag className="w-5 h-5 mr-2 text-primary-500" />
-            Tour khuyến mãi
+            {t("sidebar.promotionalTours")}
           </h3>
           <Link
             href="/tours?promotion=true"
             className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
           >
-            Xem tất cả
+            {t("sidebar.viewAll")}
           </Link>
         </div>
         <div className="space-y-3">
@@ -178,7 +167,7 @@ const Sidebar = () => {
                     <div className="flex items-center space-x-2 text-xs text-gray-600 dark:text-gray-400">
                       <span>⭐ {tour.rating}</span>
                       <span>•</span>
-                      <span>{tour.reviews} đánh giá</span>
+                      <span>{tour.reviews} {t("sidebar.reviews")}</span>
                     </div>
                   </div>
                 </div>
@@ -192,7 +181,7 @@ const Sidebar = () => {
       <div className="p-4 border-b border-white/20 dark:border-gray-700/30">
         <h3 className="text-gray-800 dark:text-gray-200 font-bold text-base flex items-center mb-3">
           <Clock className="w-5 h-5 mr-2 text-primary-500" />
-          Đồng hồ realtime
+          {t("sidebar.realtimeClock")}
         </h3>
         <motion.div
           className="bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl p-6 text-white shadow-lg"
@@ -229,14 +218,14 @@ const Sidebar = () => {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-gray-800 dark:text-gray-200 font-bold text-base flex items-center">
             <Calendar className="w-5 h-5 mr-2 text-primary-500" />
-            Lịch
+            {t("sidebar.calendar")}
           </h3>
           <motion.button
             onClick={() => setIsCalendarExpanded(!isCalendarExpanded)}
             className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            aria-label={isCalendarExpanded ? "Thu gọn" : "Mở rộng"}
+            aria-label={isCalendarExpanded ? t("sidebar.collapse") : t("sidebar.expand")}
           >
             {isCalendarExpanded ? (
               <ChevronUp className="w-5 h-5 text-gray-600 dark:text-gray-400" />

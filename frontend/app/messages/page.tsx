@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/AuthContext";
 import { useChat } from "@/hooks/useChat";
 import { getStorageKey } from "@/lib/api";
@@ -25,6 +26,7 @@ export default function MessagesListPage() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const { conversations, fetchConversations } = useChat();
+  const { t } = useTranslation("messages");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedConversation, setSelectedConversation] = useState<
     number | null
@@ -83,11 +85,11 @@ export default function MessagesListPage() {
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    if (diffInSeconds < 60) return "Vừa xong";
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ`;
+    if (diffInSeconds < 60) return t("time.justNow");
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} ${t("time.minutes")}`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} ${t("time.hours")}`;
     if (diffInSeconds < 604800)
-      return `${Math.floor(diffInSeconds / 86400)} ngày`;
+      return `${Math.floor(diffInSeconds / 86400)} ${t("time.days")}`;
 
     return date.toLocaleDateString("vi-VN", {
       day: "numeric",
@@ -128,7 +130,7 @@ export default function MessagesListPage() {
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              Tin nhắn
+              {t("tabs.messages")}
             </h1>
             <button
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -143,7 +145,7 @@ export default function MessagesListPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Tìm kiếm cuộc trò chuyện..."
+              placeholder={t("search.placeholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
@@ -156,7 +158,7 @@ export default function MessagesListPage() {
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-500 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm mb-3"
           >
             <Users className="w-4 h-4" />
-            <span>Tạo nhóm chat</span>
+            <span>{t("actions.createGroup")}</span>
           </button>
         </div>
 
@@ -329,7 +331,7 @@ export default function MessagesListPage() {
               {/* Header */}
               <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Tạo nhóm chat
+                  {t("actions.createGroupTitle")}
                 </h2>
                 <button
                   onClick={() => {
@@ -364,7 +366,7 @@ export default function MessagesListPage() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Tìm kiếm bạn bè..."
+                    placeholder={t("search.placeholderFriends")}
                     value={groupModalSearch}
                     onChange={(e) => setGroupModalSearch(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
@@ -521,7 +523,7 @@ export default function MessagesListPage() {
                   }
                   className="w-full px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
-                  Tạo nhóm ({selectedFriendsForGroup.size} thành viên)
+                  {t("actions.createGroupSubmit", { count: selectedFriendsForGroup.size })}
                 </button>
               </div>
             </motion.div>

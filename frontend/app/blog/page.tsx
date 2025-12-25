@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import CreatePostCard from "@/components/blog/CreatePostCard";
 import StoriesSection from "@/components/blog/StoriesSection";
 import PostCard from "@/components/blog/PostCard";
@@ -27,6 +28,7 @@ interface Post {
 }
 
 const HomePage = () => {
+  const { t } = useTranslation("blog");
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,11 +46,11 @@ const HomePage = () => {
         if (result.success && result.data?.posts) {
           setPosts(result.data.posts);
         } else {
-          setError(handleApiError(result.error, "Không thể tải bài viết"));
+          setError(handleApiError(result.error, t("error.loadFailed")));
         }
       } catch (err) {
         console.error("Error fetching posts:", err);
-        setError("Đã xảy ra lỗi khi tải bài viết");
+        setError(t("error.generic"));
       } finally {
         setLoading(false);
       }
@@ -100,7 +102,7 @@ const HomePage = () => {
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-200 dark:border-gray-700 border-t-primary-600 dark:border-t-primary-500 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+            <p className="text-gray-600 dark:text-gray-400">{t("loading")}</p>
           </div>
         </div>
       </div>
@@ -133,7 +135,7 @@ const HomePage = () => {
                     onClick={() => window.location.reload()}
                     className="bg-red-600 dark:bg-red-700 text-white px-4 py-2 rounded hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
                   >
-                    Thử lại
+                    {t("buttons.retry")}
                   </button>
                 </div>
               )}
@@ -145,7 +147,7 @@ const HomePage = () => {
               {/* Load More */}
               <div className="text-center py-6">
                 <button className="bg-primary-600 dark:bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors">
-                  Xem thêm bài viết
+                  {t("buttons.loadMore")}
                 </button>
               </div>
             </div>

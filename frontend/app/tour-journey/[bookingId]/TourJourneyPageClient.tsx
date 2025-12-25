@@ -8,6 +8,7 @@ import React, {
   useRef,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   MapPin,
@@ -99,6 +100,7 @@ export default function TourJourneyPageClient({
 }: TourJourneyPageClientProps) {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useTranslation("tourJourney");
   const bookingId = initialBookingId;
 
   const [booking, setBooking] = useState<any>(null);
@@ -1443,7 +1445,7 @@ export default function TourJourneyPageClient({
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-teal-600 mx-auto mb-4" />
           <p className="text-gray-600 dark:text-gray-400">
-            Đang tải hành trình...
+            {t("loading")}
           </p>
         </div>
       </div>
@@ -1470,7 +1472,7 @@ export default function TourJourneyPageClient({
               onClick={() => router.back()}
               className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-semibold"
             >
-              Quay lại
+              {t("back")}
             </button>
             <button
               onClick={() => {
@@ -1539,7 +1541,7 @@ export default function TourJourneyPageClient({
               className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-white/80 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Quay lại
+              {t("back")}
             </button>
 
             <div className="grid gap-6 lg:grid-cols-[1.8fr_1fr]">
@@ -1556,12 +1558,12 @@ export default function TourJourneyPageClient({
                   <div className="flex flex-wrap items-start justify-between gap-6">
                     <div>
                       <p className="text-xs uppercase tracking-[0.35em] text-gray-600 dark:text-white/60 font-semibold">
-                        Hành trình
+                        {t("journey.title")}
                       </p>
                       <h1 className="text-4xl font-black tracking-tight mt-2 text-gray-900 dark:text-white">
                         {booking?.tour?.title ||
                           booking?.tour?.name ||
-                          "Hành trình Tour"}
+                          t("journey.title")}
                       </h1>
                     </div>
                     {booking?.date && (
@@ -1660,7 +1662,7 @@ export default function TourJourneyPageClient({
                 {isGuide && (
                   <div className="mt-5 pt-5 border-t border-gray-200/80 dark:border-gray-800/80">
                     <p className="text-xs uppercase tracking-[0.35em] text-gray-500 dark:text-gray-400 font-semibold">
-                      Gửi thông báo
+                      {t("notifications.sendNotification")}
                     </p>
 
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -1743,7 +1745,7 @@ export default function TourJourneyPageClient({
                           Đang gửi...
                         </>
                       ) : (
-                        "Gửi thông báo"
+                        t("notifications.sendNotificationTitle")
                       )}
                     </button>
                   </div>
@@ -1844,7 +1846,7 @@ export default function TourJourneyPageClient({
                 />
               </div>
               <p className="text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-white/50 mt-3">
-                Hành trình đang diễn ra
+                {t("journey.ongoing")}
               </p>
             </div>
           </div>
@@ -1973,7 +1975,7 @@ export default function TourJourneyPageClient({
                 {passengersLoading && (
                   <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Đang tải danh sách hành khách...
+                    {t("loadingPassengers")}
                   </div>
                 )}
 

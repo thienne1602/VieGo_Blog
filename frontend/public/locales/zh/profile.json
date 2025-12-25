@@ -1,0 +1,51 @@
+{
+  "loading": "加载中...",
+  "accessError": {
+    "title": "访问权限错误",
+    "description": "角色无效或尚未支持。",
+    "currentRole": "当前角色：",
+    "helpText": "如果您有访问权限，请重新登录或联系管理员。",
+    "loginAgain": "重新登录"
+  },
+  "navigation": {
+    "profile": "个人资料",
+    "settings": "设置",
+    "posts": "帖子",
+    "favorites": "收藏",
+    "bookings": "预订",
+    "reviews": "评价"
+  },
+  "userProfile": {
+    "editProfile": "编辑个人资料",
+    "followers": "粉丝",
+    "following": "关注",
+    "posts": "帖子",
+    "bio": "简介",
+    "location": "位置",
+    "joined": "加入时间",
+    "lastActive": "最后活动",
+    "verified": "已验证",
+    "notVerified": "未验证"
+  },
+  "settings": {
+    "title": "账户设置",
+    "profile": "个人资料",
+    "privacy": "隐私",
+    "notifications": "通知",
+    "security": "安全",
+    "appearance": "外观",
+    "language": "语言",
+    "saveChanges": "保存更改",
+    "cancel": "取消"
+  },
+  "actions": {
+    "edit": "编辑",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "follow": "关注",
+    "unfollow": "取消关注",
+    "message": "发消息",
+    "report": "举报"
+  }
+}

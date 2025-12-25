@@ -1,0 +1,50 @@
+{
+  "loading": "Đang tải...",
+  "search": {
+    "placeholder": "Tìm kiếm cuộc trò chuyện...",
+    "placeholderFriends": "Tìm kiếm bạn bè...",
+    "search": "Tìm kiếm"
+  },
+  "tabs": {
+    "messages": "Tin nhắn",
+    "groups": "Nhóm",
+    "settings": "Cài đặt"
+  },
+  "actions": {
+    "createGroup": "Tạo nhóm chat",
+    "createGroupTitle": "Tạo nhóm chat",
+    "createGroupSubmit": "Tạo nhóm ({count} thành viên)",
+    "startConversation": "Bắt đầu cuộc trò chuyện",
+    "sendMessage": "Gửi",
+    "send": "Gửi",
+    "cancel": "Hủy"
+  },
+  "messages": {
+    "noConversations": "Không có cuộc trò chuyện nào",
+    "noConversationsDesc": "Hãy bắt đầu một cuộc trò chuyện mới với bạn bè của bạn",
+    "typeMessage": "Viết tin nhắn...",
+    "online": "Đang online",
+    "offline": "Offline",
+    "lastSeen": "Lần cuối online"
+  },
+  "groups": {
+    "title": "Nhóm chat",
+    "create": "Tạo nhóm mới",
+    "members": "Thành viên",
+    "admin": "Quản trị viên",
+    "leave": "Rời nhóm",
+    "addMembers": "Thêm thành viên"
+  },
+  "time": {
+    "justNow": "Vừa xong",
+    "minutes": "phút",
+    "hours": "giờ",
+    "days": "ngày",
+    "ago": "trước"
+  },
+  "errors": {
+    "loadFailed": "Không thể tải tin nhắn",
+    "sendFailed": "Không thể gửi tin nhắn",
+    "createGroupFailed": "Không thể tạo nhóm"
+  }
+}

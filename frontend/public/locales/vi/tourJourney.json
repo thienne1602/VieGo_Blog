@@ -1,0 +1,85 @@
+{
+  "loading": "Đang tải hành trình...",
+  "loadingPassengers": "Đang tải danh sách hành khách...",
+  "back": "Quay lại",
+  "journey": {
+    "title": "Hành trình",
+    "ongoing": "Hành trình đang diễn ra",
+    "completed": "Hành trình đã hoàn thành",
+    "notStarted": "Hành trình chưa bắt đầu"
+  },
+  "tabs": {
+    "journey": "Hành trình",
+    "map": "Bản đồ",
+    "members": "Thành viên",
+    "notifications": "Thông báo"
+  },
+  "checkpoints": {
+    "title": "Điểm dừng",
+    "description": "Mô tả",
+    "location": "Địa điểm",
+    "scheduledTime": "Thời gian dự kiến",
+    "arrivalTime": "Thời gian đến",
+    "departureTime": "Thời gian khởi hành",
+    "status": {
+      "pending": "Chưa đến",
+      "arrived": "Đã đến",
+      "departed": "Đã khởi hành",
+      "completed": "Hoàn thành"
+    },
+    "addCheckpoint": "Thêm điểm dừng",
+    "editCheckpoint": "Chỉnh sửa điểm dừng"
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "sendNotification": "Gửi thông báo",
+    "sendNotificationTitle": "Gửi thông báo",
+    "message": "Tin nhắn",
+    "send": "Gửi",
+    "sending": "Đang gửi...",
+    "categories": {
+      "start": "Bắt đầu",
+      "rest": "Nghỉ ngơi",
+      "gather": "Tập trung",
+      "other": "Khác"
+    }
+  },
+  "members": {
+    "title": "Thành viên",
+    "passengers": "Hành khách",
+    "tourGuide": "Hướng dẫn viên",
+    "search": "Tìm kiếm thành viên...",
+    "filters": {
+      "all": "Tất cả",
+      "adult": "Người lớn",
+      "child": "Trẻ em",
+      "infant": "Trẻ sơ sinh"
+    },
+    "sendCredentials": "Gửi thông tin đăng nhập",
+    "sendingCredentials": "Đang gửi..."
+  },
+  "map": {
+    "title": "Bản đồ hành trình",
+    "currentLocation": "Vị trí hiện tại",
+    "destination": "Điểm đến",
+    "route": "Lộ trình"
+  },
+  "actions": {
+    "viewDetails": "Xem chi tiết",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "refresh": "Làm mới",
+    "download": "Tải xuống"
+  },
+  "errors": {
+    "loadFailed": "Không thể tải thông tin hành trình",
+    "updateFailed": "Không thể cập nhật thông tin",
+    "sendFailed": "Không thể gửi thông báo"
+  },
+  "success": {
+    "updated": "Đã cập nhật thành công",
+    "sent": "Đã gửi thành công"
+  }
+}

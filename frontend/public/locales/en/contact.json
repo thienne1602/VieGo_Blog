@@ -1,0 +1,59 @@
+{
+  "title": "Contact & Support",
+  "subtitle": "We are always ready to support you. Please send us your request and we will respond as soon as possible.",
+  "form": {
+    "title": "Send Support Request",
+    "category": "Request Type",
+    "categories": {
+      "technical": "Technical Issue",
+      "account": "Account",
+      "content": "Content",
+      "payment": "Payment",
+      "general": "General",
+      "report": "Report",
+      "suggestion": "Suggestion",
+      "other": "Other"
+    },
+    "name": "Full Name *",
+    "namePlaceholder": "Enter your full name",
+    "email": "Email *",
+    "emailPlaceholder": "your.email@example.com",
+    "phone": "Phone Number (Optional)",
+    "phonePlaceholder": "0123-456-789",
+    "subject": "Subject *",
+    "subjectPlaceholder": "Summarize your issue",
+    "message": "Detailed Content *",
+    "messagePlaceholder": "Describe your issue or request in detail...",
+    "submit": "Send Support Request",
+    "sending": "Sending...",
+    "success": {
+      "title": "Request Sent Successfully!",
+      "message": "We have received your support request. We will respond as soon as possible via email.",
+      "button": "Send Another Request"
+    },
+    "error": {
+      "generic": "An error occurred. Please try again.",
+      "submit": "Failed to send request"
+    }
+  },
+  "contactInfo": {
+    "title": "Contact Information",
+    "email": "Email",
+    "hotline": "Hotline"
+  },
+  "responseTime": {
+    "title": "Response Time",
+    "general": "General Requests",
+    "urgent": "Urgent Requests",
+    "technical": "Technical Issues",
+    "hours24": "24-48 hours",
+    "hours2": "2-4 hours",
+    "hours12": "12-24 hours"
+  },
+  "tips": {
+    "title": "💡 Tips",
+    "tip1": "Describe the issue in detail so we can support you better",
+    "tip2": "Attach screenshots if possible",
+    "tip3": "Check your email regularly for responses"
+  }
+}

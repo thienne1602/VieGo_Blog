@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Search,
   Filter,
@@ -26,6 +27,7 @@ import { useTheme } from "@/lib/ThemeContext";
 export default function ToursPage() {
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
+  const { t } = useTranslation("tours");
 
   useEffect(() => {
     setTimeout(() => {
@@ -44,7 +46,7 @@ export default function ToursPage() {
               className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 border-t-teal-600 dark:border-t-teal-400 rounded-full mx-auto mb-4"
             ></motion.div>
             <p className="text-gray-600 dark:text-gray-300">
-              Đang tải tours...
+              {t("loading")}
             </p>
           </div>
         </div>
@@ -104,20 +106,19 @@ export default function ToursPage() {
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-600 to-teal-500 text-white px-6 py-2 rounded-full shadow-lg shadow-primary-500/30 mb-6 transform hover:scale-105 transition-transform cursor-default">
               <Crown className="w-5 h-5" />
               <span className="font-bold tracking-wide text-sm uppercase">
-                Tất Cả Tours
+                {t("sections.allTours")}
               </span>
             </div>
 
             <h2 className="text-4xl md:text-6xl font-black text-gray-900 dark:text-white mb-6 tracking-tight leading-tight">
-              Khám Phá{" "}
+              {t("sections.exploreAllDestinations").split(" ")[0]}{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-teal-500">
-                Tất Cả Điểm Đến
+                {t("sections.exploreAllDestinations").split(" ").slice(1).join(" ")}
               </span>
             </h2>
 
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto font-medium leading-relaxed">
-              Tìm kiếm và lọc tours theo sở thích của bạn. Hàng trăm hành trình
-              thú vị đang chờ đón bạn khám phá.
+              {t("sections.allToursDescription")}
             </p>
           </motion.div>
 
@@ -169,11 +170,10 @@ export default function ToursPage() {
               <Sparkles className="w-16 h-16" />
             </motion.div>
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              Chưa Tìm Thấy Tour Phù Hợp?
+              {t("sections.ctaHeading")}
             </h2>
             <p className="text-xl md:text-2xl text-white/90 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Liên hệ với chúng tôi để được tư vấn miễn phí và tạo tour riêng
-              theo nhu cầu của bạn
+              {t("sections.ctaDescription")}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <motion.a
@@ -182,7 +182,7 @@ export default function ToursPage() {
                 whileHover={{ scale: 1.05, y: -3 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Liên Hệ Tư Vấn
+                {t("sections.contactConsultation")}
               </motion.a>
               <motion.a
                 href="mailto:custom@viego.com?subject=Yêu cầu thiết kế tour riêng"
@@ -190,7 +190,7 @@ export default function ToursPage() {
                 whileHover={{ scale: 1.05, y: -3 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Tạo Tour Tùy Chỉnh
+                {t("sections.customTour")}
               </motion.a>
             </div>
           </div>
@@ -209,18 +209,18 @@ export default function ToursPage() {
           {[
             {
               icon: <Target className="w-8 h-8" />,
-              title: "Tours Chất Lượng",
-              desc: "Được thiết kế bởi các chuyên gia du lịch với kinh nghiệm nhiều năm trong nghề",
+              title: t("features.qualityTours.title"),
+              desc: t("features.qualityTours.description"),
             },
             {
               icon: <Users className="w-8 h-8" />,
-              title: "Hướng Dẫn Viên Chuyên Nghiệp",
-              desc: "Đội ngũ hướng dẫn viên địa phương nhiệt tình và am hiểu sâu về văn hóa",
+              title: t("features.professionalGuides.title"),
+              desc: t("features.professionalGuides.description"),
             },
             {
               icon: <Award className="w-8 h-8" />,
-              title: "Trải Nghiệm Độc Đáo",
-              desc: "Khám phá những góc nhìn mới về văn hóa và thiên nhiên Việt Nam",
+              title: t("features.uniqueExperiences.title"),
+              desc: t("features.uniqueExperiences.description"),
             },
           ].map((feature, index) => (
             <motion.div

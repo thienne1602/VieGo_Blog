@@ -1,0 +1,59 @@
+{
+  "title": "联系与支持",
+  "subtitle": "我们随时准备为您提供支持。请发送您的请求，我们将尽快回复。",
+  "form": {
+    "title": "发送支持请求",
+    "category": "请求类型",
+    "categories": {
+      "technical": "技术问题",
+      "account": "账户",
+      "content": "内容",
+      "payment": "支付",
+      "general": "一般",
+      "report": "报告",
+      "suggestion": "建议",
+      "other": "其他"
+    },
+    "name": "姓名 *",
+    "namePlaceholder": "输入您的姓名",
+    "email": "电子邮件 *",
+    "emailPlaceholder": "your.email@example.com",
+    "phone": "电话号码（可选）",
+    "phonePlaceholder": "0123-456-789",
+    "subject": "主题 *",
+    "subjectPlaceholder": "总结您的问题",
+    "message": "详细内容 *",
+    "messagePlaceholder": "详细描述您的问题或请求...",
+    "submit": "发送支持请求",
+    "sending": "发送中...",
+    "success": {
+      "title": "请求发送成功！",
+      "message": "我们已收到您的支持请求。我们将尽快通过电子邮件回复。",
+      "button": "发送另一个请求"
+    },
+    "error": {
+      "generic": "发生错误。请重试。",
+      "submit": "发送请求失败"
+    }
+  },
+  "contactInfo": {
+    "title": "联系信息",
+    "email": "电子邮件",
+    "hotline": "热线"
+  },
+  "responseTime": {
+    "title": "响应时间",
+    "general": "一般请求",
+    "urgent": "紧急请求",
+    "technical": "技术问题",
+    "hours24": "24-48小时",
+    "hours2": "2-4小时",
+    "hours12": "12-24小时"
+  },
+  "tips": {
+    "title": "💡 提示",
+    "tip1": "详细描述问题，以便我们更好地为您提供支持",
+    "tip2": "如果可能，请附上屏幕截图",
+    "tip3": "定期检查电子邮件以获取回复"
+  }
+}
