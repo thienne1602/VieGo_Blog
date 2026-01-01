@@ -43,7 +43,16 @@
     "rejectFriendError": "Có lỗi xảy ra khi từ chối lời mời",
     "genericError": "Có lỗi xảy ra",
     "friendRequestAlreadySent": "Đã gửi lời mời kết bạn trước đó",
-    "friendRequestReceived": "Người này đã gửi lời mời kết bạn cho bạn. Vui lòng chấp nhận hoặc từ chối."
+    "friendRequestReceived": "Người này đã gửi lời mời kết bạn cho bạn. Vui lòng chấp nhận hoặc từ chối.",
+    "backgroundMusic": "Nhạc nền",
+    "nowPlaying": "Đang phát",
+    "previousTrack": "Bài trước",
+    "nextTrack": "Bài sau",
+    "play": "Phát",
+    "pause": "Tạm dừng",
+    "mute": "Tắt tiếng",
+    "unmute": "Bật tiếng",
+    "selectTrack": "Chọn bài nhạc"
   },
   "language": {
     "vietnamese": "Tiếng Việt",

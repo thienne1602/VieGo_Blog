@@ -12,6 +12,7 @@ import { useChat } from "@/hooks/useChat";
 import ThemeToggle from "@/components/common/ThemeToggle";
 import HeaderWeatherWidget from "@/components/common/HeaderWeatherWidget";
 import LanguageSelector from "@/components/common/LanguageSelector";
+import BackgroundMusic from "@/components/common/BackgroundMusic";
 import {
   Search,
   UserPlus,
@@ -967,7 +968,11 @@ const Header = () => {
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder={user ? t("header.searchPlaceholder") : t("header.searchPlaceholderGuest")}
+                  placeholder={
+                    user
+                      ? t("header.searchPlaceholder")
+                      : t("header.searchPlaceholderGuest")
+                  }
                   className="w-full px-3 sm:px-4 py-2 sm:py-2.5 pl-9 sm:pl-11 bg-gray-100 dark:bg-gray-800 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:bg-white dark:focus:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-300"
                   value={searchValue}
                   onChange={(e) => {
@@ -1244,6 +1249,9 @@ const Header = () => {
             <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
               {/* Language Selector */}
               <LanguageSelector />
+
+              {/* Background Music */}
+              <BackgroundMusic />
 
               {/* Dark Mode Toggle */}
               <ThemeToggle />

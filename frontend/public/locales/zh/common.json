@@ -43,7 +43,16 @@
     "rejectFriendError": "拒绝好友请求时发生错误",
     "genericError": "发生错误",
     "friendRequestAlreadySent": "之前已发送好友请求",
-    "friendRequestReceived": "此人已向您发送好友请求。请接受或拒绝。"
+    "friendRequestReceived": "此人已向您发送好友请求。请接受或拒绝。",
+    "backgroundMusic": "背景音乐",
+    "nowPlaying": "正在播放",
+    "previousTrack": "上一首",
+    "nextTrack": "下一首",
+    "play": "播放",
+    "pause": "暂停",
+    "mute": "静音",
+    "unmute": "取消静音",
+    "selectTrack": "选择歌曲"
   },
   "language": {
     "vietnamese": "Tiếng Việt",

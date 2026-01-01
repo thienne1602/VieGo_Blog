@@ -43,7 +43,16 @@
     "rejectFriendError": "Error occurred while rejecting friend request",
     "genericError": "An error occurred",
     "friendRequestAlreadySent": "Friend request already sent previously",
-    "friendRequestReceived": "This person has sent you a friend request. Please accept or reject."
+    "friendRequestReceived": "This person has sent you a friend request. Please accept or reject.",
+    "backgroundMusic": "Background Music",
+    "nowPlaying": "Now Playing",
+    "previousTrack": "Previous Track",
+    "nextTrack": "Next Track",
+    "play": "Play",
+    "pause": "Pause",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "selectTrack": "Select Track"
   },
   "language": {
     "vietnamese": "Tiếng Việt",
