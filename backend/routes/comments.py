@@ -175,7 +175,7 @@ def create_comment():
         }
         
         # Create notification for post author (if not self-comment)
-        if post.user_id != user_id:
+        if post.author_id != user_id:
             from routes.notifications import create_notification
             if parent_comment:
                 # Reply to comment - notify comment author
@@ -193,7 +193,7 @@ def create_comment():
             else:
                 # New comment on post - notify post author
                 create_notification(
-                    user_id=post.user_id,
+                    user_id=post.author_id,
                     type='comment',
                     message=f'{user.full_name or user.username} đã bình luận bài viết của bạn',
                     title='Có người bình luận',
@@ -207,8 +207,8 @@ def create_comment():
         # Emit socket event for real-time update
         from utils.socket_utils import emit_to_user, emit_to_room
         # Emit to post author for real-time comment count update
-        if post.user_id != user_id:
-            emit_to_user(post.user_id, 'post_commented', {
+        if post.author_id != user_id:
+            emit_to_user(post.author_id, 'post_commented', {
                 'post_id': post_id,
                 'post_slug': post.slug,
                 'comments_count': post.comments_count,

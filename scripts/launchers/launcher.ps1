@@ -35,14 +35,14 @@ $form.Controls.Add($titlePanel)
 # Config Panel
 $configPanel = New-Object System.Windows.Forms.Panel
 $configPanel.Location = New-Object System.Drawing.Point(40, 120)
-$configPanel.Size = New-Object System.Drawing.Size(1000, 90)
+$configPanel.Size = New-Object System.Drawing.Size(1000, 120)
 $configPanel.BackColor = [System.Drawing.Color]::FromArgb(51, 65, 85)
 
 $clientLabel = New-Object System.Windows.Forms.Label
-$clientLabel.Text = 'So luong Frontend Clients:'
+$clientLabel.Text = 'Frontend Clients:'
 $clientLabel.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
 $clientLabel.ForeColor = [System.Drawing.Color]::White
-$clientLabel.Location = New-Object System.Drawing.Point(30, 30)
+$clientLabel.Location = New-Object System.Drawing.Point(30, 15)
 $clientLabel.AutoSize = $true
 $configPanel.Controls.Add($clientLabel)
 
@@ -51,20 +51,49 @@ $clientNumeric.Minimum = 1
 $clientNumeric.Maximum = 10
 $clientNumeric.Value = 1
 $clientNumeric.Font = New-Object System.Drawing.Font('Segoe UI', 14)
-$clientNumeric.Location = New-Object System.Drawing.Point(350, 27)
+$clientNumeric.Location = New-Object System.Drawing.Point(200, 12)
 $clientNumeric.Size = New-Object System.Drawing.Size(100, 35)
 $configPanel.Controls.Add($clientNumeric)
+
+# Port Management Section
+$portLabel = New-Object System.Windows.Forms.Label
+$portLabel.Text = 'Port Management:'
+$portLabel.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
+$portLabel.ForeColor = [System.Drawing.Color]::White
+$portLabel.Location = New-Object System.Drawing.Point(30, 60)
+$portLabel.AutoSize = $true
+$configPanel.Controls.Add($portLabel)
+
+$checkPortsButton = New-Object System.Windows.Forms.Button
+$checkPortsButton.Text = 'Check Ports'
+$checkPortsButton.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$checkPortsButton.BackColor = [System.Drawing.Color]::FromArgb(59, 130, 246)
+$checkPortsButton.ForeColor = [System.Drawing.Color]::White
+$checkPortsButton.FlatStyle = 'Flat'
+$checkPortsButton.Location = New-Object System.Drawing.Point(200, 55)
+$checkPortsButton.Size = New-Object System.Drawing.Size(120, 35)
+$configPanel.Controls.Add($checkPortsButton)
+
+$killPortsButton = New-Object System.Windows.Forms.Button
+$killPortsButton.Text = 'Kill Used Ports'
+$killPortsButton.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$killPortsButton.BackColor = [System.Drawing.Color]::FromArgb(239, 68, 68)
+$killPortsButton.ForeColor = [System.Drawing.Color]::White
+$killPortsButton.FlatStyle = 'Flat'
+$killPortsButton.Location = New-Object System.Drawing.Point(340, 55)
+$killPortsButton.Size = New-Object System.Drawing.Size(120, 35)
+$configPanel.Controls.Add($killPortsButton)
 
 $form.Controls.Add($configPanel)
 
 # Status Panel
 $statusPanel = New-Object System.Windows.Forms.Panel
-$statusPanel.Location = New-Object System.Drawing.Point(40, 230)
+$statusPanel.Location = New-Object System.Drawing.Point(40, 260)
 $statusPanel.Size = New-Object System.Drawing.Size(1000, 70)
 $statusPanel.BackColor = [System.Drawing.Color]::FromArgb(51, 65, 85)
 
 $statusLabel = New-Object System.Windows.Forms.Label
-$statusLabel.Text = 'Trang thai: Chua khoi dong'
+$statusLabel.Text = 'Status: Not started'
 $statusLabel.Font = New-Object System.Drawing.Font('Segoe UI', 14, [System.Drawing.FontStyle]::Bold)
 $statusLabel.ForeColor = [System.Drawing.Color]::Gray
 $statusLabel.Location = New-Object System.Drawing.Point(30, 25)
@@ -75,7 +104,7 @@ $form.Controls.Add($statusPanel)
 
 # Log Panel
 $logPanel = New-Object System.Windows.Forms.Panel
-$logPanel.Location = New-Object System.Drawing.Point(40, 320)
+$logPanel.Location = New-Object System.Drawing.Point(40, 350)
 $logPanel.Size = New-Object System.Drawing.Size(1000, 200)
 $logPanel.BackColor = [System.Drawing.Color]::FromArgb(51, 65, 85)
 
@@ -92,7 +121,7 @@ $form.Controls.Add($logPanel)
 
 # Buttons Panel
 $buttonsPanel = New-Object System.Windows.Forms.Panel
-$buttonsPanel.Location = New-Object System.Drawing.Point(40, 540)
+$buttonsPanel.Location = New-Object System.Drawing.Point(40, 570)
 $buttonsPanel.Size = New-Object System.Drawing.Size(1000, 60)
 $buttonsPanel.BackColor = [System.Drawing.Color]::FromArgb(30, 41, 59)
 
@@ -138,65 +167,207 @@ function Add-Log {
     [System.Windows.Forms.Application]::DoEvents()
 }
 
+function Check-And-Kill-Port {
+    param([int]$port)
+    try {
+        $connections = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue
+        foreach ($conn in $connections) {
+            if ($conn.State -eq "Listen") {
+                $process = Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue
+                if ($process) {
+                    Add-Log "Killing process $($process.Name) (PID: $($process.Id)) using port $port"
+                    Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+                }
+            }
+        }
+    } catch {
+        # NetTCPConnection might not be available on older Windows versions
+        try {
+            $output = netstat -ano | findstr ":$port "
+            if ($output) {
+                $parts = $output -split '\s+'
+                $processId = $parts[$parts.Length - 1]
+                if ($processId -and $processId -ne "0") {
+                    $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
+                    if ($process) {
+                        Add-Log "Killing process $($process.Name) (PID: $processId) using port $port"
+                        Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
+                    }
+                }
+            }
+        } catch {
+            Add-Log "Warning: Could not check port $port"
+        }
+    }
+}
+
 function Start-Servers {
     param([int]$clientCount)
     $script:isRunning = $true
     $startButton.Enabled = $false
     $stopButton.Enabled = $true
-    $statusLabel.Text = 'Trang thai: Dang khoi dong...'
+    $statusLabel.Text = 'Status: Starting...'
     $statusLabel.ForeColor = [System.Drawing.Color]::Yellow
-    
-    Add-Log 'Khoi dong Backend...'
+
+    Add-Log 'Checking and cleaning up ports...'
+    # Check and kill processes using ports 3000-3010 (for frontend clients)
+    for ($i = 0; $i -lt 11; $i++) {
+        $port = 3000 + $i
+        Check-And-Kill-Port -port $port
+    }
+
+    # Check backend port
+    Check-And-Kill-Port -port 5000
+
+    Add-Log 'Cleaning up any remaining Node.js processes...'
+    # Kill any existing node.exe processes that might be using ports
+    try {
+        $existingNodes = Get-Process -Name "node" -ErrorAction SilentlyContinue
+        foreach ($node in $existingNodes) {
+            if ($node.MainModule.FileName -like "*next*" -or $node.MainModule.FileName -like "*frontend*" -or $node.MainModule.FileName -like "*backend*") {
+                Add-Log "Stopping existing Node.js process (PID: $($node.Id))"
+                Stop-Process -Id $node.Id -Force -ErrorAction SilentlyContinue
+            }
+        }
+    } catch {
+        Add-Log "Warning: Could not clean up existing processes"
+    }
+
+    Add-Log 'Starting Backend...'
     $backendScript = "$projectPath\scripts\run_backend.bat"
     $script:backendProcess = Start-Process -FilePath 'cmd.exe' -ArgumentList '/k', "`"$backendScript`"" -PassThru -WindowStyle Normal
     Start-Sleep -Seconds 5
-    
-    Add-Log 'Khoi dong Frontend...'
-    for ($i = 1; $i -le $clientCount; $i++) {
-        $port = 3000 + $i - 1
-        if ($i -eq 1 -and $clientCount -eq 1) {
-            $frontendScript = "$projectPath\scripts\run_frontend.bat"
-            $process = Start-Process -FilePath 'cmd.exe' -ArgumentList '/k', "`"$frontendScript`"" -PassThru -WindowStyle Normal
-        } else {
-            $frontendScript = "$projectPath\scripts\run_frontend_port.bat"
-            $process = Start-Process -FilePath 'cmd.exe' -ArgumentList '/k', "`"$frontendScript`" $port" -PassThru -WindowStyle Normal
-        }
+
+    Add-Log 'Starting Frontend...'
+    Add-Log "Client count: $clientCount"
+    if ($clientCount -eq 1) {
+        # Single client - use original script
+        Add-Log 'Using single client mode'
+        $frontendScript = "$projectPath\scripts\run_frontend.bat"
+        $process = Start-Process -FilePath 'cmd.exe' -ArgumentList '/k', "`"$frontendScript`"" -PassThru -WindowStyle Normal
         $script:frontendProcesses += $process
-        Add-Log "Client $i on port $port"
-        Start-Sleep -Seconds 3
+        Add-Log "Single client on port 3000"
+    } else {
+        # Multiple clients - use new multi-client launcher (no more copying folders!)
+        Add-Log "Starting $clientCount clients using multi-client launcher..."
+        Add-Log "All clients share same source code - no folder duplication"
+        
+        # Use new PowerShell-based multi-client script
+        $multiClientScript = "$projectPath\scripts\run_multi_client.ps1"
+        $process = Start-Process powershell -ArgumentList "-ExecutionPolicy", "Bypass", "-File", "`"$multiClientScript`"", "-ClientCount", $clientCount -PassThru -WindowStyle Normal
+        $script:frontendProcesses += $process
+
+        # Log client URLs
+        for ($i = 1; $i -le $clientCount; $i++) {
+            $port = 3000 + $i - 1
+            Add-Log ("Client $i`: http://localhost:" + $port)
+        }
     }
     
-    $statusLabel.Text = 'Trang thai: Dang chay'
+    $statusLabel.Text = 'Status: Running'
     $statusLabel.ForeColor = [System.Drawing.Color]::Lime
-    Add-Log 'Khoi dong thanh cong!'
+    Add-Log 'Startup completed successfully!'
 }
 
 function Stop-Servers {
     if (-not $script:isRunning) { return }
-    
-    Add-Log 'Dang dung servers...'
-    
+
+    Add-Log 'Stopping servers...'
+
     foreach ($process in $script:frontendProcesses) {
         if ($process -and -not $process.HasExited) {
             try { Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue } catch {}
         }
     }
     $script:frontendProcesses = @()
-    
+
     if ($script:backendProcess -and -not $script:backendProcess.HasExited) {
         try { Stop-Process -Id $script:backendProcess.Id -Force -ErrorAction SilentlyContinue } catch {}
     }
     $script:backendProcess = $null
-    
+
     $script:isRunning = $false
     $startButton.Enabled = $true
     $stopButton.Enabled = $false
-    $statusLabel.Text = 'Trang thai: Da dung'
+    $statusLabel.Text = 'Status: Stopped'
     $statusLabel.ForeColor = [System.Drawing.Color]::Red
-    Add-Log 'Da dung tat ca servers'
+    Add-Log 'All servers stopped'
 }
 
 # Events
+$checkPortsButton.Add_Click({
+    Add-Log 'Checking port usage...'
+    for ($i = 0; $i -lt 11; $i++) {
+        $port = 3000 + $i
+        try {
+            $connections = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue
+            $listening = $false
+            foreach ($conn in $connections) {
+                if ($conn.State -eq "Listen") {
+                    $process = Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue
+                    $processName = if ($process) { $process.Name } else { "Unknown" }
+                    Add-Log "Port $port is in use by $processName (PID: $($conn.OwningProcess))"
+                    $listening = $true
+                }
+            }
+            if (-not $listening) {
+                Add-Log "Port $port is available"
+            }
+        } catch {
+            try {
+                $output = netstat -ano | findstr ":$port "
+                if ($output) {
+                    Add-Log "Port $port appears to be in use"
+                } else {
+                    Add-Log "Port $port is available"
+                }
+            } catch {
+                Add-Log "Cannot check port $port"
+            }
+        }
+    }
+
+    # Check backend port
+    try {
+        $connections = Get-NetTCPConnection -LocalPort 5000 -ErrorAction SilentlyContinue
+        $listening = $false
+        foreach ($conn in $connections) {
+            if ($conn.State -eq "Listen") {
+                $process = Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue
+                $processName = if ($process) { $process.Name } else { "Unknown" }
+                Add-Log "Port 5000 is in use by $processName (PID: $($conn.OwningProcess))"
+                $listening = $true
+            }
+        }
+        if (-not $listening) {
+            Add-Log "Port 5000 is available"
+        }
+    } catch {
+        try {
+            $output = netstat -ano | findstr ":5000 "
+            if ($output) {
+                Add-Log "Port 5000 appears to be in use"
+            } else {
+                Add-Log "Port 5000 is available"
+            }
+        } catch {
+            Add-Log "Cannot check port 5000"
+        }
+    }
+})
+
+$killPortsButton.Add_Click({
+    Add-Log 'Killing processes on used ports...'
+    # Kill processes using frontend ports
+    for ($i = 0; $i -lt 11; $i++) {
+        $port = 3000 + $i
+        Check-And-Kill-Port -port $port
+    }
+    # Kill backend port
+    Check-And-Kill-Port -port 5000
+    Add-Log 'Port cleanup completed'
+})
+
 $startButton.Add_Click({
     $clientCount = [int]$clientNumeric.Value
     Start-Servers -clientCount $clientCount
@@ -214,7 +385,7 @@ $form.Add_FormClosing({
 })
 
 Add-Log 'VieGo Blog Launcher'
-Add-Log 'San sang khoi dong...'
+Add-Log 'Ready to start...'
 
 [System.Windows.Forms.Application]::EnableVisualStyles()
 $form.ShowDialog() | Out-Null

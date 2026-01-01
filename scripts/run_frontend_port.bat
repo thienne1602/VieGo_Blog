@@ -35,14 +35,14 @@ for /f "delims=" %%v in ('"%NODE_PATH%\node.exe" --version') do (
     echo ✅ Node.js: %%v
 )
 
-REM Kiểm tra thư mục frontend
+REM Kiểm tra thư mục frontend gốc
 if not exist "%~dp0..\frontend" (
     echo ❌ Thư mục frontend không tồn tại!
     pause
     exit /b 1
 )
 
-REM Chuyển vào thư mục frontend
+REM Chuyển vào thư mục frontend gốc
 cd /d "%~dp0..\frontend"
 
 REM Kiểm tra package.json
@@ -102,9 +102,31 @@ REM Set separate cache directory for each client to avoid conflicts
 REM Use port-specific cache directory for Turbo
 set TURBO_CACHE_DIR=%~dp0frontend\.turbo_cache_%FRONTEND_PORT%
 set NEXT_TELEMETRY_DISABLED=1
-REM Disable turbo for multi-client mode to avoid cache conflicts
-REM Use explicit port parameter
-call "%NODE_PATH%\npx.cmd" next dev -p %FRONTEND_PORT%
+
+REM Add delay to prevent race conditions
+timeout /t 2 /nobreak >nul
+
+REM Set separate cache directory for each client to avoid conflicts
+set NEXT_CACHE_DIR=.next_cache_%FRONTEND_PORT%
+if not exist "%NEXT_CACHE_DIR%" mkdir "%NEXT_CACHE_DIR%"
+
+REM Alternative approach: Use a wrapper script to handle multiple clients
+REM Create a simple Node.js script to start multiple Next.js instances
+
+echo Creating multi-client launcher...
+echo const { spawn } = require('child_process'); > multi_client_launcher.js
+echo const port = process.argv[2] ^|^| 3000; >> multi_client_launcher.js
+echo const nextProcess = spawn('npx', ['next', 'dev', '-p', port], { >> multi_client_launcher.js
+echo   stdio: 'inherit', >> multi_client_launcher.js
+echo   env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1' } >> multi_client_launcher.js
+echo }); >> multi_client_launcher.js
+echo nextProcess.on('exit', (code) =^> { process.exit(code); }); >> multi_client_launcher.js
+
+REM Run the launcher
+call "%NODE_PATH%\node.exe" multi_client_launcher.js %FRONTEND_PORT%
+
+REM Clean up
+del multi_client_launcher.js 2>nul
 
 REM Nếu server thoát
 echo.

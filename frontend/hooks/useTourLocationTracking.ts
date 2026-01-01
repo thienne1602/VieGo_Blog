@@ -41,12 +41,66 @@ export interface SOSAlert {
   user_id: number;
   member_name: string;
   message: string;
+  alert_type?: "sos" | "help_request";
+  severity?: "critical" | "high" | "medium" | "low";
   location: {
     latitude: number | null;
     longitude: number | null;
   };
   timestamp: string;
 }
+
+// Predefined quick help messages
+export const QUICK_HELP_MESSAGES = [
+  {
+    id: "lost",
+    icon: "🧭",
+    label: "Bị lạc đường",
+    message: "Tôi bị lạc đường, cần hướng dẫn!",
+  },
+  {
+    id: "tired",
+    icon: "😫",
+    label: "Mệt mỏi",
+    message: "Tôi cảm thấy mệt mỏi, cần nghỉ ngơi",
+  },
+  {
+    id: "sick",
+    icon: "🤒",
+    label: "Không khỏe",
+    message: "Tôi không được khỏe, cần hỗ trợ y tế",
+  },
+  {
+    id: "late",
+    icon: "⏰",
+    label: "Đến muộn",
+    message: "Tôi sẽ đến muộn, xin đợi",
+  },
+  {
+    id: "bathroom",
+    icon: "🚻",
+    label: "Cần WC",
+    message: "Tôi cần tìm nhà vệ sinh gần nhất",
+  },
+  {
+    id: "hungry",
+    icon: "🍽️",
+    label: "Cần ăn uống",
+    message: "Tôi cần dừng lại để ăn uống",
+  },
+  {
+    id: "photo",
+    icon: "📸",
+    label: "Chụp ảnh",
+    message: "Xin dừng lại để tôi chụp ảnh",
+  },
+  {
+    id: "help",
+    icon: "🙋",
+    label: "Cần hỗ trợ",
+    message: "Tôi cần hỗ trợ từ hướng dẫn viên",
+  },
+];
 
 export interface GeofenceAlert {
   booking_id: number;
@@ -324,7 +378,9 @@ export function useTourLocationTracking(
           socket.emit("trigger_sos", {
             booking_id: bookingId,
             user_id: user.id,
-            message: message || "Cần hỗ trợ khẩn cấp!",
+            message: message || "🆘 CẦN HỖ TRỢ KHẨN CẤP!",
+            alert_type: "sos",
+            severity: "critical",
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
           });
@@ -335,9 +391,50 @@ export function useTourLocationTracking(
           socket.emit("trigger_sos", {
             booking_id: bookingId,
             user_id: user.id,
-            message: message || "Cần hỗ trợ khẩn cấp!",
+            message: message || "🆘 CẦN HỖ TRỢ KHẨN CẤP!",
+            alert_type: "sos",
+            severity: "critical",
           });
           console.log("[LocationTracking] SOS triggered (no position)");
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    },
+    [socket, user, bookingId]
+  );
+
+  // Quick SOS - No message required
+  const triggerQuickSOS = useCallback(() => {
+    triggerSOS("🆘 CẦN HỖ TRỢ KHẨN CẤP!");
+  }, [triggerSOS]);
+
+  // Send help request (non-emergency)
+  const sendHelpRequest = useCallback(
+    (message: string, severity: "high" | "medium" | "low" = "medium") => {
+      if (!socket || !user || !bookingId) return;
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          socket.emit("trigger_sos", {
+            booking_id: bookingId,
+            user_id: user.id,
+            message: message,
+            alert_type: "help_request",
+            severity: severity,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+          console.log("[LocationTracking] Help request sent");
+        },
+        () => {
+          socket.emit("trigger_sos", {
+            booking_id: bookingId,
+            user_id: user.id,
+            message: message,
+            alert_type: "help_request",
+            severity: severity,
+          });
+          console.log("[LocationTracking] Help request sent (no position)");
         },
         { enableHighAccuracy: true, timeout: 5000 }
       );
@@ -568,6 +665,8 @@ export function useTourLocationTracking(
     startTracking,
     stopTracking,
     triggerSOS,
+    triggerQuickSOS,
+    sendHelpRequest,
     clearSOS,
     requestAllLocations,
     pingMember,

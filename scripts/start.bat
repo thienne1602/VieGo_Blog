@@ -1,32 +1,31 @@
 @echo off
-chcp 65001 >nul
 cls
 echo.
-echo ╔══════════════════════════════════════════════════════════════════════╗
-echo ║                                                                      ║
-echo ║        🚀 VIEGO BLOG - SYSTEM LAUNCHER                               ║
-echo ║                                                                      ║
-echo ╚══════════════════════════════════════════════════════════════════════╝
+echo ======================================================================
 echo.
-echo 📋 Đang khởi động GUI...
+echo        VIEGO BLOG - SYSTEM LAUNCHER
+echo.
+echo ======================================================================
+echo.
+echo Starting GUI...
 echo.
 
 REM Check if PowerShell is available
 powershell -Command "exit 0" >nul 2>&1
 if errorlevel 1 (
-    echo ❌ PowerShell không khả dụng!
-    echo 💡 Vui lòng cài đặt PowerShell
+    echo ERROR: PowerShell is not available!
+    echo Please install PowerShell
     pause
     exit /b 1
 )
 
-REM Run PowerShell GUI script with UTF-8 encoding
+REM Run PowerShell GUI script
 powershell -ExecutionPolicy Bypass -NoProfile -File "%~dp0launchers\launcher.ps1"
 
 if errorlevel 1 (
     echo.
-    echo ❌ Có lỗi xảy ra khi chạy GUI!
-    echo 💡 Thử chạy trực tiếp: powershell -ExecutionPolicy Bypass -File launchers\launcher.ps1
+    echo ERROR: An error occurred while running GUI!
+    echo Try running directly: powershell -ExecutionPolicy Bypass -File launchers\launcher.ps1
     pause
 )
 

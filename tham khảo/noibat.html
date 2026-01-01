@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tet Collection 2026 - Stacking Scroll</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Manrope:wght@300;500;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- 1. CẤU HÌNH CƠ BẢN --- */
+        :root {
+            --card-height: 80vh; /* Chiều cao mỗi thẻ */
+            --card-margin: 4vh;  /* Khoảng cách trượt */
+            --bg-dark: #111;
+            --text-gold: #F0E68C;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: var(--bg-dark); 
+            font-family: 'Manrope', sans-serif; 
+            color: #fff;
+            padding-bottom: 10vh; /* Để khoảng trống cuối cùng */
+        }
+
+        /* Header giả lập */
+        header {
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 5vw;
+            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+        }
+        .scroll-icon {
+            margin-top: 50px;
+            width: 30px; height: 50px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            position: relative;
+        }
+        .scroll-icon::before {
+            content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+            width: 4px; height: 8px; background: #fff; border-radius: 2px;
+            animation: scrollDown 1.5s infinite;
+        }
+        @keyframes scrollDown { 0% {top: 10px; opacity: 1;} 100% {top: 30px; opacity: 0;} }
+
+        /* --- 2. LAYOUT CARDS (TRÁI TIM CỦA HIỆU ỨNG) --- */
+        #cards-wrapper {
+            width: 100%;
+            padding: 0 5%; /* Căn lề 2 bên */
+        }
+
+        .card {
+            position: sticky; /* Dính thẻ khi cuộn tới */
+            top: 10vh; /* Cách đỉnh màn hình 1 chút */
+            height: var(--card-height);
+            width: 100%;
+            margin-bottom: var(--card-margin); /* Tạo khoảng cách cuộn ảo */
+            perspective: 1000px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%; height: 100%;
+            border-radius: 30px;
+            overflow: hidden;
+            display: flex;
+            background: #1a1a1a;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.5s ease, filter 0.5s ease;
+            /* Layout chia đôi: Trái Ảnh - Phải Chữ */
+        }
+
+        /* Phần Ảnh (Trái) */
+        .card-image {
+            width: 60%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: transform 1s; /* Parallax ảnh */
+        }
+
+        /* Phần Chữ (Phải) */
+        .card-content {
+            width: 40%;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e1e1e, #0d0d0d);
+            border-left: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .card-num {
+            font-family: 'Playfair Display', serif;
+            font-size: 5rem;
+            color: rgba(255,255,255,0.05);
+            position: absolute;
+            top: 20px; right: 30px;
+            font-weight: bold;
+        }
+
+        .card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            color: var(--text-gold);
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        .card-desc {
+            font-size: 1.1rem;
+            color: #aaa;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .card-btn {
+            padding: 15px 35px;
+            border: 1px solid var(--text-gold);
+            color: var(--text-gold);
+            text-decoration: none;
+            width: fit-content;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+        .card-btn:hover { background: var(--text-gold); color: #000; }
+
+        /* Responsive Mobile */
+        @media (max-width: 768px) {
+            .card-inner { flex-direction: column; }
+            .card-image { width: 100%; height: 50%; }
+            .card-content { width: 100%; height: 50%; padding: 30px; }
+            .card-title { font-size: 2rem; }
+            header h1 { font-size: 10vw; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <p style="letter-spacing: 5px; text-transform: uppercase; color: #888;">Scroll to explore</p>
+        <h1>COLLECTION<br>TET 2026</h1>
+        <div class="scroll-icon"></div>
+    </header>
+
+    <div id="cards-wrapper">
+        
+        <section class="card" id="card-1">
+            <div class="card-inner">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=2560');"></div>
+                <div class="card-content">
+                    <span class="card-num">01</span>
+                    <h2 class="card-title">Sapa<br>Trong Sương</h2>
+                    <p class="card-desc">Đón Tết trên đỉnh Fansipan huyền thoại. Thưởng thức vẻ đẹp của hoa đào rừng nở rộ trong màn sương mờ ảo của vùng cao Tây Bắc.</p>
+                    <a href="#" class="card-btn">Chi Tiết</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" id="card-2">
+            <div class="card-inner">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1599708153386-62e557b3281e?q=80&w=2560');"></div>
+                <div class="card-content">
+                    <span class="card-num">02</span>
+                    <h2 class="card-title">Cố Đô<br>Hoài Niệm</h2>
+                    <p class="card-desc">Trở về quá khứ với không gian cung đình Huế và phố cổ Hội An rực rỡ đèn lồng. Một cái Tết đậm chất truyền thống và bình yên.</p>
+                    <a href="#" class="card-btn">Chi Tiết</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" id="card-3">
+            <div class="card-inner">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1596501046467-3316d3f26038?q=80&w=2560');"></div>
+                <div class="card-content">
+                    <span class="card-num">03</span>
+                    <h2 class="card-title">Phú Quốc<br>Đảo Ngọc</h2>
+                    <p class="card-desc">Rời xa khói bụi thành phố, đón năm mới bên bờ biển xanh cát trắng. Kỳ nghỉ dưỡng sang trọng bậc nhất tại thiên đường nhiệt đới.</p>
+                    <a href="#" class="card-btn">Chi Tiết</a>
+                </div>
+            </div>
+        </section>
+        
+        <section class="card" id="card-4">
+            <div class="card-inner">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1557750255-c76072a7aad1?q=80&w=2560');"></div>
+                <div class="card-content">
+                    <span class="card-num">04</span>
+                    <h2 class="card-title">Đà Lạt<br>Ngàn Hoa</h2>
+                    <p class="card-desc">Thành phố mùa xuân vĩnh cửu. Trải nghiệm không khí lãng mạn, se lạnh và ngàn hoa khoe sắc dịp đầu năm mới 2026.</p>
+                    <a href="#" class="card-btn">Chi Tiết</a>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer style="height: 50vh; display: flex; align-items: center; justify-content: center; text-align: center;">
+        <div>
+            <h2 style="font-family: 'Playfair Display'; margin-bottom: 20px;">Sẵn sàng cho chuyến đi?</h2>
+            <a href="#" style="background: #F0E68C; color: black; padding: 15px 40px; text-decoration: none; font-weight: bold; border-radius: 50px;">ĐẶT TOUR NGAY</a>
+        </div>
+    </footer>
+
+    <script>
+        // --- LOGIC XỬ LÝ HIỆU ỨNG SCROLL SCALE ---
+        // Không cần thư viện nặng nề, dùng JS thuần
+        
+        const cards = document.querySelectorAll('.card');
+        const header = document.querySelector('header');
+
+        window.addEventListener('scroll', () => {
+            cards.forEach((card, index) => {
+                const cardInner = card.querySelector('.card-inner');
+                const cardImage = card.querySelector('.card-image');
+                
+                // Lấy vị trí của card so với viewport
+                const rect = card.getBoundingClientRect();
+                
+                // Tính toán khoảng cách từ đỉnh card đến đỉnh màn hình
+                // cardHeight = chiều cao thẻ
+                const viewportHeight = window.innerHeight;
+                
+                // Logic: Khi card chạm đỉnh (top <= 0), nó bắt đầu scale nhỏ lại
+                // cho đến khi card tiếp theo đè lên.
+                
+                // Mẹo: Tính toán dựa trên index để biết card nào đang bị đè
+                // Ở đây dùng một hiệu ứng parallax đơn giản:
+                
+                // 1. Hiệu ứng Scale (Thu nhỏ khi cuộn qua)
+                // Chỉ áp dụng cho các card không phải card cuối cùng
+                if (index < cards.length - 1) {
+                    const nextCard = cards[index + 1];
+                    const nextRect = nextCard.getBoundingClientRect();
+                    
+                    // Khoảng cách từ đỉnh card hiện tại đến đỉnh card tiếp theo
+                    const distance = nextRect.top - rect.top;
+                    
+                    // Nếu card tiếp theo đang trượt lên đè card hiện tại
+                    if (nextRect.top <= viewportHeight && nextRect.top >= 0) {
+                        // Tính tỷ lệ scale (từ 1 xuống 0.9)
+                        // Khi nextCard.top = viewportHeight -> scale = 1
+                        // Khi nextCard.top = 0 -> scale = 0.9
+                        const scale = 0.9 + (0.1 * (nextRect.top / viewportHeight));
+                        
+                        // Tính độ mờ (opacity/brightness)
+                        const brightness = 0.5 + (0.5 * (nextRect.top / viewportHeight));
+                        
+                        cardInner.style.transform = `scale(${scale})`;
+                        cardInner.style.filter = `brightness(${brightness})`;
+                    } else if (nextRect.top > viewportHeight) {
+                        // Reset nếu chưa cuộn tới
+                        cardInner.style.transform = `scale(1)`;
+                        cardInner.style.filter = `brightness(1)`;
+                    } else {
+                        // Card đã bị đè hoàn toàn
+                         cardInner.style.transform = `scale(0.9)`;
+                         cardInner.style.filter = `brightness(0.5)`;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

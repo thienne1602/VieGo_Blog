@@ -706,13 +706,15 @@ def register_socket_handlers(socketio):
     
     @socketio.on('trigger_sos')
     def on_trigger_sos(data):
-        """Trigger SOS emergency alert"""
+        """Trigger SOS emergency alert or help request"""
         try:
             from models.tour_member_location import TourMemberLocation
             
             booking_id = data.get('booking_id')
             user_id = data.get('user_id')
             message = data.get('message', 'Cần hỗ trợ khẩn cấp!')
+            alert_type = data.get('alert_type', 'sos')  # 'sos' or 'help_request'
+            severity = data.get('severity', 'critical')  # 'critical', 'high', 'medium', 'low'
             latitude = data.get('latitude')
             longitude = data.get('longitude')
             
@@ -727,24 +729,26 @@ def register_socket_handlers(socketio):
                 is_active=True
             ).first()
             
-            if member_location:
-                member_location.trigger_sos(message)
-                if latitude and longitude:
-                    member_location.latitude = latitude
-                    member_location.longitude = longitude
-                db.session.commit()
+            # Only trigger SOS status for critical alerts
+            if alert_type == 'sos' or severity == 'critical':
+                if member_location:
+                    member_location.trigger_sos(message)
+                    if latitude and longitude:
+                        member_location.latitude = latitude
+                        member_location.longitude = longitude
+                    db.session.commit()
             
             # Get user info
             user = User.query.get(user_id)
             member_name = user.full_name or user.username if user else f'Thành viên {user_id}'
             
-            # Broadcast SOS to entire tour
+            # Broadcast SOS/Help request to entire tour
             room = f'tour_tracking_{booking_id}'
             
             sos_data = {
                 'booking_id': booking_id,
-                'alert_type': 'sos',
-                'severity': 'critical',
+                'alert_type': alert_type,
+                'severity': severity,
                 'user_id': user_id,
                 'member_name': member_name,
                 'message': message,

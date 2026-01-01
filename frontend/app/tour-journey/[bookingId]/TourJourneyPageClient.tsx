@@ -1444,9 +1444,7 @@ export default function TourJourneyPageClient({
       <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-teal-600 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">
-            {t("loading")}
-          </p>
+          <p className="text-gray-600 dark:text-gray-400">{t("loading")}</p>
         </div>
       </div>
     );
@@ -2264,6 +2262,10 @@ export default function TourJourneyPageClient({
                 isGuide={isGuide}
                 currentUserId={user?.id || null}
                 onTriggerSOS={(message) => locationTracking.triggerSOS(message)}
+                onTriggerQuickSOS={() => locationTracking.triggerQuickSOS()}
+                onSendHelpRequest={(message, severity) =>
+                  locationTracking.sendHelpRequest(message, severity)
+                }
                 onClearSOS={(userId) => locationTracking.clearSOS(userId)}
                 onPingMember={(userId) => locationTracking.pingMember(userId)}
                 onRefresh={() => locationTracking.requestAllLocations()}

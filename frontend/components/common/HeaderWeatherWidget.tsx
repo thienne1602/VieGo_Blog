@@ -116,7 +116,10 @@ const HeaderWeatherWidget = () => {
         }
       },
       (err) => {
-        console.error("[Weather] Geolocation error:", err);
+        console.error("[Weather] Geolocation error:", {
+          code: err.code,
+          message: err.message
+        });
         // Default to Hanoi on error
         const defaultLocation = { lat: 21.0285, lng: 105.8542, name: "Hà Nội" };
         setSelectedLocation(defaultLocation);

@@ -407,6 +407,7 @@ class ApiClient {
 
     return this.request(`${endpoint}${queryString}`, {
       method: "GET",
+      cache: options.cache, // Pass cache option to request
     });
   }
 
@@ -489,13 +490,13 @@ class ApiClient {
     return null;
   }
 
-  // Posts methods
+  // Posts methods - skip cache for fresh visibility data
   async getPosts(filters = {}) {
-    return this.get("/posts", filters);
+    return this.get("/posts", filters, { cache: false });
   }
 
   async getPost(slug) {
-    return this.get(`/posts/${slug}`);
+    return this.get(`/posts/${slug}`, {}, { cache: false });
   }
 
   async createPost(postData) {

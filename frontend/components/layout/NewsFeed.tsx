@@ -176,6 +176,7 @@ const NewsFeed = () => {
         tags: safeParseJSON(post.tags, []),
         is_liked: post.is_liked || false,
         is_bookmarked: post.is_bookmarked || false,
+        visibility: post.visibility || "public",
       }));
 
       if (append) {

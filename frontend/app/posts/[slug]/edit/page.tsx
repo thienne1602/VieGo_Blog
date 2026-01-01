@@ -10,7 +10,26 @@ import {
   MapPin,
   Tag,
   FileText,
+  Globe,
+  Lock,
+  Users,
+  X,
+  Search,
 } from "lucide-react";
+import apiClient from "@/lib/api";
+
+// Helper to get token with port-specific key
+const getToken = (): string | null => {
+  if (typeof window === "undefined") return null;
+  const port =
+    window.location.port ||
+    (window.location.protocol === "https:" ? "443" : "80");
+  // Try port-specific key first, then fallback to generic key
+  return (
+    localStorage.getItem(`access_token_${port}`) ||
+    localStorage.getItem("access_token")
+  );
+};
 
 interface PostFormData {
   title: string;
@@ -26,6 +45,15 @@ interface PostFormData {
   location_name: string;
   location_address: string;
   status: "draft" | "published";
+  visibility: "public" | "private" | "friends";
+  allowed_viewers: number[];
+}
+
+interface User {
+  id: number;
+  username: string;
+  full_name: string;
+  avatar_url: string;
 }
 
 const EditPostPage = () => {
@@ -38,6 +66,12 @@ const EditPostPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentTag, setCurrentTag] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Friends search for visibility
+  const [friendsSearch, setFriendsSearch] = useState("");
+  const [friendsList, setFriendsList] = useState<User[]>([]);
+  const [selectedFriends, setSelectedFriends] = useState<User[]>([]);
+  const [showFriendsModal, setShowFriendsModal] = useState(false);
 
   const [formData, setFormData] = useState<PostFormData>({
     title: "",
@@ -53,6 +87,8 @@ const EditPostPage = () => {
     location_name: "",
     location_address: "",
     status: "published",
+    visibility: "public",
+    allowed_viewers: [],
   });
 
   const categories = [
@@ -66,12 +102,34 @@ const EditPostPage = () => {
 
   useEffect(() => {
     fetchPost();
+    fetchFriends();
   }, [slug]);
+
+  const fetchFriends = async () => {
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      const response = await fetch("http://localhost:5000/api/social/friends", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFriendsList(data.friends || []);
+      }
+    } catch (err) {
+      console.error("Error fetching friends:", err);
+    }
+  };
 
   const fetchPost = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/posts/${slug}`);
+      const token = getToken();
+      const response = await fetch(`http://localhost:5000/api/posts/${slug}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
 
       if (!response.ok) throw new Error("Failed to fetch post");
 
@@ -89,10 +147,20 @@ const EditPostPage = () => {
         featured_image: post.featured_image || "",
         images: post.images || [],
         video_url: post.video_url || "",
-        location_name: post.location_name || "",
-        location_address: post.location_address || "",
+        location_name: post.location_name || post.location?.name || "",
+        location_address: post.location_address || post.location?.address || "",
         status: post.status || "published",
+        visibility: post.visibility || "public",
+        allowed_viewers: post.allowed_viewers || [],
       });
+
+      // Load selected friends from allowed_viewers
+      if (post.allowed_viewers && post.allowed_viewers.length > 0) {
+        const friendsData = friendsList.filter((f) =>
+          post.allowed_viewers.includes(f.id)
+        );
+        setSelectedFriends(friendsData);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -138,7 +206,12 @@ const EditPostPage = () => {
 
     try {
       setUploadingImage(true);
-      const token = localStorage.getItem("access_token");
+      const token = getToken();
+      if (!token) {
+        setError("Vui lòng đăng nhập để upload ảnh");
+        router.push("/login");
+        return;
+      }
       const uploadedUrls: string[] = [];
 
       for (let i = 0; i < files.length; i++) {
@@ -190,7 +263,20 @@ const EditPostPage = () => {
         return;
       }
 
-      const token = localStorage.getItem("access_token");
+      const token = getToken();
+      if (!token) {
+        setError("Vui lòng đăng nhập để chỉnh sửa bài viết");
+        router.push("/login");
+        return;
+      }
+
+      // Prepare data with allowed_viewers
+      const submitData = {
+        ...formData,
+        status,
+        allowed_viewers: selectedFriends.map((f) => f.id),
+      };
+
       const response = await fetch(`http://localhost:5000/api/posts/${slug}`, {
         method: "PUT",
         headers: {
@@ -198,7 +284,7 @@ const EditPostPage = () => {
           Authorization: `Bearer ${token}`,
         },
         credentials: "include",
-        body: JSON.stringify({ ...formData, status }),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {
@@ -207,6 +293,10 @@ const EditPostPage = () => {
       }
 
       const data = await response.json();
+
+      // Clear cache for posts to reflect updated visibility
+      apiClient.clearCache();
+
       alert("Cập nhật bài viết thành công!");
       router.push(`/posts/${data.post.slug}`);
     } catch (err: any) {
@@ -360,6 +450,113 @@ const EditPostPage = () => {
             </div>
           </div>
 
+          {/* Visibility Settings */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Ai có thể xem bài viết này?
+            </label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, visibility: "public" }))
+                }
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                  formData.visibility === "public"
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-300 hover:border-gray-400"
+                }`}
+              >
+                <Globe className="w-5 h-5" />
+                <span>Công khai</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, visibility: "friends" }))
+                }
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                  formData.visibility === "friends"
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-300 hover:border-gray-400"
+                }`}
+              >
+                <Users className="w-5 h-5" />
+                <span>Bạn bè</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, visibility: "private" }))
+                }
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                  formData.visibility === "private"
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-300 hover:border-gray-400"
+                }`}
+              >
+                <Lock className="w-5 h-5" />
+                <span>Chỉ mình tôi</span>
+              </button>
+            </div>
+
+            {/* Friends Selection for 'friends' visibility */}
+            {formData.visibility === "friends" && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-gray-700">
+                    Chọn bạn bè có thể xem:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowFriendsModal(true)}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    + Thêm bạn bè
+                  </button>
+                </div>
+
+                {selectedFriends.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedFriends.map((friend) => (
+                      <div
+                        key={friend.id}
+                        className="flex items-center gap-2 bg-white px-3 py-1 rounded-full border"
+                      >
+                        <img
+                          src={
+                            friend.avatar_url ||
+                            "https://via.placeholder.com/24"
+                          }
+                          alt={friend.full_name}
+                          className="w-6 h-6 rounded-full"
+                        />
+                        <span className="text-sm">
+                          {friend.full_name || friend.username}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedFriends((prev) =>
+                              prev.filter((f) => f.id !== friend.id)
+                            )
+                          }
+                          className="text-gray-400 hover:text-red-500"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    Chưa chọn bạn bè nào. Nhấn "Thêm bạn bè" để chọn.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Image Gallery - Multiple Images */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -473,6 +670,134 @@ const EditPostPage = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Friends Selection Modal */}
+      {showFriendsModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden"
+          >
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Chọn bạn bè
+              </h3>
+              <button
+                onClick={() => setShowFriendsModal(false)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4">
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={friendsSearch}
+                  onChange={(e) => setFriendsSearch(e.target.value)}
+                  placeholder="Tìm kiếm bạn bè..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div className="max-h-60 overflow-y-auto space-y-2">
+                {friendsList
+                  .filter(
+                    (friend) =>
+                      friend.full_name
+                        ?.toLowerCase()
+                        .includes(friendsSearch.toLowerCase()) ||
+                      friend.username
+                        ?.toLowerCase()
+                        .includes(friendsSearch.toLowerCase())
+                  )
+                  .map((friend) => {
+                    const isSelected = selectedFriends.some(
+                      (f) => f.id === friend.id
+                    );
+                    return (
+                      <div
+                        key={friend.id}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedFriends((prev) =>
+                              prev.filter((f) => f.id !== friend.id)
+                            );
+                          } else {
+                            setSelectedFriends((prev) => [...prev, friend]);
+                          }
+                        }}
+                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
+                          isSelected
+                            ? "bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500"
+                            : "bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border-2 border-transparent"
+                        }`}
+                      >
+                        <img
+                          src={
+                            friend.avatar_url ||
+                            "https://via.placeholder.com/40"
+                          }
+                          alt={friend.full_name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900 dark:text-white">
+                            {friend.full_name || friend.username}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            @{friend.username}
+                          </p>
+                        </div>
+                        {isSelected && (
+                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                            <svg
+                              className="w-4 h-4 text-white"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                {friendsList.length === 0 && (
+                  <p className="text-center text-gray-500 py-4">
+                    Bạn chưa có bạn bè nào.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+              <button
+                onClick={() => setShowFriendsModal(false)}
+                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => setShowFriendsModal(false)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Xong ({selectedFriends.length} người)
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

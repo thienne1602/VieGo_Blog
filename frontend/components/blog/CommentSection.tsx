@@ -6,6 +6,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Send, User } from "lucide-react";
 import CommentCard from "./CommentCard";
 
+// Helper to get token with port-specific key
+const getToken = (): string | null => {
+  if (typeof window === "undefined") return null;
+  const port =
+    window.location.port ||
+    (window.location.protocol === "https:" ? "443" : "80");
+  return (
+    localStorage.getItem(`access_token_${port}`) ||
+    localStorage.getItem("access_token")
+  );
+};
+
 interface Comment {
   id: number;
   content: string;
@@ -65,7 +77,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   };
 
   const handlePostComment = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) {
       router.push("/welcome");
       return;
@@ -100,7 +112,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   };
 
   const handlePostReply = async (parentId: number) => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) {
       router.push("/welcome");
       return;
@@ -164,7 +176,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   };
 
   const handleLikeComment = async (commentId: number) => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) {
       router.push("/welcome");
       return;

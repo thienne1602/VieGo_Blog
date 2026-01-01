@@ -19,6 +19,9 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
+  Route,
+  Timer,
+  Compass,
 } from "lucide-react";
 import type {
   MemberLocation,
@@ -26,6 +29,7 @@ import type {
   GeofenceAlert,
   Geofence,
 } from "@/hooks/useTourLocationTracking";
+import { QUICK_HELP_MESSAGES } from "@/hooks/useTourLocationTracking";
 
 interface MemberLocationMapProps {
   members: MemberLocation[];
@@ -37,11 +41,62 @@ interface MemberLocationMapProps {
   isGuide: boolean;
   currentUserId: number | null;
   onTriggerSOS: (message?: string) => void;
+  onTriggerQuickSOS: () => void;
+  onSendHelpRequest: (
+    message: string,
+    severity?: "high" | "medium" | "low"
+  ) => void;
   onClearSOS: (userId: number) => void;
   onPingMember: (userId: number) => void;
   onRefresh: () => void;
   onStartTracking: () => void;
   onStopTracking: () => void;
+}
+
+// Calculate distance between two coordinates (Haversine formula)
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+// Estimate walking time (average 5 km/h)
+function estimateWalkingTime(distanceInMeters: number): string {
+  const walkingSpeedMps = 5000 / 3600; // 5 km/h in m/s
+  const timeInSeconds = distanceInMeters / walkingSpeedMps;
+
+  if (timeInSeconds < 60) {
+    return "< 1 phút";
+  } else if (timeInSeconds < 3600) {
+    const minutes = Math.round(timeInSeconds / 60);
+    return `${minutes} phút`;
+  } else {
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.round((timeInSeconds % 3600) / 60);
+    return `${hours}h ${minutes}p`;
+  }
+}
+
+// Format distance
+function formatDistance(distanceInMeters: number): string {
+  if (distanceInMeters < 1000) {
+    return `${Math.round(distanceInMeters)}m`;
+  }
+  return `${(distanceInMeters / 1000).toFixed(1)}km`;
 }
 
 export default function MemberLocationMap({
@@ -54,6 +109,8 @@ export default function MemberLocationMap({
   isGuide,
   currentUserId,
   onTriggerSOS,
+  onTriggerQuickSOS,
+  onSendHelpRequest,
   onClearSOS,
   onPingMember,
   onRefresh,
@@ -63,13 +120,53 @@ export default function MemberLocationMap({
   const mapRef = useRef<any>(null);
   const markersRef = useRef<Map<number, any>>(new Map());
   const geofenceCirclesRef = useRef<Map<number, any>>(new Map());
+  const routeLayerRef = useRef<any>(null);
   const [showMemberList, setShowMemberList] = useState(true);
   const [selectedMember, setSelectedMember] = useState<MemberLocation | null>(
     null
   );
   const [showSOSModal, setShowSOSModal] = useState(false);
+  const [showQuickHelpModal, setShowQuickHelpModal] = useState(false);
   const [sosMessage, setSOSMessage] = useState("");
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [showRouteToMember, setShowRouteToMember] =
+    useState<MemberLocation | null>(null);
+
+  // Audio refs for notification sounds
+  const sosAudioRef = useRef<HTMLAudioElement | null>(null);
+  const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio elements
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      sosAudioRef.current = new Audio("/sounds/sos.mp3");
+      notificationAudioRef.current = new Audio("/sounds/notification.mp3");
+      sosAudioRef.current.preload = "auto";
+      notificationAudioRef.current.preload = "auto";
+    }
+  }, []);
+
+  // Play sound on SOS alert
+  useEffect(() => {
+    if (sosAlerts.length > 0) {
+      const latestAlert = sosAlerts[sosAlerts.length - 1];
+      if (
+        latestAlert.alert_type === "sos" ||
+        latestAlert.severity === "critical"
+      ) {
+        sosAudioRef.current?.play().catch(() => {});
+      } else {
+        notificationAudioRef.current?.play().catch(() => {});
+      }
+    }
+  }, [sosAlerts.length]);
+
+  // Play sound on geofence alert
+  useEffect(() => {
+    if (geofenceAlerts.length > 0) {
+      notificationAudioRef.current?.play().catch(() => {});
+    }
+  }, [geofenceAlerts.length]);
 
   // Initialize map
   useEffect(() => {
@@ -425,6 +522,56 @@ export default function MemberLocationMap({
     setSelectedMember(member);
   }, []);
 
+  // Show route to a member
+  const showRouteTo = useCallback(
+    async (member: MemberLocation) => {
+      if (!mapRef.current || !myLocation || !member.location?.latitude) return;
+
+      const L = await import("leaflet");
+
+      // Remove existing route
+      if (routeLayerRef.current) {
+        routeLayerRef.current.remove();
+      }
+
+      // Draw a simple line from my location to member
+      const route = L.default
+        .polyline(
+          [
+            [myLocation.latitude, myLocation.longitude],
+            [member.location.latitude, member.location.longitude],
+          ],
+          {
+            color: member.is_sos ? "#ef4444" : "#3b82f6",
+            weight: 4,
+            opacity: 0.8,
+            dashArray: "10, 10",
+          }
+        )
+        .addTo(mapRef.current);
+
+      routeLayerRef.current = route;
+      setShowRouteToMember(member);
+
+      // Fit bounds to show both points
+      const bounds = L.default.latLngBounds([
+        [myLocation.latitude, myLocation.longitude],
+        [member.location.latitude, member.location.longitude],
+      ]);
+      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+    },
+    [myLocation]
+  );
+
+  // Clear route display
+  const clearRoute = useCallback(() => {
+    if (routeLayerRef.current) {
+      routeLayerRef.current.remove();
+      routeLayerRef.current = null;
+    }
+    setShowRouteToMember(null);
+  }, []);
+
   // Handle SOS submit
   const handleSOSSubmit = () => {
     onTriggerSOS(sosMessage || undefined);
@@ -559,13 +706,29 @@ export default function MemberLocationMap({
               initial={{ y: -100, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -100, opacity: 0 }}
-              className="absolute top-0 left-0 right-0 z-20 bg-red-600 text-white p-3"
+              className={`absolute top-0 left-0 right-0 z-20 p-3 ${
+                sosAlerts.some(
+                  (a) => a.alert_type === "sos" || a.severity === "critical"
+                )
+                  ? "bg-red-600"
+                  : "bg-amber-500"
+              } text-white`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-6 h-6 animate-pulse" />
                   <span className="font-bold">
-                    🆘 {sosAlerts.length} tín hiệu SOS đang hoạt động!
+                    {sosAlerts.some(
+                      (a) => a.alert_type === "sos" || a.severity === "critical"
+                    )
+                      ? `🆘 ${
+                          sosAlerts.filter(
+                            (a) =>
+                              a.alert_type === "sos" ||
+                              a.severity === "critical"
+                          ).length
+                        } tín hiệu SOS!`
+                      : `🔔 ${sosAlerts.length} yêu cầu hỗ trợ`}
                   </span>
                 </div>
                 {isGuide && sosAlerts.length > 0 && (
@@ -577,7 +740,14 @@ export default function MemberLocationMap({
                         ) || members[0]
                       )
                     }
-                    className="px-3 py-1 bg-white text-red-600 rounded-lg text-sm font-medium hover:bg-red-50"
+                    className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                      sosAlerts.some(
+                        (a) =>
+                          a.alert_type === "sos" || a.severity === "critical"
+                      )
+                        ? "bg-white text-red-600 hover:bg-red-50"
+                        : "bg-white text-amber-600 hover:bg-amber-50"
+                    }`}
                   >
                     Xem vị trí
                   </button>
@@ -587,9 +757,18 @@ export default function MemberLocationMap({
                 {sosAlerts.map((alert, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between text-sm bg-red-700/50 rounded px-2 py-1"
+                    className={`flex items-center justify-between text-sm rounded px-2 py-1 ${
+                      alert.alert_type === "sos" ||
+                      alert.severity === "critical"
+                        ? "bg-red-700/50"
+                        : "bg-amber-600/50"
+                    }`}
                   >
                     <span>
+                      {alert.alert_type === "sos" ||
+                      alert.severity === "critical"
+                        ? "🆘"
+                        : "🔔"}{" "}
                       <strong>{alert.member_name}</strong>: {alert.message}
                     </span>
                     {isGuide && (
@@ -681,13 +860,33 @@ export default function MemberLocationMap({
 
         {/* SOS Button - for participants */}
         {!isGuide && (
-          <div className="absolute bottom-4 left-4 z-10">
+          <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-2">
+            {/* Quick SOS Button */}
+            <button
+              onClick={onTriggerQuickSOS}
+              className="flex items-center gap-2 px-5 py-4 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg font-bold text-lg"
+              style={{ animation: "pulse 2s infinite" }}
+            >
+              <AlertTriangle className="w-7 h-7" />
+              🆘 SOS
+            </button>
+
+            {/* Help Request Button */}
+            <button
+              onClick={() => setShowQuickHelpModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg font-medium text-sm"
+            >
+              <Bell className="w-4 h-4" />
+              Cần hỗ trợ
+            </button>
+
+            {/* Custom SOS Message */}
             <button
               onClick={() => setShowSOSModal(true)}
-              className="flex items-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg font-bold animate-pulse"
+              className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-lg font-medium text-sm"
             >
-              <AlertTriangle className="w-6 h-6" />
-              SOS
+              <Phone className="w-4 h-4" />
+              Nhắn HDV
             </button>
           </div>
         )}
@@ -727,10 +926,12 @@ export default function MemberLocationMap({
                         sosAlerts.some((a) => a.user_id === member.user_id)
                       }
                       isGuide={isGuide}
+                      myLocation={myLocation}
                       onCenter={() => centerOnMember(member)}
                       onPing={() =>
                         member.user_id && onPingMember(member.user_id)
                       }
+                      onShowRoute={() => showRouteTo(member)}
                       getTimeAgo={getTimeAgo}
                       getMemberTypeLabel={getMemberTypeLabel}
                     />
@@ -749,10 +950,12 @@ export default function MemberLocationMap({
                         sosAlerts.some((a) => a.user_id === member.user_id)
                       }
                       isGuide={isGuide}
+                      myLocation={myLocation}
                       onCenter={() => centerOnMember(member)}
                       onPing={() =>
                         member.user_id && onPingMember(member.user_id)
                       }
+                      onShowRoute={() => showRouteTo(member)}
                       getTimeAgo={getTimeAgo}
                       getMemberTypeLabel={getMemberTypeLabel}
                     />
@@ -837,10 +1040,185 @@ export default function MemberLocationMap({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Quick Help Modal */}
+        <AnimatePresence>
+          {showQuickHelpModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+              onClick={() => setShowQuickHelpModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full shadow-2xl max-h-[80vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="text-center mb-4">
+                  <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Bell className="w-10 h-10 text-amber-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Cần hỗ trợ
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                    Chọn tình huống để thông báo nhanh cho hướng dẫn viên
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  {QUICK_HELP_MESSAGES.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        onSendHelpRequest(item.message, "medium");
+                        setShowQuickHelpModal(false);
+                      }}
+                      className="flex flex-col items-center gap-2 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition border border-gray-200 dark:border-gray-600"
+                    >
+                      <span className="text-3xl">{item.icon}</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-200 text-center">
+                        {item.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setShowQuickHelpModal(false)}
+                  className="w-full mt-4 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600"
+                >
+                  Đóng
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Route Info Popup */}
+        <AnimatePresence>
+          {showRouteToMember && myLocation && (
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              className="absolute bottom-4 right-4 z-20 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 max-w-xs"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-semibold text-gray-900 dark:text-white">
+                  Lộ trình đến {showRouteToMember.member_name}
+                </h4>
+                <button
+                  onClick={clearRoute}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {showRouteToMember.location?.latitude && (
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <Compass className="w-4 h-4 text-blue-500" />
+                    <span>
+                      Khoảng cách:{" "}
+                      <strong>
+                        {formatDistance(
+                          calculateDistance(
+                            myLocation.latitude,
+                            myLocation.longitude,
+                            showRouteToMember.location.latitude,
+                            showRouteToMember.location.longitude
+                          )
+                        )}
+                      </strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <Timer className="w-4 h-4 text-amber-500" />
+                    <span>
+                      Thời gian đi bộ:{" "}
+                      <strong>
+                        {estimateWalkingTime(
+                          calculateDistance(
+                            myLocation.latitude,
+                            myLocation.longitude,
+                            showRouteToMember.location.latitude,
+                            showRouteToMember.location.longitude
+                          )
+                        )}
+                      </strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <Navigation className="w-4 h-4 text-emerald-500" />
+                    <span>
+                      Hướng:{" "}
+                      <strong>
+                        {getDirectionTo(
+                          myLocation.latitude,
+                          myLocation.longitude,
+                          showRouteToMember.location.latitude,
+                          showRouteToMember.location.longitude
+                        )}
+                      </strong>
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={() => {
+                  if (
+                    showRouteToMember.location?.latitude &&
+                    showRouteToMember.location?.longitude
+                  ) {
+                    window.open(
+                      `https://www.google.com/maps/dir/?api=1&origin=${myLocation.latitude},${myLocation.longitude}&destination=${showRouteToMember.location.latitude},${showRouteToMember.location.longitude}&travelmode=walking`,
+                      "_blank"
+                    );
+                  }
+                }}
+                className="mt-3 w-full px-3 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 flex items-center justify-center gap-2"
+              >
+                <Navigation className="w-4 h-4" />
+                Mở Google Maps
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
       {/* End Map Container */}
     </div>
   );
+}
+
+// Get cardinal direction
+function getDirectionTo(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): string {
+  const dLat = lat2 - lat1;
+  const dLon = lon2 - lon1;
+
+  const angle = (Math.atan2(dLon, dLat) * 180) / Math.PI;
+
+  if (angle >= -22.5 && angle < 22.5) return "Bắc";
+  if (angle >= 22.5 && angle < 67.5) return "Đông Bắc";
+  if (angle >= 67.5 && angle < 112.5) return "Đông";
+  if (angle >= 112.5 && angle < 157.5) return "Đông Nam";
+  if (angle >= 157.5 || angle < -157.5) return "Nam";
+  if (angle >= -157.5 && angle < -112.5) return "Tây Nam";
+  if (angle >= -112.5 && angle < -67.5) return "Tây";
+  if (angle >= -67.5 && angle < -22.5) return "Tây Bắc";
+
+  return "Không xác định";
 }
 
 // Member Card Component
@@ -849,8 +1227,10 @@ function MemberCard({
   isMe,
   hasSOS,
   isGuide,
+  myLocation,
   onCenter,
   onPing,
+  onShowRoute,
   getTimeAgo,
   getMemberTypeLabel,
 }: {
@@ -858,11 +1238,26 @@ function MemberCard({
   isMe: boolean;
   hasSOS: boolean;
   isGuide: boolean;
+  myLocation: GeolocationCoordinates | null;
   onCenter: () => void;
   onPing: () => void;
+  onShowRoute: () => void;
   getTimeAgo: (timestamp: string | null) => string;
   getMemberTypeLabel: (type: string) => string;
 }) {
+  // Calculate distance and time to member
+  const distance =
+    myLocation && member.location?.latitude
+      ? calculateDistance(
+          myLocation.latitude,
+          myLocation.longitude,
+          member.location.latitude,
+          member.location.longitude
+        )
+      : null;
+
+  const walkingTime = distance ? estimateWalkingTime(distance) : null;
+
   return (
     <div
       className={`p-3 rounded-lg cursor-pointer transition-all ${
@@ -897,11 +1292,35 @@ function MemberCard({
           </div>
         </div>
         {hasSOS && (
-          <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">
+          <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded animate-pulse">
             SOS
           </span>
         )}
       </div>
+
+      {/* Distance and Time Info */}
+      {!isMe && distance !== null && (
+        <div className="mt-2 flex items-center gap-3 text-xs">
+          <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium">
+            <Compass className="w-3 h-3" />
+            {formatDistance(distance)}
+          </span>
+          <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+            <Timer className="w-3 h-3" />~{walkingTime}
+          </span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onShowRoute();
+            }}
+            className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
+            title="Xem lộ trình"
+          >
+            <Route className="w-3 h-3" />
+            Lộ trình
+          </button>
+        </div>
+      )}
 
       <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
         <span className="flex items-center gap-1">

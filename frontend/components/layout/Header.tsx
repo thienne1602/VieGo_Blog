@@ -844,7 +844,8 @@ const Header = () => {
   return (
     <>
       <motion.header
-        className="fixed top-0 left-0 right-0 z-30 h-16 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300"
+        className="fixed left-0 right-0 z-30 h-16 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300"
+        style={{ top: "var(--marquee-height, 0px)" }}
         initial={{ y: -64 }}
         animate={{ y: 0 }}
         transition={{
@@ -1404,7 +1405,8 @@ const Header = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-16 left-0 right-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-lg lg:hidden transition-colors duration-300"
+            className="fixed left-0 right-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-lg lg:hidden transition-colors duration-300"
+            style={{ top: "calc(var(--marquee-height, 0px) + 64px)" }}
           >
             <nav className="px-4 py-3 space-y-1">
               {navItems.map((item, index) => (
@@ -1458,7 +1460,8 @@ const Header = () => {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="fixed top-16 right-4 sm:right-6 z-50 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[500px] overflow-hidden flex flex-col"
+            className="fixed right-4 sm:right-6 z-50 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[500px] overflow-hidden flex flex-col"
+            style={{ top: "calc(var(--marquee-height, 0px) + 64px)" }}
             onClick={(e) => e.stopPropagation()}
           >
             {!user ? (
@@ -1626,7 +1629,8 @@ const Header = () => {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="fixed top-16 right-4 sm:right-6 z-50 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[500px] overflow-hidden flex flex-col"
+            className="fixed right-4 sm:right-6 z-50 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[500px] overflow-hidden flex flex-col"
+            style={{ top: "calc(var(--marquee-height, 0px) + 64px)" }}
             onClick={(e) => e.stopPropagation()}
           >
             {!user ? (

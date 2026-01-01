@@ -1,0 +1,7 @@
+.next
+node_modules
+.git
+frontend_client_*
+*.log
+*.tmp
+Thumbs.db

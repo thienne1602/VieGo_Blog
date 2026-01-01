@@ -24,8 +24,52 @@ def get_posts():
         featured = request.args.get('featured', type=bool)
         author_id = request.args.get('author_id', type=int)  # Add author filter
         
-        # Base query
+        # Get current user if authenticated
+        current_user_id = None
+        try:
+            from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
+            verify_jwt_in_request(optional=True)
+            current_user_id = get_jwt_identity()
+            if isinstance(current_user_id, str):
+                current_user_id = int(current_user_id)
+        except Exception as e:
+            print(f"[Posts] JWT verification error: {e}")
+            pass
+        
+        print(f"[Posts] Fetching posts for user_id: {current_user_id}")
+        
+        # Base query - only published posts
         query = Post.query.filter_by(status='published')
+        
+        # Build visibility filter based on user authentication
+        if current_user_id:
+            # Logged in user can see:
+            # 1. Public posts (or posts with no visibility set)
+            # 2. Their own posts (any visibility)
+            # 3. Friends posts where they are in allowed_viewers
+            visibility_filter = or_(
+                Post.visibility == 'public',
+                Post.visibility.is_(None),
+                Post.author_id == current_user_id,
+                and_(
+                    Post.visibility == 'friends',
+                    or_(
+                        Post.allowed_viewers.contains(f'[{current_user_id}]'),
+                        Post.allowed_viewers.contains(f'[{current_user_id},'),
+                        Post.allowed_viewers.contains(f', {current_user_id}]'),
+                        Post.allowed_viewers.contains(f', {current_user_id},')
+                    )
+                )
+            )
+            query = query.filter(visibility_filter)
+        else:
+            # Anonymous users can only see public posts
+            query = query.filter(
+                or_(
+                    Post.visibility == 'public',
+                    Post.visibility.is_(None)
+                )
+            )
         
         # Apply filters
         if author_id:
@@ -284,7 +328,7 @@ def create_post():
             'excerpt', 'content_type', 'language', 'featured_image', 
             'video_url', 'video_embed', 'location_lat', 'location_lng',
             'location_name', 'location_address', 'category', 'difficulty_level',
-            'meta_title', 'meta_description', 'meta_keywords'
+            'meta_title', 'meta_description', 'meta_keywords', 'visibility'
         ]
         
         for field in optional_fields:
@@ -298,6 +342,10 @@ def create_post():
         # Set images if provided
         if 'images' in data and isinstance(data['images'], list):
             post.set_images(data['images'])
+        
+        # Set allowed viewers if provided (for friends visibility)
+        if 'allowed_viewers' in data and isinstance(data['allowed_viewers'], list):
+            post.set_allowed_viewers(data['allowed_viewers'])
         
         # Set story choices for interactive content
         if 'story_choices' in data and data['story_choices']:
@@ -598,12 +646,17 @@ def get_post_by_slug(slug):
         if user_id:
             user = User.query.get(user_id)
             if user:
-                post_data['is_liked'] = post in user.liked_posts
-                post_data['is_bookmarked'] = post in user.bookmarked_posts
+                # liked_posts is JSON array of IDs, not relationship
+                liked_post_ids = user.get_liked_posts()
+                bookmarked_post_ids = user.get_bookmarks()
+                post_data['is_liked'] = post.id in liked_post_ids
+                post_data['is_bookmarked'] = post.id in bookmarked_post_ids
         
         return jsonify({'post': post_data}), 200
         
     except Exception as e:
+        import traceback
+        print(f"[Posts] Error getting post by slug: {traceback.format_exc()}")
         return jsonify({'error': f'Lỗi lấy bài viết: {str(e)}'}), 500
 
 
@@ -625,6 +678,11 @@ def update_post_by_slug(slug):
             return jsonify({'error': 'Không có quyền chỉnh sửa bài viết này'}), 403
         
         data = request.get_json()
+        
+        # Debug log
+        print(f"[Posts Update] Slug: {slug}")
+        print(f"[Posts Update] Received visibility: {data.get('visibility')}")
+        print(f"[Posts Update] Received allowed_viewers: {data.get('allowed_viewers')}")
         
         # Update fields
         if 'title' in data:
@@ -648,14 +706,39 @@ def update_post_by_slug(slug):
         if 'tags' in data:
             # Handle tags as comma-separated string or array
             if isinstance(data['tags'], list):
-                tags_str = ','.join(data['tags']) if data['tags'] else None
-                post.tags = tags_str
+                post.set_tags(data['tags'])
             else:
                 # If empty string, set to None to avoid JSON error
                 post.tags = data['tags'] if data['tags'] else None
+        
+        # Update images
+        if 'images' in data:
+            if isinstance(data['images'], list):
+                post.set_images(data['images'])
+            else:
+                post.images = data['images'] if data['images'] else None
+        
+        # Update visibility - ALWAYS update if present in data
+        if 'visibility' in data:
+            new_visibility = data['visibility']
+            if new_visibility in ['public', 'private', 'friends']:
+                post.visibility = new_visibility
+                print(f"[Posts Update] Set visibility to: {new_visibility}")
+        
+        # Update allowed viewers for friends visibility
+        if 'allowed_viewers' in data:
+            if isinstance(data['allowed_viewers'], list):
+                post.set_allowed_viewers(data['allowed_viewers'])
+                print(f"[Posts Update] Set allowed_viewers to: {data['allowed_viewers']}")
                 
         if 'location_data' in data:
             post.location_data = json.dumps(data['location_data']) if isinstance(data['location_data'], dict) else data['location_data']
+        
+        # Update location fields
+        if 'location_name' in data:
+            post.location_name = data['location_name']
+        if 'location_address' in data:
+            post.location_address = data['location_address']
             
         if 'status' in data:
             new_status = data['status']
@@ -666,6 +749,9 @@ def update_post_by_slug(slug):
         
         post.updated_at = datetime.utcnow()
         db.session.commit()
+        
+        # Log final state
+        print(f"[Posts Update] SAVED - visibility: {post.visibility}, allowed_viewers: {post.allowed_viewers}")
         
         return jsonify({
             'message': 'Cập nhật bài viết thành công!',

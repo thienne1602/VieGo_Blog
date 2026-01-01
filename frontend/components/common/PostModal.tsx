@@ -16,6 +16,18 @@ import { useAuth } from "@/lib/AuthContext";
 import ImageLightbox from "./ImageLightbox";
 import CommentSection from "@/components/blog/CommentSection";
 
+// Helper to get token with port-specific key
+const getToken = (): string | null => {
+  if (typeof window === "undefined") return null;
+  const port =
+    window.location.port ||
+    (window.location.protocol === "https:" ? "443" : "80");
+  return (
+    localStorage.getItem(`access_token_${port}`) ||
+    localStorage.getItem("access_token")
+  );
+};
+
 interface Post {
   id: number;
   slug: string;
@@ -92,7 +104,7 @@ const PostModal = ({ slug, onClose }: PostModalProps) => {
   };
 
   const checkLikeStatus = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) return;
 
     try {
@@ -110,7 +122,7 @@ const PostModal = ({ slug, onClose }: PostModalProps) => {
   };
 
   const checkBookmarkStatus = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) return;
 
     try {
@@ -128,7 +140,7 @@ const PostModal = ({ slug, onClose }: PostModalProps) => {
   };
 
   const handleLike = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) return;
 
     try {
@@ -152,12 +164,12 @@ const PostModal = ({ slug, onClose }: PostModalProps) => {
   };
 
   const handleBookmark = async () => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) return;
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/social/bookmarks/post/${slug}`,
+        `http://localhost:5000/api/social/bookmarks/${slug}`,
         {
           method: isBookmarked ? "DELETE" : "POST",
           headers: { Authorization: `Bearer ${token}` },

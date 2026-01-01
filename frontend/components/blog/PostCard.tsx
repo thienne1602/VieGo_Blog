@@ -11,21 +11,45 @@ import {
   Bookmark,
   Edit,
   Trash2,
+  Globe,
+  Lock,
+  Users,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
 import Image from "next/image";
+
+// Helper to get token with port-specific key
+const getToken = (): string | null => {
+  if (typeof window === "undefined") return null;
+  const port =
+    window.location.port ||
+    (window.location.protocol === "https:" ? "443" : "80");
+  return (
+    localStorage.getItem(`access_token_${port}`) ||
+    localStorage.getItem("access_token")
+  );
+};
 
 interface Post {
   id: number;
   slug?: string;
   title: string;
   content: string;
-  author_name: string;
+  author_name?: string;
   author_id?: number;
   author_avatar?: string;
-  location?: string;
-  featured_image?: string;
+  author?: {
+    id: number;
+    username: string;
+    full_name: string;
+    avatar_url: string | null;
+  };
+  location?:
+    | string
+    | { name?: string; address?: string; lat?: number; lng?: number }
+    | null;
+  featured_image?: string | null;
   images?: string[]; // Add images array
   published_at: string;
   like_count: number;
@@ -35,6 +59,7 @@ interface Post {
   is_liked?: boolean;
   is_bookmarked?: boolean;
   tags: string[];
+  visibility?: "public" | "private" | "friends";
 }
 
 interface PostCardProps {
@@ -50,7 +75,16 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
   const [likeCount, setLikeCount] = useState(post.like_count);
   const [showMenu, setShowMenu] = useState(false);
 
-  const isAuthor = user && post.author_id && user.id === post.author_id;
+  // Debug visibility - remove after fix
+  console.log(
+    `[PostCard] ID: ${post.id}, Title: "${post.title?.substring(
+      0,
+      20
+    )}", Visibility: "${post.visibility}"`
+  );
+
+  const postAuthorId = post.author?.id || post.author_id;
+  const isAuthor = user && postAuthorId && user.id === postAuthorId;
   const galleryImages = Array.isArray(post.images) ? post.images : [];
   const isSingleGalleryImage = galleryImages.length === 1;
 
@@ -71,7 +105,7 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
 
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) {
       router.push("/welcome");
       return;
@@ -100,7 +134,7 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
   const handleBookmark = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
 
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) {
       router.push("/welcome");
       return;
@@ -151,7 +185,7 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
       return;
     }
 
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) return;
 
     try {
@@ -187,6 +221,11 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
     return `${Math.floor(diffInHours / 24)} ngày trước`;
   };
 
+  // Get author info with fallback
+  const authorName = post.author?.full_name || post.author_name || "Người dùng";
+  const authorAvatar = post.author?.avatar_url || post.author_avatar;
+  const authorId = post.author?.id || post.author_id;
+
   return (
     <motion.div
       className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer"
@@ -207,10 +246,10 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
           >
             <Image
               src={
-                post.author_avatar ||
+                authorAvatar ||
                 "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"
               }
-              alt={post.author_name}
+              alt={authorName}
               width={48}
               height={48}
               className="w-full h-full object-cover"
@@ -220,16 +259,42 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
           </motion.div>
           <div>
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
-              {post.author_name}
+              {authorName}
             </h3>
             <div className="flex items-center space-x-2 text-base text-gray-500 dark:text-gray-400">
               <span>{formatTimeAgo(post.published_at)}</span>
+              {/* Visibility indicator - always show */}
+              <span>•</span>
+              <div
+                className="flex items-center space-x-1"
+                title={
+                  post.visibility === "private"
+                    ? "Riêng tư"
+                    : post.visibility === "friends"
+                    ? "Bạn bè"
+                    : "Công khai"
+                }
+              >
+                {post.visibility === "private" ? (
+                  <Lock className="w-4 h-4 text-red-500" />
+                ) : post.visibility === "friends" ? (
+                  <Users className="w-4 h-4 text-blue-500" />
+                ) : (
+                  <Globe className="w-4 h-4 text-green-500" />
+                )}
+              </div>
               {post.location && (
                 <>
                   <span>•</span>
                   <div className="flex items-center space-x-1">
                     <MapPin className="w-4 h-4" />
-                    <span>{post.location}</span>
+                    <span>
+                      {typeof post.location === "string"
+                        ? post.location
+                        : post.location?.name ||
+                          post.location?.address ||
+                          "Vị trí"}
+                    </span>
                   </div>
                 </>
               )}
@@ -485,7 +550,7 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
         <motion.button
           onClick={async (e) => {
             e.stopPropagation();
-            const token = localStorage.getItem("access_token");
+            const token = getToken();
             if (!token) {
               router.push("/welcome");
               return;
@@ -534,4 +599,16 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
   );
 }
 
-export default memo(PostCard);
+// Custom comparison function for memo - ensure re-render when visibility changes
+const arePropsEqual = (prevProps: PostCardProps, nextProps: PostCardProps) => {
+  return (
+    prevProps.post.id === nextProps.post.id &&
+    prevProps.post.visibility === nextProps.post.visibility &&
+    prevProps.post.is_liked === nextProps.post.is_liked &&
+    prevProps.post.is_bookmarked === nextProps.post.is_bookmarked &&
+    prevProps.post.like_count === nextProps.post.like_count &&
+    prevProps.post.comment_count === nextProps.post.comment_count
+  );
+};
+
+export default memo(PostCard, arePropsEqual);

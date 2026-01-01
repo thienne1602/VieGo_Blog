@@ -228,10 +228,10 @@ def like_post(post_identifier):
             db.session.commit()
             
             # Create notification for post author (if not self-like)
-            if post.user_id != user_id:
+            if post.author_id != user_id:
                 from routes.notifications import create_notification
                 create_notification(
-                    user_id=post.user_id,
+                    user_id=post.author_id,
                     type='like',
                     message=f'{user.full_name or user.username} đã thích bài viết của bạn',
                     title='Có người thích bài viết',
@@ -244,7 +244,7 @@ def like_post(post_identifier):
             
             # Emit socket event for real-time update
             from utils.socket_utils import emit_to_user
-            emit_to_user(post.user_id, 'post_liked', {
+            emit_to_user(post.author_id, 'post_liked', {
                 'post_id': post_id,
                 'post_slug': post.slug,
                 'likes_count': post.likes_count,
@@ -304,7 +304,7 @@ def unlike_post(post_identifier):
             
             # Emit socket event for real-time update
             from utils.socket_utils import emit_to_user
-            emit_to_user(post.user_id, 'post_unliked', {
+            emit_to_user(post.author_id, 'post_unliked', {
                 'post_id': post_id,
                 'post_slug': post.slug,
                 'likes_count': post.likes_count,

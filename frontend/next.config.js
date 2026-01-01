@@ -1,5 +1,13 @@
 /** @type {import('next').NextConfig} */
+
+// Dynamic distDir based on PORT - allows running multiple dev instances
+// Port 3000 uses .next, Port 3001 uses .next-3001, etc.
+const port = process.env.PORT || "3000";
+const distDir = port !== "3000" ? `.next-${port}` : ".next";
+
 const nextConfig = {
+  // Use different build directory for each port (enables multi-client dev)
+  distDir,
 
   // Performance optimizations
   experimental: {

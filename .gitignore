@@ -17,6 +17,7 @@ ENV/
 
 # Next.js
 .next/
+.next-*/
 out/
 build/
 dist/

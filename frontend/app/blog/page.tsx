@@ -15,16 +15,35 @@ interface Post {
   slug: string;
   content: string;
   excerpt: string;
-  author_name: string;
-  category_name: string;
-  location?: string;
-  featured_image?: string;
+  author_name?: string;
+  author_id?: number;
+  author_avatar?: string;
+  author?: {
+    id: number;
+    username: string;
+    full_name: string;
+    avatar_url: string | null;
+  };
+  category_name?: string;
+  category?: string;
+  location?:
+    | string
+    | { name?: string; address?: string; lat?: number; lng?: number }
+    | null;
+  featured_image?: string | null;
+  images?: string[];
   published_at: string;
   tags: string[];
   like_count: number;
   comment_count: number;
   view_count: number;
-  read_time: number;
+  views_count?: number;
+  shares_count?: number;
+  read_time?: number;
+  reading_time?: number;
+  is_liked?: boolean;
+  is_bookmarked?: boolean;
+  visibility?: "public" | "private" | "friends";
 }
 
 const HomePage = () => {
@@ -32,6 +51,16 @@ const HomePage = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Debug: Log posts state
+  console.log("[Blog] Current posts state:", posts.length, "posts");
+  if (posts.length > 0) {
+    console.log("[Blog] First post from state:", {
+      id: posts[0].id,
+      title: posts[0].title,
+      visibility: posts[0].visibility
+    });
+  }
 
   // Fetch posts from API
   useEffect(() => {
@@ -42,6 +71,15 @@ const HomePage = () => {
           page: 1,
           limit: 10,
         });
+
+        console.log("[Blog] API Result:", result);
+        console.log("[Blog] Posts data:", result.data?.posts);
+        if (result.data?.posts?.[0]) {
+          console.log(
+            "[Blog] First post visibility:",
+            result.data.posts[0].visibility
+          );
+        }
 
         if (result.success && result.data?.posts) {
           setPosts(result.data.posts);
@@ -141,7 +179,7 @@ const HomePage = () => {
               )}
 
               {mockPosts.map((post) => (
-                <PostCard key={post.id} post={post} />
+                <PostCard key={`${post.id}-${post.visibility}`} post={post} />
               ))}
 
               {/* Load More */}

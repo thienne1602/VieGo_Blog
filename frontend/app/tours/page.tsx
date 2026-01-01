@@ -55,7 +55,7 @@ export default function ToursPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative">
       {/* Background Image with Blur Effect */}
       <div className="fixed inset-0 z-0">
         {/* Background Image */}

@@ -46,6 +46,11 @@ class Post(db.Model):
     published_at = db.Column(db.DateTime, index=True)
     featured = db.Column(db.Boolean, default=False)
     
+    # Visibility settings: public, private, friends
+    visibility = db.Column(db.Enum('public', 'private', 'friends'), default='public')
+    # JSON array of user IDs who can view if visibility is 'friends'
+    allowed_viewers = db.Column(db.Text)
+    
     # SEO
     meta_title = db.Column(db.String(255))
     meta_description = db.Column(db.Text)
@@ -152,6 +157,50 @@ class Post(db.Model):
             collaborators.append(user_id)
             self.set_collaborators(collaborators)
             return True
+        return False
+    
+    def set_allowed_viewers(self, user_ids_list):
+        """Set allowed viewers for private/friends visibility"""
+        self.allowed_viewers = json.dumps(user_ids_list)
+    
+    def get_allowed_viewers(self):
+        """Get allowed viewers as list"""
+        if self.allowed_viewers:
+            return json.loads(self.allowed_viewers)
+        return []
+    
+    def add_allowed_viewer(self, user_id):
+        """Add an allowed viewer"""
+        viewers = self.get_allowed_viewers()
+        if user_id not in viewers:
+            viewers.append(user_id)
+            self.set_allowed_viewers(viewers)
+            return True
+        return False
+    
+    def remove_allowed_viewer(self, user_id):
+        """Remove an allowed viewer"""
+        viewers = self.get_allowed_viewers()
+        if user_id in viewers:
+            viewers.remove(user_id)
+            self.set_allowed_viewers(viewers)
+            return True
+        return False
+    
+    def can_view(self, user_id):
+        """Check if a user can view this post"""
+        # Author can always view
+        if user_id == self.author_id:
+            return True
+        # Public posts can be viewed by anyone
+        if self.visibility == 'public':
+            return True
+        # Private posts can only be viewed by author
+        if self.visibility == 'private':
+            return False
+        # Friends visibility - check allowed viewers
+        if self.visibility == 'friends':
+            return user_id in self.get_allowed_viewers()
         return False
     
     def increment_views(self):
@@ -285,6 +334,8 @@ class Post(db.Model):
             'status': self.status,
             'published_at': self.published_at.isoformat() if self.published_at else None,
             'featured': self.featured,
+            'visibility': self.visibility or 'public',
+            'allowed_viewers': self.get_allowed_viewers(),
             'is_interactive': self.is_interactive,
             'collaborative': self.collaborative,
             'collaborators': self.get_collaborators(),

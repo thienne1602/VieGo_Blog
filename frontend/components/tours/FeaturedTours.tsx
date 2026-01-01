@@ -10,6 +10,7 @@ import TourCard from "./TourCard";
 export default function FeaturedTours() {
   const [featuredTours, setFeaturedTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // Gallery removed — show default grid
 
   useEffect(() => {
     async function loadFeaturedTours() {
@@ -104,7 +105,6 @@ export default function FeaturedTours() {
         </div>
       </motion.div>
 
-      {/* Featured Tours Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
         {featuredTours.map((tour, index) => (
           <motion.div
@@ -112,46 +112,93 @@ export default function FeaturedTours() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
+            transition={{ duration: 0.5, delay: index * 0.05 }}
             className="relative group"
           >
-            {/* Featured Badge */}
-            <div className="absolute -top-3 -right-3 z-20">
-              <motion.div
-                className="bg-accent-500 dark:bg-accent-600 text-white px-4 py-2 rounded-full shadow-xl flex items-center gap-2 font-bold text-sm"
-                animate={{
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, -5, 0],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  repeatDelay: 2,
-                }}
-              >
-                <Star className="w-4 h-4 fill-white" />
-                Nổi Bật
-              </motion.div>
+            <div className="relative h-full bg-white dark:bg-gray-800 rounded-3xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 group-hover:shadow-xl transition-all duration-300">
+              <TourCard tour={tour} />
             </div>
-
-            {/* Enhanced Tour Card with 3D Effect */}
-            <motion.div
-              whileHover={{ y: -10, scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              className="h-full"
-            >
-              <div className="relative h-full bg-white dark:bg-gray-800 rounded-3xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 group-hover:shadow-xl transition-all duration-300">
-                {/* Shine Effect */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                </div>
-
-                <TourCard tour={tour} />
-              </div>
-            </motion.div>
           </motion.div>
         ))}
       </div>
+
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(function () {
+  const wrapper = document.getElementById('ft-cards-wrapper');
+  if (!wrapper) return;
+  const cards = Array.from(wrapper.querySelectorAll('.ft-card'));
+  if (!cards.length) return;
+
+  const topOffsetPx = Math.round(window.innerHeight * 0.08); // 8vh fallback
+
+  function unset(inner, image) {
+    inner.style.position = '';
+    inner.style.top = '';
+    inner.style.left = '';
+    inner.style.width = '';
+    inner.style.zIndex = '';
+    inner.style.transform = '';
+    inner.style.filter = '';
+    if (image) image.style.transform = '';
+  }
+
+  function setFixedFor(inner, index) {
+    const rect = wrapper.getBoundingClientRect();
+    inner.style.position = 'fixed';
+    inner.style.top = topOffsetPx + 'px';
+    inner.style.left = rect.left + 'px';
+    inner.style.width = rect.width + 'px';
+    inner.style.zIndex = 1000 + (cards.length - index);
+  }
+
+  function onScroll() {
+    const scrollY = window.scrollY || window.pageYOffset;
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+      const inner = card.querySelector('.ft-card-inner');
+      const image = card.querySelector('.ft-card-image');
+      if (!inner) continue;
+      const rect = card.getBoundingClientRect();
+      const absTop = rect.top + scrollY;
+      const start = absTop - topOffsetPx;
+      const next = cards[i + 1];
+      const nextTopAbs = next ? (next.getBoundingClientRect().top + scrollY) : Infinity;
+
+      if (scrollY >= start && scrollY < nextTopAbs - topOffsetPx) {
+        // fix this inner
+        setFixedFor(inner, i);
+      } else {
+        unset(inner, image);
+      }
+
+      // visual overlap effect
+      if (next) {
+        const nextRect = next.getBoundingClientRect();
+        const nextTop = nextRect.top;
+        if (nextTop <= window.innerHeight && nextTop >= 0) {
+          const ratio = Math.max(0, Math.min(1, nextTop / window.innerHeight));
+          const scale = 0.92 + 0.08 * ratio;
+          const bright = 0.6 + 0.4 * ratio;
+          inner.style.transform = 'scale(' + scale + ')';
+          inner.style.filter = 'brightness(' + bright + ')';
+          if (image) image.style.transform = 'translateX(' + (-10 * (1 - ratio)) + 'px)';
+        } else {
+          inner.style.transform = '';
+          inner.style.filter = '';
+          if (image) image.style.transform = '';
+        }
+      }
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  // initial
+  onScroll();
+})();`,
+        }}
+      />
 
       {/* Stats Bar */}
       <motion.div
