@@ -200,26 +200,57 @@ _Kết hợp Mạng Xã Hội + Quản Lý Tour + E-commerce + AI Recommendation
 | ---------------------------- | --------------------------- |
 | User behavior tracking       | Theo dõi hành vi người dùng |
 | Personalized recommendations | Gợi ý tour cá nhân hóa      |
-| Interest profiling           | Phân tích sở thích          |
+| Interest profiling           | Phân tích sở thích AI       |
 | Trending detection           | Phát hiện xu hướng          |
 | Category analytics           | Thống kê theo danh mục      |
 | User segmentation            | Phân khúc người dùng        |
 | AI content suggestions       | Gợi ý nội dung              |
+| Export Excel                 | Xuất báo cáo Excel          |
 
-### 15. 👨‍💼 **Admin Dashboard**
+### 15. 📧 **Email Marketing & Campaign**
 
-| Chức năng          | Mô tả                       |
-| ------------------ | --------------------------- |
-| Dashboard overview | Thống kê tổng quan          |
-| User management    | CRUD users, role assignment |
-| Content moderation | Quản lý nội dung            |
-| Reports management | Xử lý báo cáo vi phạm       |
-| Activity logs      | Log hoạt động hệ thống      |
-| System statistics  | Thống kê hệ thống           |
-| Revenue analytics  | Phân tích doanh thu         |
-| Excel export       | Xuất báo cáo                |
+| Chức năng                      | Mô tả                                    |
+| ------------------------------ | ---------------------------------------- |
+| Campaign management            | Tạo và quản lý chiến dịch email          |
+| User segmentation targeting    | Gửi email theo phân khúc người dùng      |
+| Personalized emails            | Email cá nhân hóa với {name} placeholder |
+| Campaign analytics             | Thống kê tỷ lệ mở, click                 |
+| Template system                | Hệ thống template email tùy chỉnh        |
+| Scheduled campaigns            | Lên lịch gửi email tự động               |
+| A/B testing                    | Test nhiều phiên bản email               |
+| Unsubscribe management         | Quản lý hủy đăng ký nhận email           |
 
-### 16. 🛡️ **Moderator Features**
+### 16. 📍 **Tour Location Tracking (Real-time)**
+
+| Chức năng                  | Mô tả                                         |
+| -------------------------- | --------------------------------------------- |
+| Real-time member locations | Theo dõi vị trí thành viên tour real-time     |
+| SOS emergency alerts       | Tín hiệu SOS khẩn cấp từ thành viên           |
+| Geofence system            | Tạo vùng an toàn, cảnh báo khi rời khỏi vùng  |
+| Location history           | Lịch sử di chuyển của từng thành viên         |
+| Distance calculation       | Tính khoảng cách giữa các thành viên          |
+| Socket.IO real-time        | Cập nhật vị trí tức thì qua WebSocket         |
+| Member ping                | Yêu cầu thành viên cập nhật vị trí            |
+| Route tracking             | Vẽ lại lộ trình di chuyển trên bản đồ         |
+
+### 17. 👨‍💼 **Admin Dashboard**
+
+| Chức năng               | Mô tả                            |
+| ----------------------- | -------------------------------- |
+| Dashboard overview      | Thống kê tổng quan               |
+| User management         | CRUD users, role assignment      |
+| Content moderation      | Quản lý nội dung                 |
+| Reports management      | Xử lý báo cáo vi phạm            |
+| Activity logs           | Log hoạt động hệ thống           |
+| System statistics       | Thống kê hệ thống                |
+| Revenue analytics       | Phân tích doanh thu              |
+| **User Analytics Tab**  | Thống kê người dùng với AI       |
+| **Email Campaign Tab**  | Quản lý chiến dịch email         |
+| Export Excel            | Xuất báo cáo đa dạng             |
+| User segmentation view  | Xem phân khúc người dùng         |
+| Engagement metrics      | Đo lường mức độ tương tác        |
+
+### 18. 🛡️ **Moderator Features**
 
 | Chức năng          | Mô tả                  |
 | ------------------ | ---------------------- |
@@ -230,7 +261,7 @@ _Kết hợp Mạng Xã Hội + Quản Lý Tour + E-commerce + AI Recommendation
 | Violation tracking | Theo dõi vi phạm       |
 | User warnings      | Cảnh báo người dùng    |
 
-### 17. 💰 **Seller Dashboard**
+### 19. 💰 **Seller Dashboard**
 
 | Chức năng             | Mô tả                        |
 | --------------------- | ---------------------------- |
@@ -244,7 +275,7 @@ _Kết hợp Mạng Xã Hội + Quản Lý Tour + E-commerce + AI Recommendation
 | Export reports        | Excel/CSV export             |
 | Email configuration   | Cấu hình email seller        |
 
-### 18. 📧 **Email System**
+### 20. 📧 **Email System**
 
 | Chức năng            | Mô tả                    |
 | -------------------- | ------------------------ |
@@ -255,7 +286,7 @@ _Kết hợp Mạng Xã Hội + Quản Lý Tour + E-commerce + AI Recommendation
 | Promotional emails   | Email marketing          |
 | Custom templates     | Template email tùy chỉnh |
 
-### 19. 📁 **File Upload & Media**
+### 21. 📁 **File Upload & Media**
 
 | Chức năng          | Mô tả                       |
 | ------------------ | --------------------------- |
@@ -266,7 +297,7 @@ _Kết hợp Mạng Xã Hội + Quản Lý Tour + E-commerce + AI Recommendation
 | Image optimization | Resize, compress            |
 | Unique filenames   | Tự động tạo tên file unique |
 
-### 20. 📞 **Contact & Support**
+### 22. 📞 **Contact & Support**
 
 | Chức năng               | Mô tả               |
 | ----------------------- | ------------------- |
@@ -381,23 +412,30 @@ _Kết hợp Mạng Xã Hội + Quản Lý Tour + E-commerce + AI Recommendation
 
 ---
 
-## 📊 Database Models (26 Models)
+## 📊 Database Models (30+ Models)
 
-| Model                | Mô tả                                          |
-| -------------------- | ---------------------------------------------- |
-| `User`               | Users với roles, gamification, social features |
-| `Post`               | Blog posts với categories, SEO, collaboration  |
-| `Comment`            | Nested comments với moderation                 |
-| `Tour`               | Tour listings với full details                 |
-| `Booking`            | Tour bookings với payment tracking             |
-| `BookingParticipant` | Individual booking participants                |
-| `BookingItinerary`   | Booking-specific itineraries                   |
-| `TourAssignment`     | Tour guide assignments                         |
-| `TourProgress`       | Tour checkpoint tracking                       |
-| `TourItinerary`      | Tour day-by-day plans                          |
-| `TourMemberLocation` | Real-time member locations                     |
-| `Location`           | Map locations database                         |
-| `Chat`               | Direct messages                                |
+| Model                   | Mô tả                                          |
+| ----------------------- | ---------------------------------------------- |
+| `User`                  | Users với roles, gamification, social features |
+| `Post`                  | Blog posts với categories, SEO, collaboration  |
+| `Comment`               | Nested comments với moderation                 |
+| `Tour`                  | Tour listings với full details                 |
+| `Booking`               | Tour bookings với payment tracking             |
+| `BookingParticipant`    | Individual booking participants                |
+| `BookingItinerary`      | Booking-specific itineraries                   |
+| `TourAssignment`        | Tour guide assignments                         |
+| `TourProgress`          | Tour checkpoint tracking                       |
+| `TourItinerary`         | Tour day-by-day plans                          |
+| `TourMemberLocation`    | Real-time member locations                     |
+| `TourLocationHistory`   | Lịch sử vị trí thành viên tour                 |
+| `TourGeofence`          | Vùng an toàn/checkpoint cho tour               |
+| `TourLocationAlert`     | Cảnh báo SOS và geofence                       |
+| `Location`              | Map locations database                         |
+| `Chat`                  | Direct messages                                |
+| `UserBehavior`          | Theo dõi hành vi người dùng (AI Analytics)     |
+| `UserInterestProfile`   | Profile sở thích được AI phân tích             |
+| `PromotionalCampaign`   | Chiến dịch email marketing                     |
+| `EmailLog`              | Log gửi email                                  |
 | `GroupChat`          | Group chat rooms                               |
 | `Story`              | 24-hour stories                                |
 | `NFT`                | Achievement NFTs                               |
@@ -527,12 +565,14 @@ VieGo Blog không chỉ là một website đặt tour thông thường, mà là 
 
 ## 📈 Thống Kê Dự Án
 
-- **26** Database Models
-- **24** Route Files (API Endpoints)
+- **30+** Database Models
+- **28+** Route Files (API Endpoints)
 - **50+** Backend Dependencies
 - **30+** Frontend Dependencies
 - **6** User Roles
-- **20+** Major Features
+- **22+** Major Features
+- **5** Real-time Socket.IO modules
+- **3** AI/ML powered features
 
 ---
 

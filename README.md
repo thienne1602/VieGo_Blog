@@ -159,10 +159,32 @@ _Social Network + Tour Management + E-commerce + AI Recommendations + NFT System
 
 - ✅ User behavior tracking
 - ✅ Personalized tour recommendations
-- ✅ Interest profiling
+- ✅ Interest profiling với AI analysis
 - ✅ Trending detection
 - ✅ Category analytics
-- ✅ User segmentation
+- ✅ User segmentation thông minh
+- ✅ Export báo cáo Excel
+- ✅ Dashboard thống kê người dùng
+
+### 📧 Email Marketing & Campaigns
+
+- ✅ Campaign management (tạo, quản lý chiến dịch)
+- ✅ User segmentation targeting
+- ✅ Personalized emails với {name} placeholder
+- ✅ Campaign analytics (tỷ lệ mở, click)
+- ✅ Template system
+- ✅ Scheduled campaigns
+- ✅ Gửi email hàng loạt theo phân khúc
+
+### 📍 Tour Location Tracking (Real-time)
+
+- ✅ Real-time member location tracking
+- ✅ SOS emergency alerts
+- ✅ Geofence system (vùng an toàn)
+- ✅ Location history & route tracking
+- ✅ Distance calculation giữa các thành viên
+- ✅ Member ping system
+- ✅ Socket.IO real-time updates
 
 ### 👨‍💼 Admin Dashboard
 
@@ -172,7 +194,9 @@ _Social Network + Tour Management + E-commerce + AI Recommendations + NFT System
 - ✅ Reports management
 - ✅ Activity logs
 - ✅ Revenue analytics
-- ✅ Excel export
+- ✅ **User Analytics Tab** (thống kê người dùng AI)
+- ✅ **Email Campaign Tab** (quản lý chiến dịch email)
+- ✅ Excel export đa dạng báo cáo
 
 ### 💰 Seller Dashboard
 
@@ -621,7 +645,7 @@ Chi tiết đầy đủ xem tại: `backend/routes/`
 
 ## 📊 Database Models
 
-Dự án sử dụng **26 database models**:
+Dự án sử dụng **30+ database models**:
 
 | Model                | Mô tả                                          |
 | -------------------- | ---------------------------------------------- |
@@ -636,9 +660,16 @@ Dự án sử dụng **26 database models**:
 | `TourProgress`       | Tour checkpoint tracking                       |
 | `TourItinerary`      | Tour day-by-day plans                          |
 | `TourMemberLocation` | Real-time member locations                     |
+| `TourLocationHistory`| Lịch sử vị trí thành viên tour                 |
+| `TourGeofence`       | Vùng an toàn/checkpoint cho tour               |
+| `TourLocationAlert`  | Cảnh báo SOS và geofence violations            |
 | `Location`           | Map locations database                         |
 | `Chat`               | Direct messages                                |
 | `GroupChat`          | Group chat rooms                               |
+| `UserBehavior`       | Theo dõi hành vi người dùng (AI Analytics)     |
+| `UserInterestProfile`| Profile sở thích được AI phân tích             |
+| `PromotionalCampaign`| Chiến dịch email marketing                     |
+| `EmailLog`           | Log gửi email và tracking                      |
 | `Story`              | 24-hour stories                                |
 | `NFT`                | Achievement NFTs                               |
 | `Notification`       | User notifications                             |
@@ -656,12 +687,14 @@ Dự án sử dụng **26 database models**:
 
 ## 📈 Project Statistics
 
-- **26** Database Models
-- **24** Route Files (API Endpoints)
+- **30+** Database Models
+- **28+** Route Files (API Endpoints)
 - **50+** Backend Dependencies
 - **30+** Frontend Dependencies
 - **6** User Roles
-- **20+** Major Features
+- **22+** Major Features
+- **5** Real-time Socket.IO modules
+- **3** AI/ML powered features
 
 ---
 
@@ -671,6 +704,10 @@ Dự án sử dụng **26 database models**:
 - **[DATA_DICTIONARY.md](./DATA_DICTIONARY.md)** - Từ điển dữ liệu (Database Schema)
 - **[TOUR_FEATURES_README.md](./TOUR_FEATURES_README.md)** - Tài liệu chi tiết tính năng tour
 - **[DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)** - Checklist triển khai production
+- **[README_AI_ANALYTICS.md](./docs/README_AI_ANALYTICS.md)** - Hệ thống AI Analytics & Email Marketing
+- **[README_CHAT_SYSTEM.md](./docs/README_CHAT_SYSTEM.md)** - Hệ thống Chat real-time
+- **[README_TOUR_LOCATION_TRACKING.md](./docs/README_TOUR_LOCATION_TRACKING.md)** - Định vị tour real-time
+- **[README_TESTS.md](./docs/README_TESTS.md)** - Hướng dẫn chạy tests
 
 ---
 
