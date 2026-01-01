@@ -296,3 +296,59 @@ def delete_assignment(assignment_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'Error deleting assignment: {str(e)}'}), 500
+
+
+@tour_assignments_bp.route('/<int:assignment_id>/pin', methods=['POST'])
+@jwt_required()
+def toggle_pin_assignment(assignment_id):
+    """Toggle pin status for a tour assignment - ghim/bỏ ghim tour trong danh sách hành trình cho tour guide"""
+    try:
+        from datetime import datetime
+        current_user_id = int(get_jwt_identity())
+        user = User.query.get(current_user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        if user.role != 'tour_guide':
+            return jsonify({'error': 'Chỉ hướng dẫn viên mới có thể ghim tour'}), 403
+        
+        assignment = TourAssignment.query.get(assignment_id)
+        if not assignment:
+            return jsonify({'error': 'Assignment not found'}), 404
+        
+        # Check permission - only the assigned tour guide can pin
+        if assignment.tour_guide_id != current_user_id:
+            return jsonify({'error': 'Bạn không có quyền ghim tour này'}), 403
+        
+        # Toggle pin status
+        if assignment.is_pinned:
+            # Unpin
+            assignment.is_pinned = False
+            assignment.pinned_at = None
+            action = 'unpinned'
+            message = 'Đã bỏ ghim tour khỏi danh sách hành trình'
+        else:
+            # Pin
+            assignment.is_pinned = True
+            assignment.pinned_at = datetime.utcnow()
+            action = 'pinned'
+            message = 'Đã ghim tour lên đầu danh sách hành trình'
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': message,
+            'action': action,
+            'assignment': {
+                'id': assignment.id,
+                'is_pinned': assignment.is_pinned,
+                'pinned_at': assignment.pinned_at.isoformat() if assignment.pinned_at else None
+            }
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi khi ghim tour: {str(e)}'}), 500
+

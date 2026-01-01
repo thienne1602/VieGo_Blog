@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import { getAPIURL } from "@/lib/api";
 import UserProfile from "../user/page";
 
 export default function ProfileByUsername() {
@@ -32,9 +33,11 @@ export default function ProfileByUsername() {
       try {
         const token = localStorage.getItem("access_token");
         const API_BASE_URL = getAPIURL();
-        
+
         const response = await fetch(
-          `${API_BASE_URL}/users?username=${encodeURIComponent(username)}&per_page=1`,
+          `${API_BASE_URL}/users?username=${encodeURIComponent(
+            username
+          )}&per_page=1`,
           {
             headers: {
               Authorization: token ? `Bearer ${token}` : "",
@@ -81,4 +84,3 @@ export default function ProfileByUsername() {
 
   return null;
 }
-

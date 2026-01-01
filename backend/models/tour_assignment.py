@@ -21,6 +21,10 @@ class TourAssignment(db.Model):
     notes = db.Column(db.Text, nullable=True)
     guide_notes = db.Column(db.Text, nullable=True)  # Notes from tour guide
     
+    # Pin feature - để ghim tour lên đầu danh sách hành trình
+    is_pinned = db.Column(db.Boolean, default=False, nullable=False)
+    pinned_at = db.Column(db.DateTime, nullable=True)  # Thời điểm ghim để sắp xếp thứ tự các tour được ghim
+    
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -40,6 +44,8 @@ class TourAssignment(db.Model):
             'status': self.status,
             'notes': self.notes,
             'guide_notes': self.guide_notes,
+            'is_pinned': self.is_pinned or False,
+            'pinned_at': self.pinned_at.isoformat() if self.pinned_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

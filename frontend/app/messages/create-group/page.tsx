@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
-import { getStorageKey } from "@/lib/api";
+import { getStorageKey, getAPIURL } from "@/lib/api";
 import { ArrowLeft, Users, X, Search, Check } from "lucide-react";
 import Link from "next/link";
 
@@ -28,8 +28,7 @@ export default function CreateGroupPage() {
             return;
           }
 
-          const API_BASE_URL =
-            getAPIURL();
+          const API_BASE_URL = getAPIURL();
           const response = await fetch(`${API_BASE_URL}/social/friends`, {
             headers: {
               Authorization: `Bearer ${token}`,

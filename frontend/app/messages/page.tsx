@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/AuthContext";
 import { useChat } from "@/hooks/useChat";
-import { getStorageKey } from "@/lib/api";
+import { getStorageKey, getAPIURL } from "@/lib/api";
 import {
   Search,
   MessageCircle,

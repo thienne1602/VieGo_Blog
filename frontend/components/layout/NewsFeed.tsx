@@ -25,6 +25,7 @@ import {
   ChevronRight,
   ArrowUp,
 } from "lucide-react";
+import SuccessPopup from "@/components/common/SuccessPopup";
 
 // Lazy load PostModal (heavy component with images and comments)
 const PostModal = dynamic(() => import("@/components/common/PostModal"), {
@@ -88,6 +89,13 @@ const NewsFeed = () => {
   });
   const [uploadingPostImages, setUploadingPostImages] = useState(false);
   const postImageInputRef = useRef<HTMLInputElement>(null);
+
+  // Popup states
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+  const [popupType, setPopupType] = useState<
+    "success" | "error" | "info" | "warning"
+  >("success");
 
   // Helper function to safely parse JSON
   const safeParseJSON = (value: any, fallback: any = []): any => {
@@ -381,6 +389,13 @@ const NewsFeed = () => {
       }
     };
 
+    // Handle custom event for immediate update (same tab)
+    const handlePostsUpdatedEvent = (event: CustomEvent) => {
+      console.log("[NewsFeed] Received postsUpdated event:", event.detail);
+      // Refetch posts immediately when a post is updated
+      fetchPosts(1, false);
+    };
+
     // Check immediately
     checkPostsUpdate();
 
@@ -391,9 +406,49 @@ const NewsFeed = () => {
     // Also listen for storage events (in case of multiple tabs)
     window.addEventListener("storage", checkPostsUpdate);
 
+    // Listen for custom postsUpdated event (immediate, same tab)
+    window.addEventListener(
+      "postsUpdated",
+      handlePostsUpdatedEvent as EventListener
+    );
+
     return () => {
       clearInterval(intervalId);
       window.removeEventListener("storage", checkPostsUpdate);
+      window.removeEventListener(
+        "postsUpdated",
+        handlePostsUpdatedEvent as EventListener
+      );
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Refetch posts when page regains focus (e.g., user navigates back from edit page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        const postsUpdated = localStorage.getItem("posts_updated");
+        if (postsUpdated) {
+          localStorage.removeItem("posts_updated");
+          fetchPosts(1, false);
+        }
+      }
+    };
+
+    const handleFocus = () => {
+      const postsUpdated = localStorage.getItem("posts_updated");
+      if (postsUpdated) {
+        localStorage.removeItem("posts_updated");
+        fetchPosts(1, false);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -475,7 +530,9 @@ const NewsFeed = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert("Đăng story thành công!");
+        setPopupMessage("Đăng story thành công!");
+        setPopupType("success");
+        setShowPopup(true);
         setShowStoryModal(false);
         setStoryFile(null);
         setStoryPreview(null);
@@ -488,11 +545,15 @@ const NewsFeed = () => {
           fetchStories();
         }, 500);
       } else {
-        alert(data.error || "Có lỗi xảy ra khi đăng story");
+        setPopupMessage(data.error || "Có lỗi xảy ra khi đăng story");
+        setPopupType("error");
+        setShowPopup(true);
       }
     } catch (error) {
       console.error("Error uploading story:", error);
-      alert("Có lỗi xảy ra khi đăng story");
+      setPopupMessage("Có lỗi xảy ra khi đăng story");
+      setPopupType("error");
+      setShowPopup(true);
     } finally {
       setUploadingStory(false);
     }
@@ -646,7 +707,9 @@ const NewsFeed = () => {
             return prev;
           });
 
-          alert("Đăng bài thành công!");
+          setPopupMessage("Đăng bài thành công!");
+          setPopupType("success");
+          setShowPopup(true);
           setShowPostForm(false);
           setPostFormData({
             title: "",
@@ -666,7 +729,9 @@ const NewsFeed = () => {
           // If processing fails, just refresh the list
           setPage(1);
           setHasMore(true);
-          alert("Đăng bài thành công! Đang tải lại danh sách...");
+          setPopupMessage("Đăng bài thành công!");
+          setPopupType("success");
+          setShowPopup(true);
           setShowPostForm(false);
           setPostFormData({
             title: "",
@@ -681,11 +746,15 @@ const NewsFeed = () => {
           }, 500);
         }
       } else {
-        alert(data.error || "Có lỗi xảy ra khi đăng bài");
+        setPopupMessage(data.error || "Có lỗi xảy ra khi đăng bài");
+        setPopupType("error");
+        setShowPopup(true);
       }
     } catch (error) {
       console.error("Error creating post:", error);
-      alert("Có lỗi xảy ra khi đăng bài");
+      setPopupMessage("Có lỗi xảy ra khi đăng bài");
+      setPopupType("error");
+      setShowPopup(true);
     }
   };
 
@@ -1568,6 +1637,15 @@ const NewsFeed = () => {
           </motion.button>
         )}
       </AnimatePresence>
+
+      {/* Success/Error Popup */}
+      <SuccessPopup
+        isOpen={showPopup}
+        onClose={() => setShowPopup(false)}
+        message={popupMessage}
+        type={popupType}
+        duration={3000}
+      />
     </div>
   );
 };

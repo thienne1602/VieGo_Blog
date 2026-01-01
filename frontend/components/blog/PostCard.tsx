@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
 import Image from "next/image";
 import { getBaseURL, getAPIURL } from "@/lib/apiConfig";
+import SuccessPopup from "@/components/common/SuccessPopup";
 
 // Helper to get token with port-specific key
 const getToken = (): string | null => {
@@ -75,6 +76,13 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
   const [isBookmarked, setIsBookmarked] = useState(post.is_bookmarked || false);
   const [likeCount, setLikeCount] = useState(post.like_count);
   const [showMenu, setShowMenu] = useState(false);
+
+  // Popup states
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+  const [popupType, setPopupType] = useState<
+    "success" | "error" | "info" | "warning"
+  >("success");
 
   // Debug visibility - remove after fix
   console.log(
@@ -196,14 +204,22 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
       });
 
       if (response.ok) {
-        alert("Đã xóa bài viết thành công!");
-        window.location.reload(); // Reload to update the feed
+        setPopupMessage("Đã xóa bài viết thành công!");
+        setPopupType("success");
+        setShowPopup(true);
+        setTimeout(() => {
+          window.location.reload(); // Reload to update the feed
+        }, 1500);
       } else {
-        alert("Không thể xóa bài viết");
+        setPopupMessage("Không thể xóa bài viết");
+        setPopupType("error");
+        setShowPopup(true);
       }
     } catch (err) {
       console.error("Error deleting post:", err);
-      alert("Có lỗi xảy ra khi xóa bài viết");
+      setPopupMessage("Có lỗi xảy ra khi xóa bài viết");
+      setPopupType("error");
+      setShowPopup(true);
     }
   };
 
@@ -588,6 +604,15 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
           </span>
         </motion.button>
       </div>
+
+      {/* Success/Error Popup */}
+      <SuccessPopup
+        isOpen={showPopup}
+        onClose={() => setShowPopup(false)}
+        message={popupMessage}
+        type={popupType}
+        duration={2000}
+      />
     </motion.div>
   );
 }

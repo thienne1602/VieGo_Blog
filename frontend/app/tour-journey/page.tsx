@@ -11,6 +11,8 @@ import {
   Users,
   Loader2,
   AlertCircle,
+  Pin,
+  PinOff,
 } from "lucide-react";
 import api from "@/lib/api";
 import Toast from "@/components/common/Toast";
@@ -22,12 +24,20 @@ interface Booking {
   children: number;
   infants: number;
   status: string;
+  is_pinned?: boolean;
+  pinned_at?: string;
   tour: {
     id: number;
     title: string;
     starting_location: string;
     duration_days: number;
     featured_image: string;
+  };
+  assignment?: {
+    id: number;
+    status: string;
+    is_pinned?: boolean;
+    pinned_at?: string;
   };
 }
 
@@ -36,6 +46,7 @@ export default function TourJourneyListPage() {
   const { user, loading: authLoading } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pinningId, setPinningId] = useState<number | null>(null);
   const [toast, setToast] = useState<any | null>(null);
   const backgroundImageUrl = "/images/backround_tour.jpg";
 
@@ -79,6 +90,8 @@ export default function TourJourneyListPage() {
               status: a.booking.status,
               tour: a.booking.tour || a.tour,
               assignment: a,
+              is_pinned: a.is_pinned || false,
+              pinned_at: a.pinned_at,
             }));
           console.log("📦 Mapped tour guide bookings:", validBookings);
         }
@@ -102,6 +115,29 @@ export default function TourJourneyListPage() {
         }
       }
 
+      // Sort bookings: pinned first (by pinned_at desc), then by booking_date desc
+      validBookings.sort((a: any, b: any) => {
+        // Pinned items come first
+        const aIsPinned = a.is_pinned || a.assignment?.is_pinned || false;
+        const bIsPinned = b.is_pinned || b.assignment?.is_pinned || false;
+
+        if (aIsPinned && !bIsPinned) return -1;
+        if (!aIsPinned && bIsPinned) return 1;
+
+        // If both pinned, sort by pinned_at (most recent first)
+        if (aIsPinned && bIsPinned) {
+          const aPinnedAt = a.pinned_at || a.assignment?.pinned_at || "";
+          const bPinnedAt = b.pinned_at || b.assignment?.pinned_at || "";
+          return new Date(bPinnedAt).getTime() - new Date(aPinnedAt).getTime();
+        }
+
+        // Not pinned: sort by booking_date desc
+        return (
+          new Date(b.booking_date).getTime() -
+          new Date(a.booking_date).getTime()
+        );
+      });
+
       setBookings(validBookings);
 
       if (validBookings.length === 0) {
@@ -118,6 +154,51 @@ export default function TourJourneyListPage() {
       setToast({ message: "Lỗi khi tải danh sách booking", type: "error" });
     }
     setLoading(false);
+  };
+
+  // Toggle pin/unpin tour
+  const handleTogglePin = async (booking: Booking, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent navigating to tour detail
+
+    const isPinned =
+      booking.is_pinned || booking.assignment?.is_pinned || false;
+    setPinningId(booking.id);
+
+    try {
+      let res;
+      if (user?.role === "tour_guide" && booking.assignment) {
+        // Tour guide: pin assignment
+        res = await api.request(
+          `/tour-assignments/${booking.assignment.id}/pin`,
+          {
+            method: "POST",
+          }
+        );
+      } else {
+        // Customer: pin booking
+        res = await api.request(`/bookings/${booking.id}/pin`, {
+          method: "POST",
+        });
+      }
+
+      if (res.success) {
+        setToast({
+          message: isPinned ? "Đã bỏ ghim tour" : "Đã ghim tour lên đầu",
+          type: "success",
+        });
+        // Reload bookings to update the list
+        await loadMyBookings();
+      } else {
+        setToast({
+          message: res.error || "Không thể ghim tour",
+          type: "error",
+        });
+      }
+    } catch (err) {
+      console.error("❌ Error toggling pin:", err);
+      setToast({ message: "Lỗi khi ghim tour", type: "error" });
+    }
+    setPinningId(null);
   };
 
   if (authLoading || loading) {
@@ -171,8 +252,12 @@ export default function TourJourneyListPage() {
 
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl p-5 shadow-lg dark:shadow-none">
-              <p className="text-sm text-gray-600 dark:text-white/70">Tổng tour</p>
-              <p className="text-4xl font-bold mt-2 text-gray-900 dark:text-white">{bookings.length}</p>
+              <p className="text-sm text-gray-600 dark:text-white/70">
+                Tổng tour
+              </p>
+              <p className="text-4xl font-bold mt-2 text-gray-900 dark:text-white">
+                {bookings.length}
+              </p>
               <p className="text-xs uppercase tracking-[0.35em] text-gray-500 dark:text-white/50 mt-2">
                 Đang hoạt động
               </p>
@@ -195,7 +280,9 @@ export default function TourJourneyListPage() {
               </p>
             </div>
             <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-xl p-5 shadow-lg dark:shadow-none">
-              <p className="text-sm text-gray-600 dark:text-white/70">Địa điểm nổi bật</p>
+              <p className="text-sm text-gray-600 dark:text-white/70">
+                Địa điểm nổi bật
+              </p>
               <p className="text-4xl font-bold mt-2 text-gray-900 dark:text-white">
                 {
                   new Set(
@@ -258,6 +345,43 @@ export default function TourJourneyListPage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent dark:from-slate-900/80 dark:via-slate-900/20" />
 
+                  {/* Pin Button - Góc trên trái */}
+                  <button
+                    onClick={(e) => handleTogglePin(booking, e)}
+                    disabled={pinningId === booking.id}
+                    className={`absolute top-3 left-3 z-10 p-2 rounded-full transition-all duration-200 ${
+                      booking.is_pinned || booking.assignment?.is_pinned
+                        ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30"
+                        : "bg-black/40 text-white/80 hover:bg-black/60 hover:text-white"
+                    } ${
+                      pinningId === booking.id
+                        ? "opacity-50 cursor-wait"
+                        : "hover:scale-110"
+                    }`}
+                    title={
+                      booking.is_pinned || booking.assignment?.is_pinned
+                        ? "Bỏ ghim"
+                        : "Ghim lên đầu"
+                    }
+                  >
+                    {pinningId === booking.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : booking.is_pinned || booking.assignment?.is_pinned ? (
+                      <Pin className="w-4 h-4 fill-current" />
+                    ) : (
+                      <Pin className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  {/* Pinned Badge */}
+                  {(booking.is_pinned || booking.assignment?.is_pinned) && (
+                    <div className="absolute top-3 left-12 z-10">
+                      <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide text-amber-100 bg-amber-500/90">
+                        Đã ghim
+                      </span>
+                    </div>
+                  )}
+
                   {user?.role === "tour_guide" &&
                     (booking as any).assignment && (
                       <div className="absolute top-3 right-3">
@@ -268,7 +392,8 @@ export default function TourJourneyListPage() {
                               : (booking as any).assignment.status ===
                                 "completed"
                               ? "bg-green-500/90"
-                              : (booking as any).assignment.status === "accepted"
+                              : (booking as any).assignment.status ===
+                                "accepted"
                               ? "bg-purple-500/90"
                               : "bg-amber-500/90"
                           }`}
@@ -307,7 +432,9 @@ export default function TourJourneyListPage() {
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="w-4 h-4 text-teal-600 dark:text-emerald-300" />
-                    <span>{booking.tour.starting_location || "Đang cập nhật"}</span>
+                    <span>
+                      {booking.tour.starting_location || "Đang cập nhật"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Users className="w-4 h-4 text-teal-600 dark:text-emerald-300" />

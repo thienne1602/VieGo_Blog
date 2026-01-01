@@ -73,6 +73,43 @@ try:
     print("[OK] Email system initialized")
 except Exception as e:
     print(f"[WARNING] Email system not available: {e}")
+
+# Initialize AI Analytics Service
+try:
+    from utils.ai_analytics import init_analytics_service
+    init_analytics_service(db)
+    print("[OK] AI Analytics service initialized")
+except Exception as e:
+    print(f"[WARNING] AI Analytics service not available: {e}")
+
+# Initialize Promotional Email Service
+try:
+    from utils.promotional_email import init_promotional_email_service
+    from utils.email import mail
+    init_promotional_email_service(db, mail)
+    print("[OK] Promotional Email service initialized")
+except Exception as e:
+    print(f"[WARNING] Promotional Email service not available: {e}")
+
+# Initialize Email Scheduler
+try:
+    from utils.email_scheduler import init_email_scheduler, start_email_scheduler
+    # Configure scheduler settings
+    app.config['PROMO_EMAIL_WEEKLY_DAY'] = os.getenv('PROMO_EMAIL_WEEKLY_DAY', 'monday')
+    app.config['PROMO_EMAIL_WEEKLY_TIME'] = os.getenv('PROMO_EMAIL_WEEKLY_TIME', '09:00')
+    app.config['PROMO_EMAIL_BATCH_SIZE'] = int(os.getenv('PROMO_EMAIL_BATCH_SIZE', '50'))
+    app.config['FRONTEND_URL'] = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+    
+    init_email_scheduler(app)
+    # Auto-start scheduler if enabled
+    if os.getenv('AUTO_START_EMAIL_SCHEDULER', 'false').lower() == 'true':
+        start_email_scheduler()
+        print("[OK] Email Scheduler started automatically")
+    else:
+        print("[OK] Email Scheduler initialized (not auto-started)")
+except Exception as e:
+    print(f"[WARNING] Email Scheduler not available: {e}")
+
 # Initialize Socket.IO
 socketio = SocketIO(
     app,
@@ -201,6 +238,9 @@ try:
     from routes.moderator import moderator_bp
     from routes.contact import contact_bp
     from routes.tour_location import tour_location_bp  # NEW: realtime location tracking
+    from routes.analytics import analytics_bp  # NEW: AI analytics and promotional emails
+    from routes.user_analytics import user_analytics_bp  # NEW: User analytics for admin dashboard
+    from routes.email_campaign import email_campaign_bp  # NEW: Email campaign management
     
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -227,7 +267,10 @@ try:
     app.register_blueprint(moderator_bp)  # NEW: moderator routes
     app.register_blueprint(contact_bp)    # NEW: contact routes
     app.register_blueprint(tour_location_bp)  # NEW: realtime tour location tracking
-    print("[OK] Routes registered successfully (including tour features: participants, assignments, progress, itinerary, location tracking)")
+    app.register_blueprint(analytics_bp, url_prefix='/api/analytics')  # NEW: AI analytics
+    app.register_blueprint(user_analytics_bp)  # NEW: User analytics (already has /api/admin/user-analytics prefix)
+    app.register_blueprint(email_campaign_bp)  # NEW: Email campaigns (already has /api/admin/email-campaigns prefix)
+    print("[OK] Routes registered successfully (including tour features: participants, assignments, progress, itinerary, location tracking, AI analytics, user analytics, email campaigns)")
 except ImportError as e:
     print(f"[WARNING] Some routes not found: {e}")
 

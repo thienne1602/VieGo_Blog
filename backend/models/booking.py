@@ -39,6 +39,10 @@ class Booking(db.Model):
     status = db.Column(db.Enum('pending', 'confirmed', 'cancelled'), default='pending')
     notes = db.Column(db.Text)
     
+    # Pin feature - để ghim tour lên đầu danh sách hành trình
+    is_pinned = db.Column(db.Boolean, default=False, nullable=False)
+    pinned_at = db.Column(db.DateTime, nullable=True)  # Thời điểm ghim để sắp xếp thứ tự các tour được ghim
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -72,6 +76,8 @@ class Booking(db.Model):
             'payment_status': self.payment_status,
             'status': self.status,
             'notes': self.notes,
+            'is_pinned': self.is_pinned or False,
+            'pinned_at': self.pinned_at.isoformat() if self.pinned_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

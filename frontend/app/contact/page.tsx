@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import BackgroundImage from "@/components/common/BackgroundImage";
+import { getAPIURL } from "@/lib/api";
 import {
   Mail,
   Phone,
@@ -18,8 +19,7 @@ import {
   User,
 } from "lucide-react";
 
-const API_BASE_URL =
-  getAPIURL();
+const API_BASE_URL = getAPIURL();
 
 export default function ContactPage() {
   const { t } = useTranslation("contact");
@@ -36,13 +36,21 @@ export default function ContactPage() {
   const [error, setError] = useState("");
 
   const categories = [
-    { value: "technical", label: t("form.categories.technical"), icon: Settings },
+    {
+      value: "technical",
+      label: t("form.categories.technical"),
+      icon: Settings,
+    },
     { value: "account", label: t("form.categories.account"), icon: User },
     { value: "content", label: t("form.categories.content"), icon: FileText },
     { value: "payment", label: t("form.categories.payment"), icon: CreditCard },
     { value: "general", label: t("form.categories.general"), icon: HelpCircle },
     { value: "report", label: t("form.categories.report"), icon: AlertCircle },
-    { value: "suggestion", label: t("form.categories.suggestion"), icon: MessageSquare },
+    {
+      value: "suggestion",
+      label: t("form.categories.suggestion"),
+      icon: MessageSquare,
+    },
     { value: "other", label: t("form.categories.other"), icon: HelpCircle },
   ];
 
@@ -344,8 +352,12 @@ export default function ContactPage() {
                       <Mail className="w-5 h-5 text-blue-500 dark:text-blue-400" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("contactInfo.email")}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">support@viego.com</p>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {t("contactInfo.email")}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        support@viego.com
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
@@ -356,7 +368,9 @@ export default function ContactPage() {
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         {t("contactInfo.hotline")}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">1900-xxxx</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        1900-xxxx
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -395,7 +409,9 @@ export default function ContactPage() {
               </div>
 
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 border border-blue-100 dark:border-blue-800">
-                <h3 className="text-lg font-bold text-blue-900 dark:text-blue-300 mb-2">{t("tips.title")}</h3>
+                <h3 className="text-lg font-bold text-blue-900 dark:text-blue-300 mb-2">
+                  {t("tips.title")}
+                </h3>
                 <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-2">
                   <li>• {t("tips.tip1")}</li>
                   <li>• {t("tips.tip2")}</li>

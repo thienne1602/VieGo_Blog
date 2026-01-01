@@ -33,10 +33,9 @@ import {
 } from "lucide-react";
 import PostModal from "@/components/common/PostModal";
 import SuccessPopup from "@/components/common/SuccessPopup";
-import { getStorageKey } from "@/lib/api";
+import { getStorageKey, getAPIURL } from "@/lib/api";
 
-const API_BASE_URL =
-  getAPIURL();
+const API_BASE_URL = getAPIURL();
 
 // Toast Component
 const Toast = ({ message, type = "success", onClose }: any) => (

@@ -21,7 +21,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import api from "../../../../../lib/api";
+import api, { getAPIURL } from "../../../../../lib/api";
 import Toast from "../../../../../components/common/Toast";
 import ConfirmModal from "../../../../../components/common/ConfirmModal";
 import AssignmentSuccessModal from "../../../../../components/common/AssignmentSuccessModal";
@@ -98,7 +98,7 @@ export default function SellerBookingDetailPage({ params }: any) {
       if (res.success) {
         const bookingData = res.data?.booking || res.data;
         setBooking(bookingData);
-        
+
         // Also set assignment from booking data if available
         if (bookingData?.assignment) {
           setAssignment(bookingData.assignment);
@@ -124,18 +124,25 @@ export default function SellerBookingDetailPage({ params }: any) {
       // API wrapper returns: { success: true, data: { participants: [...], total: ... } }
       // Backend returns: { participants: [...], total: ... }
       let participantsData: Participant[] = [];
-      
+
       if (res && res.success !== false) {
         // API wrapper format: res.data = { participants: [...], total: ... }
-        if (res.data && res.data.participants && Array.isArray(res.data.participants)) {
+        if (
+          res.data &&
+          res.data.participants &&
+          Array.isArray(res.data.participants)
+        ) {
           participantsData = res.data.participants;
-        } 
+        }
         // Direct backend format (if not wrapped)
         else if (res.participants && Array.isArray(res.participants)) {
           participantsData = res.participants;
         }
         // Nested data format
-        else if (res.data?.data?.participants && Array.isArray(res.data.data.participants)) {
+        else if (
+          res.data?.data?.participants &&
+          Array.isArray(res.data.data.participants)
+        ) {
           participantsData = res.data.data.participants;
         }
         // If data is directly an array
@@ -143,7 +150,7 @@ export default function SellerBookingDetailPage({ params }: any) {
           participantsData = res.data;
         }
       }
-      
+
       console.log(
         "Setting participants:",
         participantsData.length,
@@ -172,7 +179,7 @@ export default function SellerBookingDetailPage({ params }: any) {
           guides = res.data.data;
         }
         setTourGuides(guides);
-        
+
         // If we have an assignment but selectedGuideId is not set, set it
         if (assignment && assignment.tour_guide_id && !selectedGuideId) {
           setSelectedGuideId(assignment.tour_guide_id);
@@ -201,7 +208,11 @@ export default function SellerBookingDetailPage({ params }: any) {
       }
     } catch (err: any) {
       // 404 is expected when no assignment exists yet, don't log as error
-      if (err?.message?.includes('404') || err?.message?.includes('No assignment') || err?.status === 404) {
+      if (
+        err?.message?.includes("404") ||
+        err?.message?.includes("No assignment") ||
+        err?.status === 404
+      ) {
         // No assignment yet, this is normal
         setAssignment(null);
         // Don't reset selectedGuideId if it was manually selected
@@ -234,20 +245,23 @@ export default function SellerBookingDetailPage({ params }: any) {
       if (res.success) {
         // Load assignment to get full details
         await loadAssignment();
-        
+
         // Get selected guide info
-        const selectedGuide = tourGuides.find(g => g.id === selectedGuideId);
-        
+        const selectedGuide = tourGuides.find((g) => g.id === selectedGuideId);
+
         // Show success modal with details
         setAssignmentResult({
           tourTitle: booking?.tour?.title || "N/A",
-          guideName: selectedGuide?.full_name || selectedGuide?.username || "N/A",
+          guideName:
+            selectedGuide?.full_name || selectedGuide?.username || "N/A",
           guideEmail: selectedGuide?.email || "",
-          bookingDate: booking?.date ? new Date(booking.date).toLocaleDateString("vi-VN") : "",
+          bookingDate: booking?.date
+            ? new Date(booking.date).toLocaleDateString("vi-VN")
+            : "",
           emailSent: res.data?.email_sent || false,
         });
         setShowSuccessModal(true);
-        
+
         // Reload booking details to refresh assignment status
         await loadBookingDetails();
       } else {
@@ -265,7 +279,7 @@ export default function SellerBookingDetailPage({ params }: any) {
       const token = api.getToken();
       const API_BASE_URL = getAPIURL();
       const url = `${API_BASE_URL}/booking-participants/booking/${bookingId}/export?format=${format}`;
-      
+
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -275,14 +289,20 @@ export default function SellerBookingDetailPage({ params }: any) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(
+          errorData.error || `HTTP ${response.status}: ${response.statusText}`
+        );
       }
 
       // Get filename from Content-Disposition header or use default
       const contentDisposition = response.headers.get("Content-Disposition");
-      let filename = `participants_booking_${bookingId}.${format === "excel" ? "xlsx" : "csv"}`;
+      let filename = `participants_booking_${bookingId}.${
+        format === "excel" ? "xlsx" : "csv"
+      }`;
       if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        const filenameMatch = contentDisposition.match(
+          /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+        );
         if (filenameMatch && filenameMatch[1]) {
           filename = filenameMatch[1].replace(/['"]/g, "");
         }
@@ -305,9 +325,9 @@ export default function SellerBookingDetailPage({ params }: any) {
       });
     } catch (err: any) {
       console.error("Export error:", err);
-      setToast({ 
-        message: err.message || "Lỗi khi xuất file", 
-        type: "error" 
+      setToast({
+        message: err.message || "Lỗi khi xuất file",
+        type: "error",
       });
     }
     setExportLoading(false);
@@ -842,11 +862,12 @@ export default function SellerBookingDetailPage({ params }: any) {
                       className="w-full border-2 border-gray-300 dark:border-gray-600 px-4 py-3 rounded-xl focus:border-teal-600 focus:outline-none transition-colors dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="">-- Chọn hướng dẫn viên --</option>
-                      {Array.isArray(tourGuides) && tourGuides.map((guide) => (
-                        <option key={guide.id} value={guide.id}>
-                          {guide.full_name || guide.username} ({guide.email})
-                        </option>
-                      ))}
+                      {Array.isArray(tourGuides) &&
+                        tourGuides.map((guide) => (
+                          <option key={guide.id} value={guide.id}>
+                            {guide.full_name || guide.username} ({guide.email})
+                          </option>
+                        ))}
                     </select>
                   </div>
 

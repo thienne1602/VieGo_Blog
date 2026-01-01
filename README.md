@@ -216,95 +216,95 @@ _Social Network + Tour Management + E-commerce + AI Recommendations + NFT System
 
 ### Backend Technologies
 
-| Công nghệ | Version | Mục đích |
-|-----------|---------|----------|
-| **Flask** | 2.3.3 | Web framework chính |
-| **Flask-SQLAlchemy** | 3.0.5 | ORM cho database |
-| **Flask-JWT-Extended** | 4.5.3 | JWT authentication |
-| **Flask-SocketIO** | 5.3.6 | Real-time WebSocket |
-| **Flask-CORS** | 4.0.0 | Cross-origin support |
-| **Flask-Babel** | 4.0.0 | Internationalization |
-| **Flask-Mail** | 0.10.0 | Email functionality |
-| **Flask-Compress** | 1.14 | Response compression |
-| **SQLAlchemy** | 2.0.23 | Database ORM |
-| **PyMySQL** | 1.1.0 | MySQL connector |
-| **python-socketio** | 5.9.0 | Socket.IO server |
-| **eventlet** | 0.33.3 | Async networking |
-| **bcrypt** | 4.1.1 | Password hashing |
-| **Pillow** | 10.1.0 | Image processing |
-| **pandas** | 2.1.3 | Data manipulation |
-| **openpyxl** | 3.1.2 | Excel file generation |
-| **ReportLab** | 4.0.7 | PDF generation |
-| **gunicorn** | 21.2.0 | Production server |
-| **marshmallow** | 3.20.1 | Serialization |
+| Công nghệ              | Version | Mục đích              |
+| ---------------------- | ------- | --------------------- |
+| **Flask**              | 2.3.3   | Web framework chính   |
+| **Flask-SQLAlchemy**   | 3.0.5   | ORM cho database      |
+| **Flask-JWT-Extended** | 4.5.3   | JWT authentication    |
+| **Flask-SocketIO**     | 5.3.6   | Real-time WebSocket   |
+| **Flask-CORS**         | 4.0.0   | Cross-origin support  |
+| **Flask-Babel**        | 4.0.0   | Internationalization  |
+| **Flask-Mail**         | 0.10.0  | Email functionality   |
+| **Flask-Compress**     | 1.14    | Response compression  |
+| **SQLAlchemy**         | 2.0.23  | Database ORM          |
+| **PyMySQL**            | 1.1.0   | MySQL connector       |
+| **python-socketio**    | 5.9.0   | Socket.IO server      |
+| **eventlet**           | 0.33.3  | Async networking      |
+| **bcrypt**             | 4.1.1   | Password hashing      |
+| **Pillow**             | 10.1.0  | Image processing      |
+| **pandas**             | 2.1.3   | Data manipulation     |
+| **openpyxl**           | 3.1.2   | Excel file generation |
+| **ReportLab**          | 4.0.7   | PDF generation        |
+| **gunicorn**           | 21.2.0  | Production server     |
+| **marshmallow**        | 3.20.1  | Serialization         |
 
 ### AI/ML Technologies
 
-| Công nghệ | Version | Mục đích |
-|-----------|---------|----------|
-| **OpenAI** | 0.28.1 | AI-powered features |
-| **scikit-learn** | 1.3.2 | ML algorithms |
-| **pandas** | 2.1.3 | Data processing |
+| Công nghệ        | Version | Mục đích            |
+| ---------------- | ------- | ------------------- |
+| **OpenAI**       | 0.28.1  | AI-powered features |
+| **scikit-learn** | 1.3.2   | ML algorithms       |
+| **pandas**       | 2.1.3   | Data processing     |
 
 ### Blockchain Technologies
 
-| Công nghệ | Version | Mục đích |
-|-----------|---------|----------|
-| **web3** | 6.11.3 | Blockchain integration (Backend) |
-| **cryptography** | 41.0.7 | Encryption |
+| Công nghệ        | Version | Mục đích                         |
+| ---------------- | ------- | -------------------------------- |
+| **web3**         | 6.11.3  | Blockchain integration (Backend) |
+| **cryptography** | 41.0.7  | Encryption                       |
 
 ### Translation & i18n
 
-| Công nghệ | Version | Mục đích |
-|-----------|---------|----------|
-| **google-cloud-translate** | 3.12.1 | Multi-language translation |
-| **Flask-Babel** | 4.0.0 | Backend i18n |
+| Công nghệ                  | Version | Mục đích                   |
+| -------------------------- | ------- | -------------------------- |
+| **google-cloud-translate** | 3.12.1  | Multi-language translation |
+| **Flask-Babel**            | 4.0.0   | Backend i18n               |
 
 ### Frontend Technologies
 
-| Công nghệ | Version | Mục đích |
-|-----------|---------|----------|
-| **Next.js** | 16.0.5 | React framework |
-| **React** | 18.2.0 | UI library |
-| **TypeScript** | 5.2.0 | Type safety |
-| **TailwindCSS** | 3.3.0 | Styling |
-| **Socket.IO Client** | 4.7.0 | Real-time communication |
-| **Axios** | 1.5.0 | HTTP client |
-| **Framer Motion** | 10.18.0 | Animations |
-| **Recharts** | 2.15.4 | Charts/graphs |
-| **Leaflet** | 1.9.4 | Open source maps |
-| **React-Leaflet** | 4.2.1 | React map integration |
-| **@googlemaps/js-api-loader** | 1.16.0 | Google Maps |
-| **i18next** | 25.7.3 | Internationalization |
-| **react-i18next** | 16.5.0 | React i18n |
-| **next-i18next** | 15.4.3 | Next.js i18n |
-| **lucide-react** | 0.544.0 | Icons |
-| **react-markdown** | 9.0.0 | Markdown rendering |
-| **react-pdf** | 7.5.0 | PDF viewing |
-| **react-share** | 4.4.0 | Social sharing |
-| **react-helmet-async** | 1.3.0 | SEO/Head management |
-| **ogl** | 1.0.11 | WebGL graphics |
-| **web3** | 4.2.0 | Blockchain (Frontend) |
+| Công nghệ                     | Version | Mục đích                |
+| ----------------------------- | ------- | ----------------------- |
+| **Next.js**                   | 16.0.5  | React framework         |
+| **React**                     | 18.2.0  | UI library              |
+| **TypeScript**                | 5.2.0   | Type safety             |
+| **TailwindCSS**               | 3.3.0   | Styling                 |
+| **Socket.IO Client**          | 4.7.0   | Real-time communication |
+| **Axios**                     | 1.5.0   | HTTP client             |
+| **Framer Motion**             | 10.18.0 | Animations              |
+| **Recharts**                  | 2.15.4  | Charts/graphs           |
+| **Leaflet**                   | 1.9.4   | Open source maps        |
+| **React-Leaflet**             | 4.2.1   | React map integration   |
+| **@googlemaps/js-api-loader** | 1.16.0  | Google Maps             |
+| **i18next**                   | 25.7.3  | Internationalization    |
+| **react-i18next**             | 16.5.0  | React i18n              |
+| **next-i18next**              | 15.4.3  | Next.js i18n            |
+| **lucide-react**              | 0.544.0 | Icons                   |
+| **react-markdown**            | 9.0.0   | Markdown rendering      |
+| **react-pdf**                 | 7.5.0   | PDF viewing             |
+| **react-share**               | 4.4.0   | Social sharing          |
+| **react-helmet-async**        | 1.3.0   | SEO/Head management     |
+| **ogl**                       | 1.0.11  | WebGL graphics          |
+| **web3**                      | 4.2.0   | Blockchain (Frontend)   |
 
 ### Database
 
-| Công nghệ | Version | Mục đích |
-|-----------|---------|----------|
-| **MySQL** | 8.0 | Primary database |
-| **SQLAlchemy** | 2.0.23 | ORM layer |
+| Công nghệ      | Version | Mục đích         |
+| -------------- | ------- | ---------------- |
+| **MySQL**      | 8.0     | Primary database |
+| **SQLAlchemy** | 2.0.23  | ORM layer        |
 
 ### DevOps & Tools
 
-| Công nghệ | Mục đích |
-|-----------|----------|
-| **Git** | Version control |
-| **npm** | Node.js package manager |
-| **pip** | Python package manager |
-| **pytest** | Backend testing |
-| **Jest** | Frontend testing |
-| **ESLint** | Code linting |
-| **PostCSS** | CSS processing |
-| **Autoprefixer** | CSS vendor prefixes |
+| Công nghệ        | Mục đích                |
+| ---------------- | ----------------------- |
+| **Git**          | Version control         |
+| **npm**          | Node.js package manager |
+| **pip**          | Python package manager  |
+| **pytest**       | Backend testing         |
+| **Jest**         | Frontend testing        |
+| **ESLint**       | Code linting            |
+| **PostCSS**      | CSS processing          |
+| **Autoprefixer** | CSS vendor prefixes     |
 
 ---
 
@@ -623,41 +623,41 @@ Chi tiết đầy đủ xem tại: `backend/routes/`
 
 Dự án sử dụng **26 database models**:
 
-| Model | Mô tả |
-|-------|-------|
-| `User` | Users với roles, gamification, social features |
-| `Post` | Blog posts với categories, SEO, collaboration |
-| `Comment` | Nested comments với moderation |
-| `Tour` | Tour listings với full details |
-| `Booking` | Tour bookings với payment tracking |
-| `BookingParticipant` | Individual booking participants |
-| `BookingItinerary` | Booking-specific itineraries |
-| `TourAssignment` | Tour guide assignments |
-| `TourProgress` | Tour checkpoint tracking |
-| `TourItinerary` | Tour day-by-day plans |
-| `TourMemberLocation` | Real-time member locations |
-| `Location` | Map locations database |
-| `Chat` | Direct messages |
-| `GroupChat` | Group chat rooms |
-| `Story` | 24-hour stories |
-| `NFT` | Achievement NFTs |
-| `Notification` | User notifications |
-| `FriendRequest` | Friend request management |
-| `Friendship` | Friend relationships |
-| `Report` | Content reports |
-| `Contact` | Support tickets |
-| `BannedKeyword` | Content moderation keywords |
-| `UserBehavior` | Analytics tracking |
-| `UserPreferences` | User settings |
-| `UserSettings` | Privacy/notification settings |
-| `SellerTourGuide` | Seller-guide relationships |
+| Model                | Mô tả                                          |
+| -------------------- | ---------------------------------------------- |
+| `User`               | Users với roles, gamification, social features |
+| `Post`               | Blog posts với categories, SEO, collaboration  |
+| `Comment`            | Nested comments với moderation                 |
+| `Tour`               | Tour listings với full details                 |
+| `Booking`            | Tour bookings với payment tracking             |
+| `BookingParticipant` | Individual booking participants                |
+| `BookingItinerary`   | Booking-specific itineraries                   |
+| `TourAssignment`     | Tour guide assignments                         |
+| `TourProgress`       | Tour checkpoint tracking                       |
+| `TourItinerary`      | Tour day-by-day plans                          |
+| `TourMemberLocation` | Real-time member locations                     |
+| `Location`           | Map locations database                         |
+| `Chat`               | Direct messages                                |
+| `GroupChat`          | Group chat rooms                               |
+| `Story`              | 24-hour stories                                |
+| `NFT`                | Achievement NFTs                               |
+| `Notification`       | User notifications                             |
+| `FriendRequest`      | Friend request management                      |
+| `Friendship`         | Friend relationships                           |
+| `Report`             | Content reports                                |
+| `Contact`            | Support tickets                                |
+| `BannedKeyword`      | Content moderation keywords                    |
+| `UserBehavior`       | Analytics tracking                             |
+| `UserPreferences`    | User settings                                  |
+| `UserSettings`       | Privacy/notification settings                  |
+| `SellerTourGuide`    | Seller-guide relationships                     |
 
 ---
 
 ## 📈 Project Statistics
 
 - **26** Database Models
-- **24** Route Files (API Endpoints)  
+- **24** Route Files (API Endpoints)
 - **50+** Backend Dependencies
 - **30+** Frontend Dependencies
 - **6** User Roles
@@ -735,6 +735,6 @@ Cảm ơn tất cả các thư viện và công cụ mã nguồn mở đã đư�
 
 Made with ❤️ by VieGo Team
 
-*Cập nhật: 01/01/2026*
+_Cập nhật: 01/01/2026_
 
 </div>

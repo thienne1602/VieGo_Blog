@@ -15,6 +15,8 @@ import {
   Menu,
   Printer,
   FileSpreadsheet,
+  BarChart3,
+  Mail,
 } from "lucide-react";
 
 import OverviewTab from "./components/OverviewTab";
@@ -22,6 +24,8 @@ import UsersTab from "./components/UsersTab";
 import ContentTab from "./components/ContentTab";
 import ReportsTab from "./components/ReportsTab";
 import SettingsTab from "./components/SettingsTab";
+import UserAnalyticsTab from "./components/UserAnalyticsTab";
+import EmailCampaignTab from "./components/EmailCampaignTab";
 
 // Toast notification component
 const Toast = ({ message, type, onClose }: any) => (
@@ -401,6 +405,8 @@ export default function AdminDashboard() {
   const tabs = [
     { id: "overview", label: "Tổng quan", icon: LayoutDashboard },
     { id: "users", label: "Người dùng", icon: Users },
+    { id: "user-analytics", label: "Thống kê người dùng", icon: BarChart3 },
+    { id: "email-campaigns", label: "Email Marketing", icon: Mail },
     { id: "content", label: "Nội dung", icon: FileText },
     { id: "reports", label: "Báo cáo", icon: AlertTriangle },
     { id: "settings", label: "Cài đặt", icon: Settings },
@@ -510,6 +516,12 @@ export default function AdminDashboard() {
               onBan={handleBanUser}
               onUnban={handleUnbanUser}
             />
+          )}
+          {activeTab === "user-analytics" && (
+            <UserAnalyticsTab showToast={showToast} />
+          )}
+          {activeTab === "email-campaigns" && (
+            <EmailCampaignTab showToast={showToast} />
           )}
           {activeTab === "content" && (
             <ContentTab

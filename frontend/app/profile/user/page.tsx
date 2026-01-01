@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import Link from "next/link";
-import apiClient from "@/lib/api";
+import apiClient, { getAPIURL } from "@/lib/api";
 import PostCard from "@/components/blog/PostCard";
 import { Package } from "lucide-react";
 import FriendActionPopup from "@/components/common/FriendActionPopup";
@@ -473,6 +473,53 @@ export default function UserProfileNew() {
       fetchTabData();
     }
   }, [user, activeTab, viewingUserId, loadingProfile]);
+
+  // Listen for posts update event to refresh posts list
+  useEffect(() => {
+    const handlePostsUpdated = () => {
+      const postsUpdated = localStorage.getItem("posts_updated");
+      if (postsUpdated && activeTab === "posts" && user) {
+        localStorage.removeItem("posts_updated");
+        // Refetch posts
+        const targetUserId =
+          viewingUserId && viewingUserId !== user.id ? viewingUserId : user.id;
+        const token = apiClient.getToken();
+        const API_BASE_URL = getAPIURL();
+
+        fetch(`${API_BASE_URL}/posts?author_id=${targetUserId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const postsWithStatus = (data.posts || []).map((post: any) => ({
+              ...post,
+              is_liked: post.is_liked || false,
+              is_bookmarked: post.is_bookmarked || false,
+            }));
+            setMyPosts(postsWithStatus);
+          })
+          .catch((error) => console.error("Error refetching posts:", error));
+      }
+    };
+
+    // Handle custom event
+    const handlePostsUpdatedEvent = () => {
+      handlePostsUpdated();
+    };
+
+    // Check on focus/visibility change
+    document.addEventListener("visibilitychange", handlePostsUpdated);
+    window.addEventListener("focus", handlePostsUpdated);
+    window.addEventListener("postsUpdated", handlePostsUpdatedEvent);
+    window.addEventListener("storage", handlePostsUpdated);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handlePostsUpdated);
+      window.removeEventListener("focus", handlePostsUpdated);
+      window.removeEventListener("postsUpdated", handlePostsUpdatedEvent);
+      window.removeEventListener("storage", handlePostsUpdated);
+    };
+  }, [user, activeTab, viewingUserId]);
 
   // Fetch seller tours if viewing a seller profile
   useEffect(() => {

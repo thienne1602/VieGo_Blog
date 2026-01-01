@@ -17,6 +17,8 @@ import {
   Search,
 } from "lucide-react";
 import apiClient from "@/lib/api";
+import { getAPIURL } from "@/lib/apiConfig";
+import SuccessPopup from "@/components/common/SuccessPopup";
 
 // Helper to get token with port-specific key
 const getToken = (): string | null => {
@@ -66,6 +68,13 @@ const EditPostPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentTag, setCurrentTag] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Popup states
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+  const [popupType, setPopupType] = useState<
+    "success" | "error" | "info" | "warning"
+  >("success");
 
   // Friends search for visibility
   const [friendsSearch, setFriendsSearch] = useState("");
@@ -297,8 +306,28 @@ const EditPostPage = () => {
       // Clear cache for posts to reflect updated visibility
       apiClient.clearCache();
 
-      alert("Cập nhật bài viết thành công!");
-      router.push(`/posts/${data.post.slug}`);
+      // Set flag to notify NewsFeed to refresh posts list
+      localStorage.setItem("posts_updated", Date.now().toString());
+
+      // Dispatch custom event for immediate update across components
+      window.dispatchEvent(
+        new CustomEvent("postsUpdated", {
+          detail: {
+            postId: data.post.id,
+            slug: data.post.slug,
+            visibility: formData.visibility,
+          },
+        })
+      );
+
+      setPopupMessage("Cập nhật bài viết thành công!");
+      setPopupType("success");
+      setShowPopup(true);
+
+      // Delay redirect to show popup
+      setTimeout(() => {
+        router.push(`/posts/${data.post.slug}`);
+      }, 1500);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -798,6 +827,15 @@ const EditPostPage = () => {
           </motion.div>
         </div>
       )}
+
+      {/* Success/Error Popup */}
+      <SuccessPopup
+        isOpen={showPopup}
+        onClose={() => setShowPopup(false)}
+        message={popupMessage}
+        type={popupType}
+        duration={2000}
+      />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import apiClient from "@/lib/api";
+import SuccessPopup from "@/components/common/SuccessPopup";
 import {
   ArrowLeft,
   Save,
@@ -42,6 +43,13 @@ const CreatePostPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentTag, setCurrentTag] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Popup states
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+  const [popupType, setPopupType] = useState<
+    "success" | "error" | "info" | "warning"
+  >("success");
 
   const [formData, setFormData] = useState<PostFormData>({
     title: "",
@@ -196,9 +204,13 @@ const CreatePostPage = () => {
         // Store a flag to trigger refetch in NewsFeed
         localStorage.setItem("posts_updated", Date.now().toString());
         // Show success message
-        alert("Bài viết đã được đăng thành công!");
-        // Redirect to home to see the new post (don't redirect to post detail immediately)
-        router.push("/");
+        setPopupMessage("Bài viết đã được đăng thành công!");
+        setPopupType("success");
+        setShowPopup(true);
+        // Delay redirect to show popup
+        setTimeout(() => {
+          router.push("/");
+        }, 1500);
       } else {
         // For drafts, just go to post detail
         router.push(`/posts/${data.post.slug}`);
@@ -469,6 +481,15 @@ const CreatePostPage = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Success/Error Popup */}
+      <SuccessPopup
+        isOpen={showPopup}
+        onClose={() => setShowPopup(false)}
+        message={popupMessage}
+        type={popupType}
+        duration={2000}
+      />
     </div>
   );
 };

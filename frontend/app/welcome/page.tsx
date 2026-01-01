@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
-import api from "@/lib/api";
+import api, { getAPIURL } from "@/lib/api";
 
 export default function WelcomePage() {
   const [isActive, setIsActive] = useState(false);

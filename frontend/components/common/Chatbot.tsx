@@ -47,27 +47,18 @@ const listAvailableModels = async (): Promise<string[]> => {
               .filter((name: string) => name.length > 0);
 
             if (models.length > 0) {
-              console.log(
-                `[Gemini] Found ${models.length} available models in ${version}:`,
-                models
-              );
               return models;
             }
           }
         } else {
-          const errorText = await response.text();
-          console.log(
-            `[Gemini] ListModels ${version} failed:`,
-            response.status,
-            errorText
-          );
+          // ListModels failed, continue to next version
         }
       } catch (error) {
-        console.error(`[Gemini] Error listing models (${version}):`, error);
+        // Continue to next version
       }
     }
   } catch (error) {
-    console.error("[Gemini] Error listing models:", error);
+    // Return empty array on error
   }
   return [];
 };
@@ -245,9 +236,7 @@ Hãy trả lời câu hỏi của người dùng một cách CHÍNH XÁC, TỰ N
 
   // Lấy danh sách models có sẵn (cache để không gọi nhiều lần)
   if (!availableModelsCache) {
-    console.log("[Gemini] Fetching available models...");
     availableModelsCache = await listAvailableModels();
-    console.log("[Gemini] Available models:", availableModelsCache);
   }
 
   const availableModels = availableModelsCache ?? [];
@@ -289,7 +278,6 @@ Hãy trả lời câu hỏi của người dùng một cách CHÍNH XÁC, TỰ N
     for (const version of versions) {
       try {
         const url = getGeminiURL(model, version);
-        console.log(`[Gemini] Trying model: ${model} (${version})`);
 
         const response = await fetch(url, {
           method: "POST",
@@ -310,19 +298,7 @@ Hãy trả lời câu hỏi của người dùng một cách CHÍNH XÁC, TỰ N
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          let errorData;
-          try {
-            errorData = JSON.parse(errorText);
-          } catch {
-            errorData = { error: { message: errorText } };
-          }
-          console.error(
-            `[Gemini] Model ${model} (${version}) failed:`,
-            response.status,
-            errorData
-          );
-          // Thử config tiếp theo
+          // Model failed, try next config
           continue;
         }
 
@@ -337,22 +313,13 @@ Hãy trả lời câu hỏi của người dùng một cách CHÍNH XÁC, TỰ N
           data.candidates[0].content.parts[0] &&
           data.candidates[0].content.parts[0].text
         ) {
-          console.log(`[Gemini] ✅ Success with model: ${model} (${version})`);
           return data.candidates[0].content.parts[0].text;
         }
 
-        console.error(
-          `[Gemini] Invalid response structure for model ${model}:`,
-          data
-        );
-        // Thử config tiếp theo
+        // Invalid response structure, try next config
         continue;
       } catch (error) {
-        console.error(
-          `[Gemini] Error with model ${model} (${version}):`,
-          error
-        );
-        // Thử config tiếp theo
+        // Error with model, try next config
         continue;
       }
     }
@@ -797,16 +764,6 @@ const findAnswer = async (
         return priceB - priceA;
       });
       const result = sorted.length > 0 ? [sorted[0]] : [];
-      console.log(
-        "[Chatbot] Found most expensive tour:",
-        result.length > 0
-          ? {
-              id: result[0].id,
-              title: result[0].title,
-              price: result[0].price_per_person,
-            }
-          : "No tours found"
-      );
       return result;
     }
 
@@ -977,17 +934,6 @@ const findAnswer = async (
     let toursToShow: any[] | undefined = undefined;
     if (shouldShowTourCards && webData?.tours && webData.tours.length > 0) {
       toursToShow = filterToursByQuestion(webData.tours, question);
-      // Debug log
-      console.log("[Chatbot] Filtered tours:", {
-        question,
-        totalTours: webData.tours.length,
-        filteredCount: toursToShow.length,
-        tours: toursToShow.map((t) => ({
-          id: t.id,
-          title: t.title,
-          price: t.price_per_person,
-        })),
-      });
       // Nếu không có tour nào match nhưng câu hỏi về tour, vẫn hiển thị top 3
       if (toursToShow.length === 0 && lowerQuestion.includes("tour")) {
         toursToShow = webData.tours.slice(0, 3);

@@ -23,6 +23,8 @@ import CommentSection from "@/components/blog/CommentSection";
 import ImageLightbox from "@/components/common/ImageLightbox";
 import { useAuth } from "@/lib/AuthContext";
 import { useSocket } from "@/lib/SocketContext";
+import { getAPIURL } from "@/lib/apiConfig";
+import SuccessPopup from "@/components/common/SuccessPopup";
 
 interface Post {
   id: number;
@@ -66,6 +68,13 @@ const PostDetailPage = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  // Popup states
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+  const [popupType, setPopupType] = useState<
+    "success" | "error" | "info" | "warning"
+  >("success");
 
   const fetchPost = async () => {
     try {
@@ -231,13 +240,10 @@ const PostDetailPage = () => {
 
     try {
       const endpoint = isLiked ? "DELETE" : "POST";
-      const response = await fetch(
-        `${getAPIURL()}/social/likes/post/${slug}`,
-        {
-          method: endpoint,
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`${getAPIURL()}/social/likes/post/${slug}`, {
+        method: endpoint,
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.ok) {
         setIsLiked(!isLiked);
@@ -261,13 +267,10 @@ const PostDetailPage = () => {
     }
 
     try {
-      const response = await fetch(
-        `${getAPIURL()}/social/bookmarks/${slug}`,
-        {
-          method: isBookmarked ? "DELETE" : "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`${getAPIURL()}/social/bookmarks/${slug}`, {
+        method: isBookmarked ? "DELETE" : "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.ok) {
         setIsBookmarked(!isBookmarked);
@@ -326,11 +329,17 @@ const PostDetailPage = () => {
         throw new Error(data.error || "Không thể xóa bài viết");
       }
 
-      alert("Xóa bài viết thành công!");
-      router.push("/profile/user?tab=posts");
+      setPopupMessage("Xóa bài viết thành công!");
+      setPopupType("success");
+      setShowPopup(true);
+      setTimeout(() => {
+        router.push("/profile/user?tab=posts");
+      }, 1500);
     } catch (err: any) {
       console.error("Error deleting post:", err);
-      alert(err.message || "Có lỗi xảy ra khi xóa bài viết");
+      setPopupMessage(err.message || "Có lỗi xảy ra khi xóa bài viết");
+      setPopupType("error");
+      setShowPopup(true);
     }
   };
 
@@ -751,6 +760,15 @@ const PostDetailPage = () => {
           onClose={() => setLightboxOpen(false)}
         />
       )}
+
+      {/* Success/Error Popup */}
+      <SuccessPopup
+        isOpen={showPopup}
+        onClose={() => setShowPopup(false)}
+        message={popupMessage}
+        type={popupType}
+        duration={2000}
+      />
     </div>
   );
 };

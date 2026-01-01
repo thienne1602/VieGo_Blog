@@ -832,3 +832,55 @@ def send_payment_reminder_for_booking(booking_id):
         
     except Exception as e:
         return jsonify({'error': f'Lỗi xử lý: {str(e)}'}), 500
+
+
+@bookings_bp.route('/<int:booking_id>/pin', methods=['POST'])
+@jwt_required()
+def toggle_pin_booking(booking_id):
+    """Toggle pin status for a booking - ghim/bỏ ghim tour trong danh sách hành trình"""
+    try:
+        current_user_id = int(get_jwt_identity())
+        user = User.query.get(current_user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        booking = Booking.query.get(booking_id)
+        if not booking:
+            return jsonify({'error': 'Booking not found'}), 404
+        
+        # Check permission - only the booking owner can pin
+        if booking.user_id != current_user_id:
+            return jsonify({'error': 'Bạn không có quyền ghim booking này'}), 403
+        
+        # Toggle pin status
+        if booking.is_pinned:
+            # Unpin
+            booking.is_pinned = False
+            booking.pinned_at = None
+            action = 'unpinned'
+            message = 'Đã bỏ ghim tour khỏi danh sách hành trình'
+        else:
+            # Pin
+            booking.is_pinned = True
+            booking.pinned_at = datetime.utcnow()
+            action = 'pinned'
+            message = 'Đã ghim tour lên đầu danh sách hành trình'
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': message,
+            'action': action,
+            'booking': {
+                'id': booking.id,
+                'is_pinned': booking.is_pinned,
+                'pinned_at': booking.pinned_at.isoformat() if booking.pinned_at else None
+            }
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Lỗi khi ghim tour: {str(e)}'}), 500
+
