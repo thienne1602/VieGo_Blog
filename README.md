@@ -2,13 +2,17 @@
 
 <div align="center">
 
-**Nền tảng blog du lịch & ẩm thực tích hợp hệ thống quản lý tour toàn diện**
+**🌍 Nền tảng blog du lịch & ẩm thực tích hợp hệ thống quản lý tour toàn diện**
+
+_Social Network + Tour Management + E-commerce + AI Recommendations + NFT System_
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-2.3+-green.svg)](https://flask.palletsprojects.com/)
-[![Next.js](https://img.shields.io/badge/Next.js-14.0-black.svg)](https://nextjs.org/)
+[![Flask](https://img.shields.io/badge/Flask-2.3.3-green.svg)](https://flask.palletsprojects.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.0-black.svg)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-18.2-61dafb.svg)](https://reactjs.org/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-orange.svg)](https://www.mysql.com/)
+[![Socket.IO](https://img.shields.io/badge/Socket.IO-Real--time-purple.svg)](https://socket.io/)
+[![Web3](https://img.shields.io/badge/Web3-Blockchain-yellow.svg)](https://web3py.readthedocs.io/)
 
 </div>
 
@@ -18,6 +22,7 @@
 
 - [Giới thiệu](#-giới-thiệu)
 - [Tính năng chính](#-tính-năng-chính)
+- [Điểm nổi bật](#-điểm-nổi-bật)
 - [Công nghệ sử dụng](#-công-nghệ-sử-dụng)
 - [Yêu cầu hệ thống](#-yêu-cầu-hệ-thống)
 - [Cài đặt](#-cài-đặt)
@@ -25,6 +30,7 @@
 - [Chạy ứng dụng](#-chạy-ứng-dụng)
 - [Cấu trúc thư mục](#-cấu-trúc-thư-mục)
 - [API Documentation](#-api-documentation)
+- [Database Models](#-database-models)
 - [Tài liệu tham khảo](#-tài-liệu-tham-khảo)
 
 ---
@@ -33,13 +39,16 @@
 
 **VieGo Blog** là nền tảng blog du lịch và ẩm thực kết hợp hệ thống quản lý tour chuyên nghiệp. Dự án cung cấp giải pháp toàn diện cho việc chia sẻ trải nghiệm du lịch, đặt tour, quản lý booking và theo dõi tiến trình tour real-time.
 
-### Đối tượng sử dụng
+### 🎯 Đối tượng sử dụng
 
-- **Du khách**: Tìm kiếm, đọc blog, đặt tour, theo dõi lịch trình
-- **Blogger/Content Creator**: Chia sẻ trải nghiệm, viết bài, tương tác cộng đồng
-- **Seller**: Quản lý tour, xử lý booking, phân công hướng dẫn viên
-- **Tour Guide**: Nhận tour, cập nhật tiến trình, check-in điểm tham quan
-- **Admin**: Quản lý toàn bộ hệ thống, người dùng, nội dung
+| Vai trò                     | Chức năng                                               |
+| --------------------------- | ------------------------------------------------------- |
+| **Du khách (User)**         | Tìm kiếm, đọc blog, đặt tour, theo dõi lịch trình, chat |
+| **Blogger/Content Creator** | Chia sẻ trải nghiệm, viết bài, tương tác cộng đồng      |
+| **Seller**                  | Quản lý tour, xử lý booking, phân công hướng dẫn viên   |
+| **Tour Guide**              | Nhận tour, cập nhật tiến trình, check-in điểm tham quan |
+| **Moderator**               | Quản lý nội dung, duyệt bài viết, xử lý vi phạm         |
+| **Admin**                   | Quản lý toàn bộ hệ thống, người dùng, analytics         |
 
 ---
 
@@ -48,91 +57,254 @@
 ### 📝 Hệ thống Blog & Nội dung
 
 - ✅ Tạo, chỉnh sửa bài viết với rich text editor
-- ✅ Hỗ trợ nhiều loại nội dung: blog, video, photo gallery, tour guide
-- ✅ Upload và quản lý hình ảnh
+- ✅ Hỗ trợ nhiều loại nội dung: `blog`, `video`, `photo`, `tour_guide`
+- ✅ Danh mục: `travel`, `food`, `culture`, `adventure`, `budget`, `luxury`
+- ✅ Upload và quản lý hình ảnh/video
 - ✅ Tìm kiếm full-text, lọc theo danh mục, tags
-- ✅ Hệ thống comment và tương tác
+- ✅ SEO support (meta title, description, keywords)
+- ✅ Hệ thống comment đa cấp (nested replies)
 - ✅ Đánh giá (like/dislike) và rating
 - ✅ Chia sẻ lên mạng xã hội
+- ✅ Lập lịch đăng bài (scheduled posts)
+- ✅ Bài viết hợp tác (collaborative posts)
+- ✅ Interactive storytelling
 
 ### 🎫 Quản lý Tour & Booking
 
 - ✅ Tạo và quản lý tour với lịch trình chi tiết
+- ✅ Categories: `adventure`, `cultural`, `food`, `nature`, `urban`, `spiritual`
+- ✅ Difficulty levels: `easy`, `moderate`, `hard`
 - ✅ Hệ thống booking tour trực tuyến
 - ✅ Quản lý thông tin người tham gia (participants)
+- ✅ Phân loại: adults, children, infants
 - ✅ Thanh toán và xác nhận booking
 - ✅ Gửi email xác nhận và thông tin tour
 - ✅ Xuất danh sách người tham gia (Excel/CSV)
+- ✅ Auto-generate tour content từ địa danh
 
 ### 👥 Phân công & Quản lý Hướng dẫn viên
 
 - ✅ Phân công hướng dẫn viên cho từng tour
+- ✅ Dashboard riêng cho tour guide
 - ✅ Xem danh sách tour được phân công
 - ✅ Thông báo real-time khi được phân công
-- ✅ Quản lý thông tin hướng dẫn viên
+- ✅ Email thông tin HDV cho khách
 
-### 📍 Theo dõi Tiến trình Tour
+### 📍 Theo dõi Tiến trình Tour (Real-time)
 
+- ✅ Checkpoint system cho tour
 - ✅ Check-in/Check-out tại các điểm tham quan
-- ✅ Cập nhật tiến trình real-time
+- ✅ GPS tracking vị trí đoàn tour
+- ✅ Cập nhật tiến trình real-time qua Socket.IO
 - ✅ Upload hình ảnh tại điểm check-in
 - ✅ Ghi chú và mô tả hoạt động
-- ✅ Khách hàng xem tiến trình tour của mình
+- ✅ Khách hàng xem tiến trình tour (Journey page)
 
 ### 👤 Quản lý Người dùng & Phân quyền
 
 - ✅ Đăng ký, đăng nhập với JWT
-- ✅ Phân quyền: User, Moderator, Admin, Seller, Tour Guide
+- ✅ Phân quyền: `user`, `blogger`, `seller`, `tour_guide`, `moderator`, `admin`
 - ✅ Xác thực email
 - ✅ Quản lý profile, avatar, cover image
 - ✅ Hệ thống điểm, level, badges
+- ✅ Account ban, post ban, comment ban
+- ✅ Violation tracking
 
 ### 💬 Social Features
 
 - ✅ Follow/Unfollow users
 - ✅ Friend requests và quản lý bạn bè
-- ✅ Real-time chat (Socket.io)
+- ✅ Real-time chat 1-1 (Socket.IO)
 - ✅ Group chat
-- ✅ Notifications hệ thống
+- ✅ Audio messages
+- ✅ Typing indicators, online status
+- ✅ Message delivery & read receipts
+- ✅ GIF/Stickers support
 - ✅ News feed và timeline
 
-### 🎯 Tính năng Nâng cao
+### 📖 Stories (24h)
 
-- ✅ Đa ngôn ngữ (i18n)
-- ✅ Google Maps integration
-- ✅ Tích hợp AI/ML recommendations
-- ✅ Analytics và dashboard
-- ✅ Dark mode / Light mode
-- ✅ Responsive design (mobile-first)
+- ✅ Image/Video stories
+- ✅ Auto-expire sau 24h
+- ✅ Story archiving
+- ✅ View count tracking
+
+### 🔔 Notifications System
+
+- ✅ Real-time notifications qua Socket.IO
+- ✅ Phân loại: `message`, `like`, `comment`, `follow`, `friend_request`, `booking`, `system`, `tour_assignment`, `violation_warning`
+- ✅ Mark as read / batch operations
+- ✅ Filter by type
+- ✅ Notification settings
+
+### 🏆 Gamification & NFT System
+
+- ✅ Points system (tích điểm từ hoạt động)
+- ✅ Level progression (1000 points = 1 level)
+- ✅ Badges: `explorer`, `foodie`, `photographer`, `traveler`, `adventurer`, `cultural`, `special`
+- ✅ Badge levels: `bronze`, `silver`, `gold`, `platinum`, `legendary`
+- ✅ NFT minting cho achievements
+- ✅ NFT gallery với rarity system
+- ✅ Blockchain integration (Web3)
+
+### 🗺️ Maps & Locations
+
+- ✅ Location database với categories
+- ✅ Leaflet + Google Maps integration
+- ✅ Nearby search
+- ✅ Location ratings
+- ✅ Route planning
+
+### 📊 Analytics & AI/ML
+
+- ✅ User behavior tracking
+- ✅ Personalized tour recommendations
+- ✅ Interest profiling
+- ✅ Trending detection
+- ✅ Category analytics
+- ✅ User segmentation
+
+### 👨‍💼 Admin Dashboard
+
+- ✅ Dashboard statistics overview
+- ✅ User management (CRUD, role assignment)
+- ✅ Content moderation
+- ✅ Reports management
+- ✅ Activity logs
+- ✅ Revenue analytics
+- ✅ Excel export
+
+### 💰 Seller Dashboard
+
+- ✅ Revenue statistics (daily/monthly/yearly)
+- ✅ Tour management
+- ✅ Booking management
+- ✅ Tour guide management
+- ✅ Company profile
+- ✅ Revenue charts
+- ✅ Export reports (Excel/CSV)
+
+### 📧 Email System
+
+- ✅ Booking confirmation emails
+- ✅ Payment reminders
+- ✅ Password reset emails
+- ✅ Tour assignment notifications
+- ✅ Promotional emails
+- ✅ Custom email templates
+
+---
+
+## 🌟 Điểm nổi bật
+
+### So sánh với các nền tảng khác
+
+| Tính năng          | VieGo | Traveloka | Agoda | Klook |
+| ------------------ | :---: | :-------: | :---: | :---: |
+| Đặt tour           |  ✅   |    ✅     |  ✅   |  ✅   |
+| Blog/Content       |  ✅   |    ❌     |  ❌   |  ❌   |
+| Social Network     |  ✅   |    ❌     |  ❌   |  ❌   |
+| Real-time Chat     |  ✅   |    ❌     |  ❌   |  ❌   |
+| Tour Tracking      |  ✅   |    ❌     |  ❌   |  ❌   |
+| HDV Management     |  ✅   |    ❌     |  ❌   |  ❌   |
+| NFT/Gamification   |  ✅   |    ❌     |  ❌   |  ❌   |
+| AI Recommendations |  ✅   |    ⚠️     |  ⚠️   |  ⚠️   |
 
 ---
 
 ## 🛠 Công nghệ sử dụng
 
-### Backend
+### Backend Technologies
 
-- **Framework**: Flask 2.3.3
-- **Database**: MySQL 8.0 + SQLAlchemy ORM
-- **Authentication**: Flask-JWT-Extended
-- **Real-time**: Flask-SocketIO + Socket.io
-- **Email**: Flask-Mail
-- **File Processing**: Pillow, ReportLab, openpyxl
+| Công nghệ | Version | Mục đích |
+|-----------|---------|----------|
+| **Flask** | 2.3.3 | Web framework chính |
+| **Flask-SQLAlchemy** | 3.0.5 | ORM cho database |
+| **Flask-JWT-Extended** | 4.5.3 | JWT authentication |
+| **Flask-SocketIO** | 5.3.6 | Real-time WebSocket |
+| **Flask-CORS** | 4.0.0 | Cross-origin support |
+| **Flask-Babel** | 4.0.0 | Internationalization |
+| **Flask-Mail** | 0.10.0 | Email functionality |
+| **Flask-Compress** | 1.14 | Response compression |
+| **SQLAlchemy** | 2.0.23 | Database ORM |
+| **PyMySQL** | 1.1.0 | MySQL connector |
+| **python-socketio** | 5.9.0 | Socket.IO server |
+| **eventlet** | 0.33.3 | Async networking |
+| **bcrypt** | 4.1.1 | Password hashing |
+| **Pillow** | 10.1.0 | Image processing |
+| **pandas** | 2.1.3 | Data manipulation |
+| **openpyxl** | 3.1.2 | Excel file generation |
+| **ReportLab** | 4.0.7 | PDF generation |
+| **gunicorn** | 21.2.0 | Production server |
+| **marshmallow** | 3.20.1 | Serialization |
 
-### Frontend
+### AI/ML Technologies
 
-- **Framework**: Next.js 14.0 (React 18.2)
-- **Styling**: TailwindCSS 3.3
-- **State Management**: React Hooks + Context API
-- **API Client**: Axios
-- **Real-time**: Socket.io-client
-- **Maps**: Google Maps API
-- **UI Libraries**: Framer Motion, Lucide Icons
+| Công nghệ | Version | Mục đích |
+|-----------|---------|----------|
+| **OpenAI** | 0.28.1 | AI-powered features |
+| **scikit-learn** | 1.3.2 | ML algorithms |
+| **pandas** | 2.1.3 | Data processing |
+
+### Blockchain Technologies
+
+| Công nghệ | Version | Mục đích |
+|-----------|---------|----------|
+| **web3** | 6.11.3 | Blockchain integration (Backend) |
+| **cryptography** | 41.0.7 | Encryption |
+
+### Translation & i18n
+
+| Công nghệ | Version | Mục đích |
+|-----------|---------|----------|
+| **google-cloud-translate** | 3.12.1 | Multi-language translation |
+| **Flask-Babel** | 4.0.0 | Backend i18n |
+
+### Frontend Technologies
+
+| Công nghệ | Version | Mục đích |
+|-----------|---------|----------|
+| **Next.js** | 16.0.5 | React framework |
+| **React** | 18.2.0 | UI library |
+| **TypeScript** | 5.2.0 | Type safety |
+| **TailwindCSS** | 3.3.0 | Styling |
+| **Socket.IO Client** | 4.7.0 | Real-time communication |
+| **Axios** | 1.5.0 | HTTP client |
+| **Framer Motion** | 10.18.0 | Animations |
+| **Recharts** | 2.15.4 | Charts/graphs |
+| **Leaflet** | 1.9.4 | Open source maps |
+| **React-Leaflet** | 4.2.1 | React map integration |
+| **@googlemaps/js-api-loader** | 1.16.0 | Google Maps |
+| **i18next** | 25.7.3 | Internationalization |
+| **react-i18next** | 16.5.0 | React i18n |
+| **next-i18next** | 15.4.3 | Next.js i18n |
+| **lucide-react** | 0.544.0 | Icons |
+| **react-markdown** | 9.0.0 | Markdown rendering |
+| **react-pdf** | 7.5.0 | PDF viewing |
+| **react-share** | 4.4.0 | Social sharing |
+| **react-helmet-async** | 1.3.0 | SEO/Head management |
+| **ogl** | 1.0.11 | WebGL graphics |
+| **web3** | 4.2.0 | Blockchain (Frontend) |
+
+### Database
+
+| Công nghệ | Version | Mục đích |
+|-----------|---------|----------|
+| **MySQL** | 8.0 | Primary database |
+| **SQLAlchemy** | 2.0.23 | ORM layer |
 
 ### DevOps & Tools
 
-- **Version Control**: Git
-- **Package Managers**: pip (Python), npm (Node.js)
-- **Testing**: pytest (Backend), Jest (Frontend)
+| Công nghệ | Mục đích |
+|-----------|----------|
+| **Git** | Version control |
+| **npm** | Node.js package manager |
+| **pip** | Python package manager |
+| **pytest** | Backend testing |
+| **Jest** | Frontend testing |
+| **ESLint** | Code linting |
+| **PostCSS** | CSS processing |
+| **Autoprefixer** | CSS vendor prefixes |
 
 ---
 
@@ -447,6 +619,52 @@ Chi tiết đầy đủ xem tại: `backend/routes/`
 
 ---
 
+## 📊 Database Models
+
+Dự án sử dụng **26 database models**:
+
+| Model | Mô tả |
+|-------|-------|
+| `User` | Users với roles, gamification, social features |
+| `Post` | Blog posts với categories, SEO, collaboration |
+| `Comment` | Nested comments với moderation |
+| `Tour` | Tour listings với full details |
+| `Booking` | Tour bookings với payment tracking |
+| `BookingParticipant` | Individual booking participants |
+| `BookingItinerary` | Booking-specific itineraries |
+| `TourAssignment` | Tour guide assignments |
+| `TourProgress` | Tour checkpoint tracking |
+| `TourItinerary` | Tour day-by-day plans |
+| `TourMemberLocation` | Real-time member locations |
+| `Location` | Map locations database |
+| `Chat` | Direct messages |
+| `GroupChat` | Group chat rooms |
+| `Story` | 24-hour stories |
+| `NFT` | Achievement NFTs |
+| `Notification` | User notifications |
+| `FriendRequest` | Friend request management |
+| `Friendship` | Friend relationships |
+| `Report` | Content reports |
+| `Contact` | Support tickets |
+| `BannedKeyword` | Content moderation keywords |
+| `UserBehavior` | Analytics tracking |
+| `UserPreferences` | User settings |
+| `UserSettings` | Privacy/notification settings |
+| `SellerTourGuide` | Seller-guide relationships |
+
+---
+
+## 📈 Project Statistics
+
+- **26** Database Models
+- **24** Route Files (API Endpoints)  
+- **50+** Backend Dependencies
+- **30+** Frontend Dependencies
+- **6** User Roles
+- **20+** Major Features
+
+---
+
 ## 📖 Tài liệu tham khảo
 
 - **[QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md)** - Hướng dẫn khởi động nhanh
@@ -516,5 +734,7 @@ Cảm ơn tất cả các thư viện và công cụ mã nguồn mở đã đư�
 **⭐ Nếu bạn thấy dự án hữu ích, hãy cho một Star nhé! ⭐**
 
 Made with ❤️ by VieGo Team
+
+*Cập nhật: 01/01/2026*
 
 </div>
