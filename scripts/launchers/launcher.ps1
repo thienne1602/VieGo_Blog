@@ -4,8 +4,16 @@ Add-Type -AssemblyName System.Drawing
 
 $script:backendProcess = $null
 $script:frontendProcesses = @()
+$script:tunnelProcesses = @()
 $script:isRunning = $false
+$script:isDemoMode = $false
+$script:backendTunnelUrl = ""
+$script:frontendTunnelUrl = ""
+$script:shareUrlFull = ""
 $script:projectPath = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path))
+
+# Load System.Web for URL encoding
+Add-Type -AssemblyName System.Web
 
 # Create Form
 $form = New-Object System.Windows.Forms.Form
@@ -84,6 +92,32 @@ $killPortsButton.Location = New-Object System.Drawing.Point(340, 55)
 $killPortsButton.Size = New-Object System.Drawing.Size(120, 35)
 $configPanel.Controls.Add($killPortsButton)
 
+# Demo Mode Section (Remote Access)
+$demoLabel = New-Object System.Windows.Forms.Label
+$demoLabel.Text = 'Demo Mode (Remote Access):'
+$demoLabel.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
+$demoLabel.ForeColor = [System.Drawing.Color]::White
+$demoLabel.Location = New-Object System.Drawing.Point(520, 15)
+$demoLabel.AutoSize = $true
+$configPanel.Controls.Add($demoLabel)
+
+$demoCheckbox = New-Object System.Windows.Forms.CheckBox
+$demoCheckbox.Text = 'Enable (Share via Internet)'
+$demoCheckbox.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$demoCheckbox.ForeColor = [System.Drawing.Color]::FromArgb(34, 197, 94)
+$demoCheckbox.Location = New-Object System.Drawing.Point(520, 45)
+$demoCheckbox.Size = New-Object System.Drawing.Size(200, 25)
+$demoCheckbox.Checked = $false
+$configPanel.Controls.Add($demoCheckbox)
+
+$demoInfoLabel = New-Object System.Windows.Forms.Label
+$demoInfoLabel.Text = '(Cloudflare Tunnel - Fast & No Password!)'
+$demoInfoLabel.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+$demoInfoLabel.ForeColor = [System.Drawing.Color]::FromArgb(34, 197, 94)
+$demoInfoLabel.Location = New-Object System.Drawing.Point(520, 70)
+$demoInfoLabel.AutoSize = $true
+$configPanel.Controls.Add($demoInfoLabel)
+
 $form.Controls.Add($configPanel)
 
 # Status Panel
@@ -96,9 +130,18 @@ $statusLabel = New-Object System.Windows.Forms.Label
 $statusLabel.Text = 'Status: Not started'
 $statusLabel.Font = New-Object System.Drawing.Font('Segoe UI', 14, [System.Drawing.FontStyle]::Bold)
 $statusLabel.ForeColor = [System.Drawing.Color]::Gray
-$statusLabel.Location = New-Object System.Drawing.Point(30, 25)
+$statusLabel.Location = New-Object System.Drawing.Point(30, 10)
 $statusLabel.AutoSize = $true
 $statusPanel.Controls.Add($statusLabel)
+
+# Tunnel URLs Label
+$tunnelUrlLabel = New-Object System.Windows.Forms.Label
+$tunnelUrlLabel.Text = ''
+$tunnelUrlLabel.Font = New-Object System.Drawing.Font('Consolas', 9)
+$tunnelUrlLabel.ForeColor = [System.Drawing.Color]::FromArgb(34, 197, 94)
+$tunnelUrlLabel.Location = New-Object System.Drawing.Point(30, 40)
+$tunnelUrlLabel.Size = New-Object System.Drawing.Size(940, 25)
+$statusPanel.Controls.Add($tunnelUrlLabel)
 
 $form.Controls.Add($statusPanel)
 
@@ -142,9 +185,20 @@ $stopButton.BackColor = [System.Drawing.Color]::Red
 $stopButton.ForeColor = [System.Drawing.Color]::White
 $stopButton.FlatStyle = 'Flat'
 $stopButton.Location = New-Object System.Drawing.Point(260, 5)
-$stopButton.Size = New-Object System.Drawing.Size(240, 50)
+$stopButton.Size = New-Object System.Drawing.Size(200, 50)
 $stopButton.Enabled = $false
 $buttonsPanel.Controls.Add($stopButton)
+
+$copyUrlButton = New-Object System.Windows.Forms.Button
+$copyUrlButton.Text = 'COPY SHARE URL'
+$copyUrlButton.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
+$copyUrlButton.BackColor = [System.Drawing.Color]::FromArgb(59, 130, 246)
+$copyUrlButton.ForeColor = [System.Drawing.Color]::White
+$copyUrlButton.FlatStyle = 'Flat'
+$copyUrlButton.Location = New-Object System.Drawing.Point(480, 5)
+$copyUrlButton.Size = New-Object System.Drawing.Size(200, 50)
+$copyUrlButton.Enabled = $false
+$buttonsPanel.Controls.Add($copyUrlButton)
 
 $exitButton = New-Object System.Windows.Forms.Button
 $exitButton.Text = 'EXIT'
@@ -166,6 +220,156 @@ function Add-Log {
     $logTextBox.ScrollToCaret()
     [System.Windows.Forms.Application]::DoEvents()
 }
+
+# Cloudflare Tunnel Functions
+function Check-Cloudflared {
+    try {
+        $cfPath = Get-Command cloudflared -ErrorAction SilentlyContinue
+        if ($cfPath) {
+            return $cfPath.Source
+        }
+        # Check common install locations
+        $paths = @(
+            "$env:USERPROFILE\cloudflared\cloudflared.exe",
+            "$env:ProgramFiles\Cloudflare\cloudflared.exe",
+            "$env:LOCALAPPDATA\Programs\cloudflared\cloudflared.exe",
+            "C:\cloudflared\cloudflared.exe"
+        )
+        foreach ($p in $paths) {
+            if (Test-Path $p) {
+                return $p
+            }
+        }
+        return $null
+    } catch {
+        return $null
+    }
+}
+
+function Install-Cloudflared {
+    Add-Log "Installing Cloudflare Tunnel (cloudflared)..."
+    try {
+        # Download cloudflared for Windows
+        $downloadUrl = "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe"
+        $installPath = "$env:USERPROFILE\cloudflared"
+        $exePath = "$installPath\cloudflared.exe"
+        
+        # Create directory
+        if (-not (Test-Path $installPath)) {
+            New-Item -ItemType Directory -Path $installPath -Force | Out-Null
+        }
+        
+        Add-Log "Downloading cloudflared from GitHub..."
+        Add-Log "This may take a moment..."
+        
+        # Download with progress
+        $webClient = New-Object System.Net.WebClient
+        $webClient.DownloadFile($downloadUrl, $exePath)
+        
+        if (Test-Path $exePath) {
+            # Add to PATH for current session
+            $env:PATH = "$installPath;$env:PATH"
+            Add-Log "Cloudflared installed successfully!"
+            Add-Log "Location: $exePath"
+            return $exePath
+        } else {
+            Add-Log "ERROR: Download failed"
+            return $null
+        }
+    } catch {
+        Add-Log "ERROR: Failed to install cloudflared - $($_.Exception.Message)"
+        return $null
+    }
+}
+
+function Start-CloudflareTunnel {
+    param([int]$port, [string]$name, [string]$cloudflaredPath)
+    
+    Add-Log "Starting Cloudflare tunnel for $name on port $port..."
+    
+    # Create temp files for output redirection
+    $tempOut = "$env:TEMP\cloudflared_${name}_stdout.log"
+    $tempErr = "$env:TEMP\cloudflared_${name}_stderr.log"
+    Remove-Item $tempOut, $tempErr -Force -ErrorAction SilentlyContinue
+    
+    # Start cloudflared with output redirection
+    $cfProcess = Start-Process -FilePath $cloudflaredPath -ArgumentList "tunnel","--url","http://localhost:$port" -RedirectStandardOutput $tempOut -RedirectStandardError $tempErr -PassThru -WindowStyle Hidden
+    $script:tunnelProcesses += $cfProcess
+    
+    # Wait for URL (cloudflared outputs to stderr)
+    $tunnelUrl = ""
+    $maxAttempts = 60  # 30 seconds max
+    $attempt = 0
+    
+    Add-Log "Waiting for Cloudflare tunnel to establish..."
+    
+    while ($attempt -lt $maxAttempts -and $tunnelUrl -eq "") {
+        Start-Sleep -Milliseconds 500
+        
+        # Read from stderr file where cloudflared writes
+        if (Test-Path $tempErr) {
+            try {
+                $content = Get-Content $tempErr -Raw -ErrorAction SilentlyContinue
+                if ($content) {
+                    # Look for the tunnel URL pattern
+                    if ($content -match "(https://[a-zA-Z0-9-]+\.trycloudflare\.com)") {
+                        $tunnelUrl = $Matches[1]
+                    }
+                }
+            } catch {
+                # Ignore read errors - file might be locked
+            }
+        }
+        
+        $attempt++
+        
+        # Show progress every 2 seconds
+        if ($attempt % 4 -eq 0 -and $tunnelUrl -eq "") {
+            Add-Log "Still connecting... ($([math]::Round($attempt/2))s)"
+        }
+    }
+    
+    if ($tunnelUrl -ne "") {
+        Add-Log "$name tunnel ready: $tunnelUrl"
+        return $tunnelUrl
+    } else {
+        Add-Log "WARNING: Could not get Cloudflare tunnel URL for $name"
+        
+        # Try to read error from file
+        if (Test-Path $tempErr) {
+            $content = Get-Content $tempErr -Raw -ErrorAction SilentlyContinue
+            if ($content) {
+                Add-Log "Cloudflared output: $($content.Substring(0, [Math]::Min(300, $content.Length)))..."
+            }
+        }
+        return ""
+    }
+}
+
+function Stop-Tunnels {
+    Add-Log "Stopping tunnels..."
+    foreach ($process in $script:tunnelProcesses) {
+        if ($process -and -not $process.HasExited) {
+            try { 
+                Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue 
+            } catch {}
+        }
+    }
+    $script:tunnelProcesses = @()
+    
+    # Also kill any cloudflared processes
+    try {
+        Get-Process -Name "cloudflared" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    } catch {}
+    
+    $script:backendTunnelUrl = ""
+    $script:frontendTunnelUrl = ""
+    $script:shareUrlFull = ""
+    $tunnelUrlLabel.Text = ""
+    $copyUrlButton.Enabled = $false
+}
+
+$script:tunnelPassword = ""
 
 function Check-And-Kill-Port {
     param([int]$port)
@@ -202,12 +406,32 @@ function Check-And-Kill-Port {
 }
 
 function Start-Servers {
-    param([int]$clientCount)
+    param([int]$clientCount, [bool]$demoMode)
     $script:isRunning = $true
+    $script:isDemoMode = $demoMode
     $startButton.Enabled = $false
     $stopButton.Enabled = $true
+    $demoCheckbox.Enabled = $false
     $statusLabel.Text = 'Status: Starting...'
     $statusLabel.ForeColor = [System.Drawing.Color]::Yellow
+
+    # Check Cloudflare Tunnel if demo mode enabled
+    if ($demoMode) {
+        Add-Log '=== DEMO MODE ENABLED - Remote Access ==='
+        Add-Log 'Using Cloudflare Tunnel (Fast & No Password Required!)'
+        
+        $cloudflaredPath = Check-Cloudflared
+        if (-not $cloudflaredPath) {
+            Add-Log 'Cloudflared not found. Installing...'
+            $cloudflaredPath = Install-Cloudflared
+            if (-not $cloudflaredPath) {
+                Add-Log 'ERROR: Cannot install Cloudflared. Continuing without demo mode.'
+                $script:isDemoMode = $false
+            }
+        } else {
+            Add-Log "Cloudflared found: $cloudflaredPath"
+        }
+    }
 
     Add-Log 'Checking and cleaning up ports...'
     # Check and kill processes using ports 3000-3010 (for frontend clients)
@@ -264,6 +488,60 @@ function Start-Servers {
         }
     }
     
+    # Start tunnels if demo mode enabled
+    if ($script:isDemoMode) {
+        Add-Log ''
+        Add-Log '=== Starting Cloudflare Tunnels ==='
+        
+        $cloudflaredPath = Check-Cloudflared
+        if ($cloudflaredPath) {
+            Start-Sleep -Seconds 2
+            
+            # Start backend tunnel
+            $script:backendTunnelUrl = Start-CloudflareTunnel -port 5000 -name "Backend API" -cloudflaredPath $cloudflaredPath
+            
+            Start-Sleep -Seconds 1
+            
+            # Start frontend tunnel
+            $script:frontendTunnelUrl = Start-CloudflareTunnel -port 3000 -name "Frontend" -cloudflaredPath $cloudflaredPath
+            
+            $script:tunnelPassword = "NOT REQUIRED"
+            
+            if ($script:frontendTunnelUrl -ne "") {
+                # Create share URL with backend parameter
+                $shareUrl = $script:frontendTunnelUrl
+                if ($script:backendTunnelUrl -ne "") {
+                    $encodedBackend = [System.Web.HttpUtility]::UrlEncode("$($script:backendTunnelUrl)/api")
+                    $shareUrl = "$($script:frontendTunnelUrl)?backend=$encodedBackend"
+                }
+                $script:shareUrlFull = $shareUrl
+                
+                $tunnelUrlLabel.Text = "URL: $($script:frontendTunnelUrl)  |  NO PASSWORD NEEDED!"
+                $tunnelUrlLabel.ForeColor = [System.Drawing.Color]::FromArgb(34, 197, 94)
+                $copyUrlButton.Enabled = $true
+                
+                Add-Log ''
+                Add-Log '=========================================='
+                Add-Log '  CLOUDFLARE TUNNEL READY!'
+                Add-Log '=========================================='
+                Add-Log ''
+                Add-Log "FRONTEND: $($script:frontendTunnelUrl)"
+                Add-Log "BACKEND:  $($script:backendTunnelUrl)"
+                Add-Log ''
+                Add-Log 'NO PASSWORD REQUIRED!'
+                Add-Log ''
+                Add-Log '*** SHARE THIS LINK: ***'
+                Add-Log "$shareUrl"
+                Add-Log ''
+                Add-Log 'Just send the link - instant access!'
+                Add-Log '=========================================='
+            } else {
+                Add-Log 'WARNING: Tunnels may not have started properly'
+                Add-Log 'Try stopping and starting again'
+            }
+        }
+    }
+    
     $statusLabel.Text = 'Status: Running'
     $statusLabel.ForeColor = [System.Drawing.Color]::Lime
     Add-Log 'Startup completed successfully!'
@@ -273,6 +551,11 @@ function Stop-Servers {
     if (-not $script:isRunning) { return }
 
     Add-Log 'Stopping servers...'
+
+    # Stop tunnels first
+    if ($script:isDemoMode) {
+        Stop-Tunnels
+    }
 
     foreach ($process in $script:frontendProcesses) {
         if ($process -and -not $process.HasExited) {
@@ -287,8 +570,12 @@ function Stop-Servers {
     $script:backendProcess = $null
 
     $script:isRunning = $false
+    $script:isDemoMode = $false
     $startButton.Enabled = $true
     $stopButton.Enabled = $false
+    $demoCheckbox.Enabled = $true
+    $copyUrlButton.Enabled = $false
+    $tunnelUrlLabel.Text = ""
     $statusLabel.Text = 'Status: Stopped'
     $statusLabel.ForeColor = [System.Drawing.Color]::Red
     Add-Log 'All servers stopped'
@@ -370,10 +657,34 @@ $killPortsButton.Add_Click({
 
 $startButton.Add_Click({
     $clientCount = [int]$clientNumeric.Value
-    Start-Servers -clientCount $clientCount
+    $demoMode = $demoCheckbox.Checked
+    Start-Servers -clientCount $clientCount -demoMode $demoMode
 })
 
 $stopButton.Add_Click({ Stop-Servers })
+
+$copyUrlButton.Add_Click({
+    if ($script:shareUrlFull -ne "") {
+        $shareText = @"
+===== VieGo Blog Demo =====
+
+FRONTEND URL: $($script:frontendTunnelUrl)
+BACKEND URL:  $($script:backendTunnelUrl)
+
+NO PASSWORD REQUIRED! (Cloudflare Tunnel)
+
+=== HOW TO ACCESS ===
+1. Click the SHARE LINK below
+2. Website loads instantly!
+
+=== SHARE LINK ===
+$($script:shareUrlFull)
+"@
+        [System.Windows.Forms.Clipboard]::SetText($shareText)
+        Add-Log "Share info copied to clipboard!"
+        [System.Windows.Forms.MessageBox]::Show("Share URL copied!`n`nJust send this link:`n$($script:shareUrlFull)`n`nNO PASSWORD NEEDED!`n`nPowered by Cloudflare Tunnel", "Copied!", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }
+})
 
 $exitButton.Add_Click({
     if ($script:isRunning) { Stop-Servers }

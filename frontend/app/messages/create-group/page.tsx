@@ -29,7 +29,7 @@ export default function CreateGroupPage() {
           }
 
           const API_BASE_URL =
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+            getAPIURL();
           const response = await fetch(`${API_BASE_URL}/social/friends`, {
             headers: {
               Authorization: `Bearer ${token}`,

@@ -73,7 +73,7 @@ const PostDetailPage = () => {
       setError(null);
       console.log("Fetching post with slug:", slug);
 
-      const response = await fetch(`http://localhost:5000/api/posts/${slug}`);
+      const response = await fetch(`${getAPIURL()}/posts/${slug}`);
       console.log("Post response status:", response.status);
 
       if (!response.ok) {
@@ -98,7 +98,7 @@ const PostDetailPage = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/social/likes/check/${slug}`,
+        `${getAPIURL()}/social/likes/check/${slug}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -118,7 +118,7 @@ const PostDetailPage = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/social/bookmarks/check/${slug}`,
+        `${getAPIURL()}/social/bookmarks/check/${slug}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -232,7 +232,7 @@ const PostDetailPage = () => {
     try {
       const endpoint = isLiked ? "DELETE" : "POST";
       const response = await fetch(
-        `http://localhost:5000/api/social/likes/post/${slug}`,
+        `${getAPIURL()}/social/likes/post/${slug}`,
         {
           method: endpoint,
           headers: { Authorization: `Bearer ${token}` },
@@ -262,7 +262,7 @@ const PostDetailPage = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/social/bookmarks/${slug}`,
+        `${getAPIURL()}/social/bookmarks/${slug}`,
         {
           method: isBookmarked ? "DELETE" : "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -281,7 +281,7 @@ const PostDetailPage = () => {
     try {
       const token = localStorage.getItem("access_token");
       if (token) {
-        await fetch(`http://localhost:5000/api/posts/${slug}/share`, {
+        await fetch(`${getAPIURL()}/posts/${slug}/share`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -313,7 +313,7 @@ const PostDetailPage = () => {
 
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://localhost:5000/api/posts/${slug}`, {
+      const response = await fetch(`${getAPIURL()}/posts/${slug}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

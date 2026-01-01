@@ -107,8 +107,7 @@ export default function UserProfileNew() {
         try {
           // Always get fresh token from localStorage
           const token = apiClient.getToken();
-          const API_BASE_URL =
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+          const API_BASE_URL = getAPIURL();
 
           console.log(
             "[Profile] Token check:",
@@ -194,8 +193,7 @@ export default function UserProfileNew() {
         return;
       }
 
-      const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE_URL = getAPIURL();
 
       const response = await fetch(
         `${API_BASE_URL}/social/friends/check/${viewingUserId}?t=${Date.now()}`,
@@ -232,8 +230,7 @@ export default function UserProfileNew() {
         return;
       }
 
-      const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE_URL = getAPIURL();
 
       const response = await fetch(
         `${API_BASE_URL}/social/friends/reject/${friendshipStatus.request_id}`,
@@ -293,8 +290,7 @@ export default function UserProfileNew() {
         return;
       }
 
-      const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE_URL = getAPIURL();
 
       if (friendshipStatus?.is_friend) {
         // Unfriend - remove friend
@@ -415,8 +411,7 @@ export default function UserProfileNew() {
 
       setLoadingData(true);
       const token = apiClient.getToken();
-      const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE_URL = getAPIURL();
 
       try {
         if (activeTab === "posts") {
@@ -489,8 +484,7 @@ export default function UserProfileNew() {
         setLoadingTours(true);
         try {
           const token = apiClient.getToken();
-          const API_BASE_URL =
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+          const API_BASE_URL = getAPIURL();
           const response = await fetch(
             `${API_BASE_URL}/tours/seller/${viewingUserId}`,
             {
@@ -593,7 +587,7 @@ export default function UserProfileNew() {
                   ? displayUser.cover_image_url
                   : `${
                       process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-                      "http://localhost:5000"
+                      getBaseURL()
                     }${displayUser.cover_image_url}`
               }
               alt="Cover"
@@ -625,9 +619,7 @@ export default function UserProfileNew() {
                     if (result.success) {
                       // Refresh user data
                       const token = apiClient.getToken();
-                      const API_BASE_URL =
-                        process.env.NEXT_PUBLIC_API_URL ||
-                        "http://localhost:5000/api";
+                      const API_BASE_URL = getAPIURL();
                       const profileResponse = await fetch(
                         `${API_BASE_URL}/auth/profile`,
                         {
@@ -700,7 +692,7 @@ export default function UserProfileNew() {
                               process.env.NEXT_PUBLIC_API_URL?.replace(
                                 "/api",
                                 ""
-                              ) || "http://localhost:5000"
+                              ) || getBaseURL()
                             }${displayUser.avatar_url}`
                           : `https://ui-avatars.com/api/?name=${encodeURIComponent(
                               displayUser.full_name ||
@@ -743,9 +735,7 @@ export default function UserProfileNew() {
                           if (result.success) {
                             // Refresh user data
                             const token = apiClient.getToken();
-                            const API_BASE_URL =
-                              process.env.NEXT_PUBLIC_API_URL ||
-                              "http://localhost:5000/api";
+                            const API_BASE_URL = getAPIURL();
                             const profileResponse = await fetch(
                               `${API_BASE_URL}/auth/profile`,
                               {
@@ -1259,7 +1249,7 @@ export default function UserProfileNew() {
                     if (imagePath.startsWith("http")) return imagePath;
                     const baseUrl =
                       process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-                      "http://localhost:5000";
+                      getBaseURL();
                     return `${baseUrl}${imagePath}`;
                   };
 
@@ -1440,7 +1430,7 @@ export default function UserProfileNew() {
                                     process.env.NEXT_PUBLIC_API_URL?.replace(
                                       "/api",
                                       ""
-                                    ) || "http://localhost:5000"
+                                    ) || getBaseURL()
                                   }${
                                     tour.featured_image ||
                                     "/uploads/default-tour.jpg"

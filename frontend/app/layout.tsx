@@ -12,7 +12,9 @@ import DevCacheNotice from "@/components/common/DevCacheNotice";
 import Chatbot from "@/components/common/Chatbot";
 import I18nProvider from "@/components/I18nProvider";
 import ClientLayout from "@/components/ClientLayout";
+import TunnelDetector from "@/components/common/TunnelDetector";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
 
 const poppins = Poppins({
   subsets: ["latin", "latin-ext"],
@@ -76,6 +78,9 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://storage.googleapis.com" />
       </head>
       <body className="min-h-screen bg-neutral-100 dark:bg-gray-900 font-poppins transition-colors duration-300">
+        <Suspense fallback={null}>
+          <TunnelDetector />
+        </Suspense>
         <I18nProvider>
           <ClientLayout>{children}</ClientLayout>
         </I18nProvider>

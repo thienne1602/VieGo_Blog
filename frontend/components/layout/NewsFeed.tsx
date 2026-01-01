@@ -14,6 +14,7 @@ import PostCard from "@/components/blog/PostCard";
 import SkeletonLoader from "@/components/common/SkeletonLoader";
 import { useAuth } from "@/lib/AuthContext";
 import { getAccessToken } from "@/lib/storage-utils";
+import { getBaseURL, getAPIURL, getUploadURL } from "@/lib/apiConfig";
 import {
   X,
   Video,
@@ -137,7 +138,7 @@ const NewsFeed = () => {
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
       const response = await fetch(
-        `http://localhost:5000/api/posts?page=${pageNum}&per_page=10`,
+        `${getAPIURL()}/posts?page=${pageNum}&per_page=10`,
         {
           method: "GET",
           headers,
@@ -247,7 +248,7 @@ const NewsFeed = () => {
         headers.Authorization = `Bearer ${token}`;
       }
 
-      const response = await fetch("http://localhost:5000/api/stories", {
+      const response = await fetch(`${getAPIURL()}/stories`, {
         method: "GET",
         headers,
         credentials: "include",
@@ -278,7 +279,7 @@ const NewsFeed = () => {
               newUserStoriesMap[user.id] = userStoriesList.map(
                 (story: any) => ({
                   storyId: story.id,
-                  mediaUrl: `http://localhost:5000${story.media_url}`,
+                  mediaUrl: `${getBaseURL()}${story.media_url}`,
                   mediaType: story.media_type,
                   content: story.content || "",
                   viewCount: story.view_count || 0,
@@ -298,7 +299,7 @@ const NewsFeed = () => {
                     : "from-blue-400 to-cyan-400",
                 viewers: latestStory.view_count || "0",
                 storyId: latestStory.id,
-                mediaUrl: `http://localhost:5000${latestStory.media_url}`,
+                mediaUrl: `${getBaseURL()}${latestStory.media_url}`,
                 mediaType: latestStory.media_type,
                 userId: user.id, // Add userId to track which user's stories to load
               });
@@ -459,7 +460,7 @@ const NewsFeed = () => {
         formData.append("content", storyContent);
       }
 
-      const response = await fetch("http://localhost:5000/api/stories", {
+      const response = await fetch(`${getAPIURL()}/stories`, {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         credentials: "include",
@@ -514,7 +515,7 @@ const NewsFeed = () => {
         const formData = new FormData();
         formData.append("file", files[i]);
 
-        const response = await fetch("http://localhost:5000/api/upload/image", {
+        const response = await fetch(`${getAPIURL()}/upload/image`, {
           method: "POST",
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
           credentials: "include",
@@ -528,7 +529,7 @@ const NewsFeed = () => {
 
         if (response.ok) {
           const data = await response.json();
-          uploadedUrls.push(`http://localhost:5000${data.url}`);
+          uploadedUrls.push(`${getBaseURL()}${data.url}`);
         } else {
           let errMsg = "Có lỗi xảy ra khi upload ảnh";
           try {
@@ -568,7 +569,7 @@ const NewsFeed = () => {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/api/posts", {
+      const response = await fetch(`${getAPIURL()}/posts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -790,7 +791,7 @@ const NewsFeed = () => {
       }
 
       // Track view
-      fetch(`http://localhost:5000/api/stories/${storyId}/view`, {
+      fetch(`${getAPIURL()}/stories/${storyId}/view`, {
         method: "POST",
         headers,
         credentials: "include",
@@ -1062,7 +1063,9 @@ const NewsFeed = () => {
                 <label className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200">
                   <ImageIcon className="w-5 h-5 text-gray-600" />
                   <span className="text-sm text-gray-600">
-                    {uploadingPostImages ? t("newsfeed.uploading") : t("newsfeed.addImages")}
+                    {uploadingPostImages
+                      ? t("newsfeed.uploading")
+                      : t("newsfeed.addImages")}
                   </span>
                   <input
                     ref={postImageInputRef}

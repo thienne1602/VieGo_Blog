@@ -14,6 +14,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
 import { useRouter } from "next/navigation";
+import { getBaseURL, getAPIURL } from "@/lib/apiConfig";
 
 interface Story {
   id: number;
@@ -62,7 +63,7 @@ export default function StoriesSection() {
   const fetchStories = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/api/stories");
+      const response = await fetch(`${getAPIURL()}/stories`);
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -93,7 +94,7 @@ export default function StoriesSection() {
 
   const viewStory = async (storyId: number) => {
     try {
-      await fetch(`http://localhost:5000/api/stories/${storyId}/view`, {
+      await fetch(`${getAPIURL()}/stories/${storyId}/view`, {
         method: "POST",
       });
     } catch (err) {
@@ -266,7 +267,7 @@ export default function StoriesSection() {
   const getMediaUrl = (url: string) => {
     if (!url) return "";
     if (url.startsWith("http")) return url;
-    return `http://localhost:5000${url}`;
+    return `${getBaseURL()}${url}`;
   };
 
   const formatTimeAgo = (dateString: string) => {

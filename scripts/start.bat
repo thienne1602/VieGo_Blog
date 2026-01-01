@@ -28,4 +28,4 @@ if errorlevel 1 (
     echo Try running directly: powershell -ExecutionPolicy Bypass -File launchers\launcher.ps1
     pause
 )
-
+LocalTunnel 

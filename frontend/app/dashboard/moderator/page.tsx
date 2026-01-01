@@ -36,7 +36,7 @@ import SuccessPopup from "@/components/common/SuccessPopup";
 import { getStorageKey } from "@/lib/api";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+  getAPIURL();
 
 // Toast Component
 const Toast = ({ message, type = "success", onClose }: any) => (

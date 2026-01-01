@@ -18,6 +18,7 @@ import {
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
 import Image from "next/image";
+import { getBaseURL, getAPIURL } from "@/lib/apiConfig";
 
 // Helper to get token with port-specific key
 const getToken = (): string | null => {
@@ -115,7 +116,7 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/social/likes/post/${postIdentifier}`,
+        `${getAPIURL()}/social/likes/post/${postIdentifier}`,
         {
           method: isLiked ? "DELETE" : "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -144,7 +145,7 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/social/bookmarks/${postIdentifier}`,
+        `${getAPIURL()}/social/bookmarks/${postIdentifier}`,
         {
           method: isBookmarked ? "DELETE" : "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -189,13 +190,10 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
     if (!token) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/posts/${post.slug}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`${getAPIURL()}/posts/${post.slug}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.ok) {
         alert("Đã xóa bài viết thành công!");
@@ -409,7 +407,7 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
               if (imageUrl && !imageUrl.startsWith("http")) {
                 const baseUrl =
                   process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-                  "http://localhost:5000";
+                  getBaseURL();
                 safeImageUrl = `${baseUrl}${imageUrl}`;
               } else if (!imageUrl) {
                 safeImageUrl = fallbackImage;
@@ -438,9 +436,7 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
                         ? "(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 800px"
                         : "(max-width: 768px) 50vw, 25vw"
                     }
-                    unoptimized={safeImageUrl.startsWith(
-                      "http://localhost:5000"
-                    )}
+                    unoptimized={safeImageUrl.startsWith(getBaseURL())}
                     onClick={(e) => {
                       e.stopPropagation();
                       // Could add lightbox/modal here
@@ -557,13 +553,10 @@ function PostCard({ post, onOpenModal }: PostCardProps) {
             }
             const postIdentifier = post.id.toString();
             try {
-              await fetch(
-                `http://localhost:5000/api/posts/${postIdentifier}/share`,
-                {
-                  method: "POST",
-                  headers: { Authorization: `Bearer ${token}` },
-                }
-              );
+              await fetch(`${getAPIURL()}/posts/${postIdentifier}/share`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+              });
               if (navigator.share) {
                 await navigator.share({
                   title: post.title,

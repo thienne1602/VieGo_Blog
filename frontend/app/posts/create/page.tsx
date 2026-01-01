@@ -125,7 +125,7 @@ const CreatePostPage = () => {
         formDataUpload.append("file", files[i]);
 
         const token = localStorage.getItem("access_token");
-        const response = await fetch("http://localhost:5000/api/upload/image", {
+        const response = await fetch(`${getAPIURL()}/upload/image`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -136,7 +136,7 @@ const CreatePostPage = () => {
 
         if (response.ok) {
           const data = await response.json();
-          uploadedUrls.push(`http://localhost:5000${data.url}`);
+          uploadedUrls.push(`${getBaseURL()}${data.url}`);
         }
       }
 
@@ -172,7 +172,7 @@ const CreatePostPage = () => {
       }
 
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://localhost:5000/api/posts", {
+      const response = await fetch(`${getAPIURL()}/posts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -188,17 +188,17 @@ const CreatePostPage = () => {
       }
 
       const data = await response.json();
-      
+
       // If status is published, clear cache and redirect to home to trigger refetch
-      if (status === 'published') {
+      if (status === "published") {
         // Clear posts cache to force refetch
-        apiClient.clearCacheFor('/posts');
+        apiClient.clearCacheFor("/posts");
         // Store a flag to trigger refetch in NewsFeed
-        localStorage.setItem('posts_updated', Date.now().toString());
+        localStorage.setItem("posts_updated", Date.now().toString());
         // Show success message
         alert("Bài viết đã được đăng thành công!");
         // Redirect to home to see the new post (don't redirect to post detail immediately)
-        router.push('/');
+        router.push("/");
       } else {
         // For drafts, just go to post detail
         router.push(`/posts/${data.post.slug}`);

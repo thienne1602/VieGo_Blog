@@ -263,7 +263,7 @@ export default function SellerBookingDetailPage({ params }: any) {
     setExportLoading(true);
     try {
       const token = api.getToken();
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE_URL = getAPIURL();
       const url = `${API_BASE_URL}/booking-participants/booking/${bookingId}/export?format=${format}`;
       
       const response = await fetch(url, {

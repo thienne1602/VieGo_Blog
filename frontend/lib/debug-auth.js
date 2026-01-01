@@ -86,7 +86,7 @@ if (user) {
 // 4. Test API call
 console.log("\n4. Testing Admin API Call:");
 if (accessToken) {
-  fetch("http://localhost:5000/api/admin/stats/overview", {
+  fetch(`${getAPIURL()}`/admin/stats/overview", {
     headers: {
       Authorization: "Bearer " + accessToken,
     },

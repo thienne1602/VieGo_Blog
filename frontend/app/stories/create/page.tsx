@@ -11,6 +11,7 @@ import {
   X,
   Send,
 } from "lucide-react";
+import { getAPIURL } from "@/lib/apiConfig";
 
 export default function CreateStoryPage() {
   const router = useRouter();
@@ -70,7 +71,7 @@ export default function CreateStoryPage() {
         formData.append("content", content);
       }
 
-      const response = await fetch("http://localhost:5000/api/stories", {
+      const response = await fetch(`${getAPIURL()}/stories`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -7,7 +7,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import api from "./api";
+import api, { getBaseURL } from "./api";
 
 interface User {
   id: number;
@@ -223,9 +223,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     onComplete?: () => void
   ) => {
     try {
-      // Normalize API URL: remove /api suffix if present since we add it in path
-      let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      apiUrl = apiUrl.replace(/\/api$/, "");
+      // Get base URL (handles tunnel mode automatically)
+      const apiUrl = getBaseURL();
       console.log("🔍 Verifying token...");
       console.log(`📤 Sending request to: ${apiUrl}/api/auth/verify-token`);
       console.log(
@@ -413,9 +412,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     password: string
   ): Promise<boolean> => {
     try {
-      // Normalize API URL: remove /api suffix if present since we add it in path
-      let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      apiUrl = apiUrl.replace(/\/api$/, "");
+      // Get base URL (handles tunnel mode automatically)
+      const apiUrl = getBaseURL();
+      console.log("[Auth] Login using API URL:", apiUrl);
 
       // Add timeout using AbortController
       const controller = new AbortController();
@@ -500,7 +499,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Handle timeout errors
       if (error.name === "AbortError" || error instanceof TypeError) {
-        console.error("❌ Login timeout - backend may not be running");
+        const tunnelMode =
+          typeof window !== "undefined" &&
+          (window.location.hostname.includes("trycloudflare.com") ||
+            window.location.hostname.includes("loca.lt") ||
+            window.location.hostname.includes("ngrok"));
+        const hasBackendUrl = localStorage.getItem("viego_backend_tunnel_url");
+
+        if (tunnelMode && !hasBackendUrl) {
+          console.error(
+            "❌ Tunnel mode without backend URL! Please use the full share URL with ?backend= parameter"
+          );
+        } else {
+          console.error("❌ Login timeout - backend may not be running");
+        }
       }
 
       return false;

@@ -84,9 +84,9 @@ class TourMemberLocation(db.Model):
             'is_active': self.is_active,
             'is_sos': self.is_sos,
             'sos_message': self.sos_message,
-            'location_timestamp': self.location_timestamp.isoformat() if self.location_timestamp else None,
-            'server_timestamp': self.server_timestamp.isoformat() if self.server_timestamp else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'location_timestamp': (self.location_timestamp.isoformat() + 'Z') if self.location_timestamp else None,
+            'server_timestamp': (self.server_timestamp.isoformat() + 'Z') if self.server_timestamp else None,
+            'updated_at': (self.updated_at.isoformat() + 'Z') if self.updated_at else None
         }
         
         if include_user and self.user:

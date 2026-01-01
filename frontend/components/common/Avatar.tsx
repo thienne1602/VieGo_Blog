@@ -52,7 +52,7 @@ export const Avatar: React.FC<AvatarProps> = ({
       height={size}
       className={`rounded-full object-cover ${className}`}
       onError={handleError}
-      unoptimized={imgSrc.startsWith("http://localhost:5000")}
+      unoptimized={imgSrc.startsWith(getBaseURL())}
     />
   );
 };

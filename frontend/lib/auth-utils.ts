@@ -150,7 +150,7 @@ export const authUtils = {
   async getAdminStats(): Promise<any> {
     try {
       const response = await this.fetchWithAuth(
-        "http://localhost:5000/api/admin/stats/overview"
+        `${getAPIURL()}`/admin/stats/overview"
       );
 
       if (!response.ok) {

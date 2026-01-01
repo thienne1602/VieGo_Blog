@@ -15,6 +15,7 @@ import {
 import { useAuth } from "@/lib/AuthContext";
 import ImageLightbox from "./ImageLightbox";
 import CommentSection from "@/components/blog/CommentSection";
+import { getAPIURL } from "@/lib/apiConfig";
 
 // Helper to get token with port-specific key
 const getToken = (): string | null => {
@@ -70,7 +71,7 @@ const PostModal = ({ slug, onClose }: PostModalProps) => {
 
   const fetchPost = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/posts/${slug}`);
+      const response = await fetch(`${getAPIURL()}/posts/${slug}`);
       if (response.ok) {
         const resp = await response.json();
         const data = resp.post || resp; // backend returns { post: { ... } }
@@ -109,7 +110,7 @@ const PostModal = ({ slug, onClose }: PostModalProps) => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/social/likes/check/${slug}`,
+        `${getAPIURL()}/social/likes/check/${slug}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.ok) {
@@ -127,7 +128,7 @@ const PostModal = ({ slug, onClose }: PostModalProps) => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/social/bookmarks/check/${slug}`,
+        `${getAPIURL()}/social/bookmarks/check/${slug}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.ok) {
@@ -144,13 +145,10 @@ const PostModal = ({ slug, onClose }: PostModalProps) => {
     if (!token) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/social/likes/post/${slug}`,
-        {
-          method: isLiked ? "DELETE" : "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`${getAPIURL()}/social/likes/post/${slug}`, {
+        method: isLiked ? "DELETE" : "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -168,13 +166,10 @@ const PostModal = ({ slug, onClose }: PostModalProps) => {
     if (!token) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/social/bookmarks/${slug}`,
-        {
-          method: isBookmarked ? "DELETE" : "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`${getAPIURL()}/social/bookmarks/${slug}`, {
+        method: isBookmarked ? "DELETE" : "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.ok) {
         setIsBookmarked(!isBookmarked);

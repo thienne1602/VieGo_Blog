@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Send, User } from "lucide-react";
 import CommentCard from "./CommentCard";
+import { getAPIURL } from "@/lib/apiConfig";
 
 // Helper to get token with port-specific key
 const getToken = (): string | null => {
@@ -61,9 +62,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const fetchComments = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `http://localhost:5000/api/comments/post/${postId}`
-      );
+      const response = await fetch(`${getAPIURL()}/comments/post/${postId}`);
 
       if (!response.ok) throw new Error("Failed to fetch comments");
 
@@ -86,7 +85,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     if (!newComment.trim()) return;
 
     try {
-      const response = await fetch("http://localhost:5000/api/comments/", {
+      const response = await fetch(`${getAPIURL()}/comments/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,7 +120,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     if (!replyContent.trim()) return;
 
     try {
-      const response = await fetch("http://localhost:5000/api/comments/", {
+      const response = await fetch(`${getAPIURL()}/comments/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -153,7 +152,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const loadReplies = async (commentId: number) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/comments/${commentId}/replies`
+        `${getAPIURL()}/comments/${commentId}/replies`
       );
 
       if (!response.ok) throw new Error("Failed to load replies");
@@ -184,7 +183,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/comments/${commentId}/like`,
+        `${getAPIURL()}/comments/${commentId}/like`,
         {
           method: "POST",
           headers: {

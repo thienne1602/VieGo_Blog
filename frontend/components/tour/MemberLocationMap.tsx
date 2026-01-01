@@ -391,9 +391,17 @@ export default function MemberLocationMap({
                 member.location_timestamp
                   ? `
                 <div style="font-size: 11px; color: #999;">
-                  ⏱️ ${new Date(member.location_timestamp).toLocaleTimeString(
-                    "vi-VN"
-                  )}
+                  ⏱️ ${(() => {
+                    let ts = member.location_timestamp;
+                    if (
+                      !ts.endsWith("Z") &&
+                      !ts.includes("+") &&
+                      !ts.includes("-", 10)
+                    ) {
+                      ts = ts + "Z";
+                    }
+                    return new Date(ts).toLocaleTimeString("vi-VN");
+                  })()}
                 </div>
               `
                   : ""
@@ -594,12 +602,28 @@ export default function MemberLocationMap({
   // Get time ago
   const getTimeAgo = (timestamp: string | null) => {
     if (!timestamp) return "N/A";
-    const diff = Date.now() - new Date(timestamp).getTime();
+
+    // Thêm 'Z' vào cuối nếu chưa có để đảm bảo parse đúng UTC
+    let utcTimestamp = timestamp;
+    if (
+      !timestamp.endsWith("Z") &&
+      !timestamp.includes("+") &&
+      !timestamp.includes("-", 10)
+    ) {
+      utcTimestamp = timestamp + "Z";
+    }
+
+    const diff = Date.now() - new Date(utcTimestamp).getTime();
     const minutes = Math.floor(diff / 60000);
+
+    // Nếu diff âm (timestamp trong tương lai do lỗi), trả về "Vừa xong"
+    if (diff < 0) return "Vừa xong";
     if (minutes < 1) return "Vừa xong";
     if (minutes < 60) return `${minutes} phút trước`;
     const hours = Math.floor(minutes / 60);
-    return `${hours} giờ trước`;
+    if (hours < 24) return `${hours} giờ trước`;
+    const days = Math.floor(hours / 24);
+    return `${days} ngày trước`;
   };
 
   // Debug logging

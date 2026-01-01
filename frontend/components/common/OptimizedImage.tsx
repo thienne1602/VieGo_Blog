@@ -87,7 +87,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
           isLoading ? "opacity-0" : "opacity-100"
         }`}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        unoptimized={imageSrc?.startsWith("http://localhost:5000")}
+        unoptimized={imageSrc?.startsWith(getBaseURL())}
       />
     </div>
   );

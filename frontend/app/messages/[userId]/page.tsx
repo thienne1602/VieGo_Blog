@@ -8,6 +8,7 @@ import { useSocket } from "@/lib/SocketContext";
 import { useChat } from "@/hooks/useChat";
 import { useTheme } from "@/lib/ThemeContext";
 import { getStorageKey } from "@/lib/api";
+import { getAPIURL, getBaseURL } from "@/lib/apiConfig";
 import {
   ArrowLeft,
   Send,
@@ -225,8 +226,7 @@ export default function ChatPage() {
       formData.append("file", file);
 
       const token = localStorage.getItem(getStorageKey("access_token"));
-      const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE_URL = getAPIURL();
 
       const response = await fetch(`${API_BASE_URL}/upload/image`, {
         method: "POST",
@@ -244,8 +244,7 @@ export default function ChatPage() {
       const data = await response.json();
 
       // Get base URL without /api
-      const baseURL =
-        API_BASE_URL.replace("/api", "") || "http://localhost:5000";
+      const baseURL = getBaseURL();
 
       // Set background to uploaded image URL
       const imageUrl = `${baseURL}${data.url}`;
@@ -340,8 +339,7 @@ export default function ChatPage() {
             return;
           }
 
-          const API_BASE_URL =
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+          const API_BASE_URL = getAPIURL();
           const response = await fetch(`${API_BASE_URL}/social/friends`, {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -377,8 +375,7 @@ export default function ChatPage() {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem(getStorageKey("access_token"));
-        const API_BASE_URL =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const API_BASE_URL = getAPIURL();
 
         if (isGroupChat && roomId) {
           // Fetch group info
@@ -918,8 +915,7 @@ export default function ChatPage() {
         return;
       }
 
-      const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE_URL = getAPIURL();
       const response = await fetch(
         `${API_BASE_URL}/social/friends/remove/${otherUserId}`,
         {
@@ -969,8 +965,7 @@ export default function ChatPage() {
 
     try {
       const token = localStorage.getItem(getStorageKey("access_token"));
-      const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE_URL = getAPIURL();
 
       let response: Response;
 
@@ -1425,8 +1420,7 @@ export default function ChatPage() {
       const token = localStorage.getItem(getStorageKey("access_token"));
       if (!token) return;
 
-      const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE_URL = getAPIURL();
       const response = await fetch(
         `${API_BASE_URL}/chat/conversations/${userId}`,
         {
@@ -2195,7 +2189,7 @@ export default function ChatPage() {
                                   process.env.NEXT_PUBLIC_API_URL?.replace(
                                     "/api",
                                     ""
-                                  ) || "http://localhost:5000"
+                                  ) || getBaseURL()
                                 }${msg.file_url}`}
                                 alt="Ảnh"
                                 className="rounded-lg max-w-full h-auto cursor-pointer"
@@ -2205,7 +2199,7 @@ export default function ChatPage() {
                                       process.env.NEXT_PUBLIC_API_URL?.replace(
                                         "/api",
                                         ""
-                                      ) || "http://localhost:5000"
+                                      ) || getBaseURL()
                                     }${msg.file_url}`,
                                     "_blank"
                                   );
@@ -2227,7 +2221,7 @@ export default function ChatPage() {
                                       process.env.NEXT_PUBLIC_API_URL?.replace(
                                         "/api",
                                         ""
-                                      ) || "http://localhost:5000"
+                                      ) || getBaseURL()
                                     }${msg.file_url}`
                                   )
                                 }
@@ -2437,12 +2431,10 @@ export default function ChatPage() {
                     className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
                     onClick={async () => {
                       // Call API to disband group
-                        const token = localStorage.getItem(
-                          getStorageKey("access_token")
-                        );
-                      const API_BASE_URL =
-                        process.env.NEXT_PUBLIC_API_URL ||
-                        "http://localhost:5000/api";
+                      const token = localStorage.getItem(
+                        getStorageKey("access_token")
+                      );
+                      const API_BASE_URL = getAPIURL();
                       try {
                         const response = await fetch(
                           `${API_BASE_URL}/chat/groups/${roomId}`,
@@ -2580,9 +2572,7 @@ export default function ChatPage() {
                       const token = localStorage.getItem(
                         getStorageKey("access_token")
                       );
-                      const API_BASE_URL =
-                        process.env.NEXT_PUBLIC_API_URL ||
-                        "http://localhost:5000/api";
+                      const API_BASE_URL = getAPIURL();
                       try {
                         const response = await fetch(
                           `${API_BASE_URL}/chat/groups/${roomId}/members`,
@@ -2673,13 +2663,12 @@ export default function ChatPage() {
                         const isCurrentUser = mUser.id === user?.id;
                         const isAdmin = member.role === "admin";
                         const canKick =
-                          user &&
-                          group &&
-                          // current user is admin and target is not admin
-                          group.created_by === user.id ||
+                          (user &&
+                            group &&
+                            // current user is admin and target is not admin
+                            group.created_by === user.id) ||
                           members.some(
-                            (m) =>
-                              m.user_id === user.id && m.role === "admin"
+                            (m) => m.user_id === user.id && m.role === "admin"
                           );
 
                         const showKickButton =
@@ -2741,9 +2730,11 @@ export default function ChatPage() {
                                   const confirmed = confirm(
                                     isLeave
                                       ? "Bạn có chắc muốn rời khỏi nhóm này?"
-                                      : `Bạn có chắc muốn xóa ${mUser.full_name ||
+                                      : `Bạn có chắc muốn xóa ${
+                                          mUser.full_name ||
                                           mUser.username ||
-                                          "thành viên"} khỏi nhóm?`
+                                          "thành viên"
+                                        } khỏi nhóm?`
                                   );
                                   if (!confirmed) return;
 
@@ -2752,9 +2743,7 @@ export default function ChatPage() {
                                       getStorageKey("access_token")
                                     );
                                     if (!token) return;
-                                    const API_BASE_URL =
-                                      process.env.NEXT_PUBLIC_API_URL ||
-                                      "http://localhost:5000/api";
+                                    const API_BASE_URL = getAPIURL();
                                     const response = await fetch(
                                       `${API_BASE_URL}/chat/groups/${roomId}/members/${mUser.id}`,
                                       {
@@ -3052,9 +3041,7 @@ export default function ChatPage() {
                             getStorageKey("access_token")
                           );
                           if (!token) return;
-                          const API_BASE_URL =
-                            process.env.NEXT_PUBLIC_API_URL ||
-                            "http://localhost:5000/api";
+                          const API_BASE_URL = getAPIURL();
                           const response = await fetch(
                             `${API_BASE_URL}/chat/groups/${roomId}`,
                             {
@@ -3382,9 +3369,7 @@ export default function ChatPage() {
                             getStorageKey("access_token")
                           );
                           if (!token) return;
-                          const API_BASE_URL =
-                            process.env.NEXT_PUBLIC_API_URL ||
-                            "http://localhost:5000/api";
+                          const API_BASE_URL = getAPIURL();
                           const response = await fetch(
                             `${API_BASE_URL}/chat/groups/${roomId}`,
                             {
@@ -3892,9 +3877,7 @@ export default function ChatPage() {
                       const token = localStorage.getItem(
                         getStorageKey("access_token")
                       );
-                      const API_BASE_URL =
-                        process.env.NEXT_PUBLIC_API_URL ||
-                        "http://localhost:5000/api";
+                      const API_BASE_URL = getAPIURL();
 
                       const response = await fetch(
                         `${API_BASE_URL}/chat/groups`,

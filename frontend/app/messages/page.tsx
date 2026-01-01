@@ -51,8 +51,7 @@ export default function MessagesListPage() {
             return;
           }
 
-          const API_BASE_URL =
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+          const API_BASE_URL = getAPIURL();
           const response = await fetch(`${API_BASE_URL}/social/friends`, {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -86,8 +85,10 @@ export default function MessagesListPage() {
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) return t("time.justNow");
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} ${t("time.minutes")}`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} ${t("time.hours")}`;
+    if (diffInSeconds < 3600)
+      return `${Math.floor(diffInSeconds / 60)} ${t("time.minutes")}`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)} ${t("time.hours")}`;
     if (diffInSeconds < 604800)
       return `${Math.floor(diffInSeconds / 86400)} ${t("time.days")}`;
 
@@ -477,9 +478,7 @@ export default function MessagesListPage() {
                       const token = localStorage.getItem(
                         getStorageKey("access_token")
                       );
-                      const API_BASE_URL =
-                        process.env.NEXT_PUBLIC_API_URL ||
-                        "http://localhost:5000/api";
+                      const API_BASE_URL = getAPIURL();
 
                       const response = await fetch(
                         `${API_BASE_URL}/chat/groups`,
@@ -523,7 +522,9 @@ export default function MessagesListPage() {
                   }
                   className="w-full px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
-                  {t("actions.createGroupSubmit", { count: selectedFriendsForGroup.size })}
+                  {t("actions.createGroupSubmit", {
+                    count: selectedFriendsForGroup.size,
+                  })}
                 </button>
               </div>
             </motion.div>

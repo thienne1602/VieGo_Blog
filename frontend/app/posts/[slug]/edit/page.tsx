@@ -110,7 +110,7 @@ const EditPostPage = () => {
       const token = getToken();
       if (!token) return;
 
-      const response = await fetch("http://localhost:5000/api/social/friends", {
+      const response = await fetch(`${getAPIURL()}/social/friends`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -127,7 +127,7 @@ const EditPostPage = () => {
     try {
       setLoading(true);
       const token = getToken();
-      const response = await fetch(`http://localhost:5000/api/posts/${slug}`, {
+      const response = await fetch(`${getAPIURL()}/posts/${slug}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
@@ -219,7 +219,7 @@ const EditPostPage = () => {
         const formDataUpload = new FormData();
         formDataUpload.append("file", file);
 
-        const response = await fetch("http://localhost:5000/api/upload/image", {
+        const response = await fetch(`${getAPIURL()}/upload/image`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -231,7 +231,7 @@ const EditPostPage = () => {
         if (!response.ok) throw new Error("Upload failed");
 
         const data = await response.json();
-        uploadedUrls.push(`http://localhost:5000${data.url}`);
+        uploadedUrls.push(`${getBaseURL()}${data.url}`);
       }
 
       setFormData((prev) => ({
@@ -277,7 +277,7 @@ const EditPostPage = () => {
         allowed_viewers: selectedFriends.map((f) => f.id),
       };
 
-      const response = await fetch(`http://localhost:5000/api/posts/${slug}`, {
+      const response = await fetch(`${getAPIURL()}/posts/${slug}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

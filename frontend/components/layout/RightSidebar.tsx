@@ -8,6 +8,7 @@ import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/lib/AuthContext";
 import { useRouter } from "next/navigation";
 import { Flame, Award, MessageCircle } from "lucide-react";
+import { getAPIURL } from "@/lib/apiConfig";
 
 const RightSidebar = () => {
   const { user } = useAuth();
@@ -23,8 +24,7 @@ const RightSidebar = () => {
   useEffect(() => {
     const fetchHotTours = async () => {
       try {
-        const API_BASE_URL =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const API_BASE_URL = getAPIURL();
         const response = await fetch(
           `${API_BASE_URL}/tours?featured=true&limit=5&order_by=rating&order=desc`
         );
@@ -45,8 +45,7 @@ const RightSidebar = () => {
   useEffect(() => {
     const fetchTopSellers = async () => {
       try {
-        const API_BASE_URL =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const API_BASE_URL = getAPIURL();
         const token = localStorage.getItem("access_token");
         const headers: HeadersInit = {
           "Content-Type": "application/json",
@@ -387,7 +386,8 @@ const RightSidebar = () => {
                 .map((conversation: any, index) => {
                   const isGroup = isGroupConversation(conversation);
                   const title = isGroup
-                    ? conversation.group?.name || t("rightSidebar.groupChat", "Nhóm chat")
+                    ? conversation.group?.name ||
+                      t("rightSidebar.groupChat", "Nhóm chat")
                     : conversation.other_user?.full_name ||
                       conversation.other_user?.username ||
                       t("rightSidebar.user", "Người dùng");

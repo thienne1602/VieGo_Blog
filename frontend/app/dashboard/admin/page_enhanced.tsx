@@ -47,7 +47,7 @@ const Toast = ({ message, type, onClose }: any) => (
 );
 
 // API functions
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || getBaseURL();
 
 const adminAPI = {
   getStats: async () => {

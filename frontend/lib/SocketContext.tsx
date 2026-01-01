@@ -87,20 +87,37 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
     console.log(`[Socket.IO] Connecting for user ${currentUserId}`);
 
-    const socketInstance = io(
-      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000",
-      {
-        auth: {
-          token: token,
-        },
-        autoConnect: true,
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionAttempts: 5,
-        timeout: 5000,
-        transports: ["websocket", "polling"],
+    // Get socket URL - check for tunnel mode
+    let socketUrl =
+      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
+    if (typeof window !== "undefined") {
+      const currentHost = window.location.hostname;
+      const isTunnel =
+        currentHost.includes("loca.lt") ||
+        currentHost.includes("ngrok") ||
+        currentHost.includes("trycloudflare.com");
+      if (isTunnel) {
+        const tunnelBackendUrl = localStorage.getItem(
+          "viego_backend_tunnel_url"
+        );
+        if (tunnelBackendUrl) {
+          socketUrl = tunnelBackendUrl.replace(/\/api$/, "");
+          console.log("[Socket.IO] Using tunnel URL:", socketUrl);
+        }
       }
-    );
+    }
+
+    const socketInstance = io(socketUrl, {
+      auth: {
+        token: token,
+      },
+      autoConnect: true,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+      timeout: 5000,
+      transports: ["websocket", "polling"],
+    });
 
     socketInstance.on("connect", () => {
       setIsConnected(true);

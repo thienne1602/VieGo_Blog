@@ -31,7 +31,7 @@ export default function ProfileByUsername() {
     const fetchUserId = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const API_BASE_URL = getAPIURL();
         
         const response = await fetch(
           `${API_BASE_URL}/users?username=${encodeURIComponent(username)}&per_page=1`,

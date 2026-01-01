@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSocket } from "@/lib/SocketContext";
 import { useAuth } from "@/lib/AuthContext";
 import { getAccessToken } from "@/lib/storage-utils";
+import { getAPIURL } from "@/lib/apiConfig";
 
 export interface MemberLocation {
   id: number;
@@ -175,8 +176,7 @@ export function useTourLocationTracking(
     setLoading(true);
     try {
       const token = getAccessToken();
-      const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE_URL = getAPIURL();
 
       const response = await fetch(
         `${API_BASE_URL}/tour-location/bookings/${bookingId}/members`,
@@ -222,8 +222,7 @@ export function useTourLocationTracking(
 
     try {
       const token = getAccessToken();
-      const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const API_BASE_URL = getAPIURL();
 
       const response = await fetch(
         `${API_BASE_URL}/tour-location/bookings/${bookingId}/geofences`,

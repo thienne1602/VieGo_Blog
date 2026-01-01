@@ -76,12 +76,7 @@ except Exception as e:
 # Initialize Socket.IO
 socketio = SocketIO(
     app,
-    cors_allowed_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001",
-                          "http://localhost:3002", "http://127.0.0.1:3002", "http://localhost:3003", "http://127.0.0.1:3003",
-                          "http://localhost:3004", "http://127.0.0.1:3004", "http://localhost:3005", "http://127.0.0.1:3005",
-                          "http://localhost:3006", "http://127.0.0.1:3006", "http://localhost:3007", "http://127.0.0.1:3007",
-                          "http://localhost:3008", "http://127.0.0.1:3008", "http://localhost:3009", "http://127.0.0.1:3009",
-                          "http://localhost:3010", "http://127.0.0.1:3010"],
+    cors_allowed_origins="*",  # Allow all origins for demo mode
     async_mode='threading',
     logger=True,
     engineio_logger=False
@@ -93,14 +88,9 @@ from utils.socket_utils import init_socket_utils
 init_socket_utils(socketio)
 print("[OK] Socket.IO utilities initialized")
 
-# Configure CORS with comprehensive settings
+# Configure CORS with comprehensive settings - Allow all origins for demo mode
 CORS(app,
-     origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001",
-              "http://localhost:3002", "http://127.0.0.1:3002", "http://localhost:3003", "http://127.0.0.1:3003",
-              "http://localhost:3004", "http://127.0.0.1:3004", "http://localhost:3005", "http://127.0.0.1:3005",
-              "http://localhost:3006", "http://127.0.0.1:3006", "http://localhost:3007", "http://127.0.0.1:3007",
-              "http://localhost:3008", "http://127.0.0.1:3008", "http://localhost:3009", "http://127.0.0.1:3009",
-              "http://localhost:3010", "http://127.0.0.1:3010"],
+     origins="*",  # Allow all origins for tunnel/demo access
      allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Cache-Control", "Pragma", "Expires"],
      methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
      supports_credentials=True,
@@ -117,16 +107,13 @@ compress.init_app(app)
 # Add performance headers middleware
 @app.after_request
 def add_performance_headers(response):
-    # Flask-CORS will handle CORS headers automatically, but we ensure origin is set correctly
-    # for cases where Flask-CORS might not have run (e.g., error responses)
+    # Allow all origins for demo/tunnel mode
     origin = request.headers.get('Origin')
-    allowed_origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"]
-    
-    # Always ensure CORS headers are set correctly for allowed origins
-    if origin and origin in allowed_origins:
-        # Override if already set incorrectly, or set if not set
+    if origin:
         response.headers['Access-Control-Allow-Origin'] = origin
         response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, Accept, Cache-Control, Pragma, Expires'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
         # Ensure Vary header is set for proper caching
         if 'Vary' not in response.headers:
             response.headers['Vary'] = 'Origin'
@@ -246,28 +233,39 @@ except ImportError as e:
 
 # Socket.IO event handlers will be registered before running
 
-# Handle OPTIONS requests for CORS preflight
-# Note: Flask-CORS already handles this, but we keep this for explicit control
+# Handle OPTIONS requests for CORS preflight - Allow all origins for demo mode
 @app.before_request
 def handle_preflight():
     if request.method == "OPTIONS":
         # Get origin from request
         origin = request.headers.get('Origin')
-        # List of allowed origins
-        allowed_origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"]
         
-        # Check if origin is allowed
-        if origin in allowed_origins:
-            response = jsonify({'status': 'ok'})
+        # Allow all origins for demo/tunnel mode
+        response = jsonify({'status': 'ok'})
+        if origin:
             response.headers.add("Access-Control-Allow-Origin", origin)
-            response.headers.add('Access-Control-Allow-Headers', "Content-Type,Authorization,X-Requested-With,Accept,Cache-Control,Pragma,Expires")
-            response.headers.add('Access-Control-Allow-Methods', "GET,POST,PUT,DELETE,PATCH,OPTIONS")
-            response.headers.add('Access-Control-Allow-Credentials', "true")
-            response.headers.add('Access-Control-Max-Age', "3600")
-            return response, 200
         else:
-            # Origin not allowed
-            return jsonify({'error': 'Origin not allowed'}), 403
+            response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add('Access-Control-Allow-Headers', "Content-Type,Authorization,X-Requested-With,Accept,Cache-Control,Pragma,Expires")
+        response.headers.add('Access-Control-Allow-Methods', "GET,POST,PUT,DELETE,PATCH,OPTIONS")
+        response.headers.add('Access-Control-Allow-Credentials', "true")
+        response.headers.add('Access-Control-Max-Age', "3600")
+        return response, 200
+
+# Root endpoint - for tunnel verification
+@app.route('/')
+def root():
+    return jsonify({
+        'status': 'ok',
+        'message': 'VieGo Blog API Server',
+        'version': '1.0.0',
+        'endpoints': {
+            'health': '/api/health',
+            'tours': '/api/tours',
+            'posts': '/api/posts',
+            'auth': '/api/auth'
+        }
+    })
 
 # Health check endpoint
 @app.route('/api/health')

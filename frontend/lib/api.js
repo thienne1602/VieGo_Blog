@@ -1,6 +1,80 @@
 // API configuration and utilities for VieGo Blog
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+// Check if running in tunnel mode
+function isTunnelMode() {
+  if (typeof window === "undefined") return false;
+  const currentHost = window.location.hostname;
+  return (
+    currentHost.includes("loca.lt") ||
+    currentHost.includes("ngrok") ||
+    currentHost.includes("trycloudflare.com")
+  );
+}
+
+// Get base URL (without /api suffix) - useful for direct fetch calls
+export function getBaseURL() {
+  if (typeof window !== "undefined" && isTunnelMode()) {
+    const tunnelBackendUrl = localStorage.getItem("viego_backend_tunnel_url");
+    if (tunnelBackendUrl) {
+      // Remove /api suffix if present
+      return tunnelBackendUrl.replace(/\/api$/, "");
+    }
+  }
+  return (
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, "") ||
+    "http://localhost:5000"
+  );
+}
+
+// Get dynamic API URL based on current environment
+function getDynamicAPIURL() {
+  // Check if we're in browser and accessing via tunnel (loca.lt)
+  if (typeof window !== "undefined") {
+    const currentHost = window.location.hostname;
+
+    // If accessing via tunnel (LocalTunnel, Ngrok, or Cloudflare Tunnel), use the backend tunnel URL from localStorage
+    const isTunnel =
+      currentHost.includes("loca.lt") ||
+      currentHost.includes("ngrok") ||
+      currentHost.includes("trycloudflare.com");
+
+    if (isTunnel) {
+      const backendTunnelUrl = localStorage.getItem("viego_backend_tunnel_url");
+      if (backendTunnelUrl) {
+        console.log("[API] Using tunnel backend URL:", backendTunnelUrl);
+        return backendTunnelUrl;
+      }
+      console.warn(
+        "[API] Tunnel detected but no backend URL saved. Using localhost fallback."
+      );
+    }
+  }
+
+  // Default to environment variable or localhost
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+}
+
+// Initial API URL
+let API_BASE_URL = getDynamicAPIURL();
+
+// Function to refresh API URL (called after TunnelDetector saves the URL)
+export function refreshAPIURL() {
+  const newURL = getDynamicAPIURL();
+  if (newURL !== API_BASE_URL) {
+    console.log("[API] Refreshing API URL from", API_BASE_URL, "to", newURL);
+    API_BASE_URL = newURL;
+    // Update ApiClient instance if exists
+    if (typeof window !== "undefined" && window.__apiClient) {
+      window.__apiClient.baseURL = normalizeBaseURL(newURL);
+    }
+  }
+  return API_BASE_URL;
+}
+
+// Get current API URL
+export function getAPIURL() {
+  return API_BASE_URL;
+}
 
 // Default timeout for API requests (10 seconds)
 const DEFAULT_TIMEOUT = 10000;
@@ -961,6 +1035,11 @@ class ApiClient {
 
 // Create and export API client instance
 const apiClient = new ApiClient();
+
+// Store globally for URL refresh
+if (typeof window !== "undefined") {
+  window.__apiClient = apiClient;
+}
 
 // Export for use in components
 export default apiClient;
