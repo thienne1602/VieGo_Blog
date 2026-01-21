@@ -647,41 +647,41 @@ Chi tiết đầy đủ xem tại: `backend/routes/`
 
 Dự án sử dụng **30+ database models**:
 
-| Model                | Mô tả                                          |
-| -------------------- | ---------------------------------------------- |
-| `User`               | Users với roles, gamification, social features |
-| `Post`               | Blog posts với categories, SEO, collaboration  |
-| `Comment`            | Nested comments với moderation                 |
-| `Tour`               | Tour listings với full details                 |
-| `Booking`            | Tour bookings với payment tracking             |
-| `BookingParticipant` | Individual booking participants                |
-| `BookingItinerary`   | Booking-specific itineraries                   |
-| `TourAssignment`     | Tour guide assignments                         |
-| `TourProgress`       | Tour checkpoint tracking                       |
-| `TourItinerary`      | Tour day-by-day plans                          |
-| `TourMemberLocation` | Real-time member locations                     |
-| `TourLocationHistory`| Lịch sử vị trí thành viên tour                 |
-| `TourGeofence`       | Vùng an toàn/checkpoint cho tour               |
-| `TourLocationAlert`  | Cảnh báo SOS và geofence violations            |
-| `Location`           | Map locations database                         |
-| `Chat`               | Direct messages                                |
-| `GroupChat`          | Group chat rooms                               |
-| `UserBehavior`       | Theo dõi hành vi người dùng (AI Analytics)     |
-| `UserInterestProfile`| Profile sở thích được AI phân tích             |
-| `PromotionalCampaign`| Chiến dịch email marketing                     |
-| `EmailLog`           | Log gửi email và tracking                      |
-| `Story`              | 24-hour stories                                |
-| `NFT`                | Achievement NFTs                               |
-| `Notification`       | User notifications                             |
-| `FriendRequest`      | Friend request management                      |
-| `Friendship`         | Friend relationships                           |
-| `Report`             | Content reports                                |
-| `Contact`            | Support tickets                                |
-| `BannedKeyword`      | Content moderation keywords                    |
-| `UserBehavior`       | Analytics tracking                             |
-| `UserPreferences`    | User settings                                  |
-| `UserSettings`       | Privacy/notification settings                  |
-| `SellerTourGuide`    | Seller-guide relationships                     |
+| Model                 | Mô tả                                          |
+| --------------------- | ---------------------------------------------- |
+| `User`                | Users với roles, gamification, social features |
+| `Post`                | Blog posts với categories, SEO, collaboration  |
+| `Comment`             | Nested comments với moderation                 |
+| `Tour`                | Tour listings với full details                 |
+| `Booking`             | Tour bookings với payment tracking             |
+| `BookingParticipant`  | Individual booking participants                |
+| `BookingItinerary`    | Booking-specific itineraries                   |
+| `TourAssignment`      | Tour guide assignments                         |
+| `TourProgress`        | Tour checkpoint tracking                       |
+| `TourItinerary`       | Tour day-by-day plans                          |
+| `TourMemberLocation`  | Real-time member locations                     |
+| `TourLocationHistory` | Lịch sử vị trí thành viên tour                 |
+| `TourGeofence`        | Vùng an toàn/checkpoint cho tour               |
+| `TourLocationAlert`   | Cảnh báo SOS và geofence violations            |
+| `Location`            | Map locations database                         |
+| `Chat`                | Direct messages                                |
+| `GroupChat`           | Group chat rooms                               |
+| `UserBehavior`        | Theo dõi hành vi người dùng (AI Analytics)     |
+| `UserInterestProfile` | Profile sở thích được AI phân tích             |
+| `PromotionalCampaign` | Chiến dịch email marketing                     |
+| `EmailLog`            | Log gửi email và tracking                      |
+| `Story`               | 24-hour stories                                |
+| `NFT`                 | Achievement NFTs                               |
+| `Notification`        | User notifications                             |
+| `FriendRequest`       | Friend request management                      |
+| `Friendship`          | Friend relationships                           |
+| `Report`              | Content reports                                |
+| `Contact`             | Support tickets                                |
+| `BannedKeyword`       | Content moderation keywords                    |
+| `UserBehavior`        | Analytics tracking                             |
+| `UserPreferences`     | User settings                                  |
+| `UserSettings`        | Privacy/notification settings                  |
+| `SellerTourGuide`     | Seller-guide relationships                     |
 
 ---
 

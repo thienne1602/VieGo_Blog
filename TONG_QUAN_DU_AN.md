@@ -209,46 +209,46 @@ _Kết hợp Mạng Xã Hội + Quản Lý Tour + E-commerce + AI Recommendation
 
 ### 15. 📧 **Email Marketing & Campaign**
 
-| Chức năng                      | Mô tả                                    |
-| ------------------------------ | ---------------------------------------- |
-| Campaign management            | Tạo và quản lý chiến dịch email          |
-| User segmentation targeting    | Gửi email theo phân khúc người dùng      |
-| Personalized emails            | Email cá nhân hóa với {name} placeholder |
-| Campaign analytics             | Thống kê tỷ lệ mở, click                 |
-| Template system                | Hệ thống template email tùy chỉnh        |
-| Scheduled campaigns            | Lên lịch gửi email tự động               |
-| A/B testing                    | Test nhiều phiên bản email               |
-| Unsubscribe management         | Quản lý hủy đăng ký nhận email           |
+| Chức năng                   | Mô tả                                    |
+| --------------------------- | ---------------------------------------- |
+| Campaign management         | Tạo và quản lý chiến dịch email          |
+| User segmentation targeting | Gửi email theo phân khúc người dùng      |
+| Personalized emails         | Email cá nhân hóa với {name} placeholder |
+| Campaign analytics          | Thống kê tỷ lệ mở, click                 |
+| Template system             | Hệ thống template email tùy chỉnh        |
+| Scheduled campaigns         | Lên lịch gửi email tự động               |
+| A/B testing                 | Test nhiều phiên bản email               |
+| Unsubscribe management      | Quản lý hủy đăng ký nhận email           |
 
 ### 16. 📍 **Tour Location Tracking (Real-time)**
 
-| Chức năng                  | Mô tả                                         |
-| -------------------------- | --------------------------------------------- |
-| Real-time member locations | Theo dõi vị trí thành viên tour real-time     |
-| SOS emergency alerts       | Tín hiệu SOS khẩn cấp từ thành viên           |
-| Geofence system            | Tạo vùng an toàn, cảnh báo khi rời khỏi vùng  |
-| Location history           | Lịch sử di chuyển của từng thành viên         |
-| Distance calculation       | Tính khoảng cách giữa các thành viên          |
-| Socket.IO real-time        | Cập nhật vị trí tức thì qua WebSocket         |
-| Member ping                | Yêu cầu thành viên cập nhật vị trí            |
-| Route tracking             | Vẽ lại lộ trình di chuyển trên bản đồ         |
+| Chức năng                  | Mô tả                                        |
+| -------------------------- | -------------------------------------------- |
+| Real-time member locations | Theo dõi vị trí thành viên tour real-time    |
+| SOS emergency alerts       | Tín hiệu SOS khẩn cấp từ thành viên          |
+| Geofence system            | Tạo vùng an toàn, cảnh báo khi rời khỏi vùng |
+| Location history           | Lịch sử di chuyển của từng thành viên        |
+| Distance calculation       | Tính khoảng cách giữa các thành viên         |
+| Socket.IO real-time        | Cập nhật vị trí tức thì qua WebSocket        |
+| Member ping                | Yêu cầu thành viên cập nhật vị trí           |
+| Route tracking             | Vẽ lại lộ trình di chuyển trên bản đồ        |
 
 ### 17. 👨‍💼 **Admin Dashboard**
 
-| Chức năng               | Mô tả                            |
-| ----------------------- | -------------------------------- |
-| Dashboard overview      | Thống kê tổng quan               |
-| User management         | CRUD users, role assignment      |
-| Content moderation      | Quản lý nội dung                 |
-| Reports management      | Xử lý báo cáo vi phạm            |
-| Activity logs           | Log hoạt động hệ thống           |
-| System statistics       | Thống kê hệ thống                |
-| Revenue analytics       | Phân tích doanh thu              |
-| **User Analytics Tab**  | Thống kê người dùng với AI       |
-| **Email Campaign Tab**  | Quản lý chiến dịch email         |
-| Export Excel            | Xuất báo cáo đa dạng             |
-| User segmentation view  | Xem phân khúc người dùng         |
-| Engagement metrics      | Đo lường mức độ tương tác        |
+| Chức năng              | Mô tả                       |
+| ---------------------- | --------------------------- |
+| Dashboard overview     | Thống kê tổng quan          |
+| User management        | CRUD users, role assignment |
+| Content moderation     | Quản lý nội dung            |
+| Reports management     | Xử lý báo cáo vi phạm       |
+| Activity logs          | Log hoạt động hệ thống      |
+| System statistics      | Thống kê hệ thống           |
+| Revenue analytics      | Phân tích doanh thu         |
+| **User Analytics Tab** | Thống kê người dùng với AI  |
+| **Email Campaign Tab** | Quản lý chiến dịch email    |
+| Export Excel           | Xuất báo cáo đa dạng        |
+| User segmentation view | Xem phân khúc người dùng    |
+| Engagement metrics     | Đo lường mức độ tương tác   |
 
 ### 18. 🛡️ **Moderator Features**
 
@@ -414,41 +414,41 @@ _Kết hợp Mạng Xã Hội + Quản Lý Tour + E-commerce + AI Recommendation
 
 ## 📊 Database Models (30+ Models)
 
-| Model                   | Mô tả                                          |
-| ----------------------- | ---------------------------------------------- |
-| `User`                  | Users với roles, gamification, social features |
-| `Post`                  | Blog posts với categories, SEO, collaboration  |
-| `Comment`               | Nested comments với moderation                 |
-| `Tour`                  | Tour listings với full details                 |
-| `Booking`               | Tour bookings với payment tracking             |
-| `BookingParticipant`    | Individual booking participants                |
-| `BookingItinerary`      | Booking-specific itineraries                   |
-| `TourAssignment`        | Tour guide assignments                         |
-| `TourProgress`          | Tour checkpoint tracking                       |
-| `TourItinerary`         | Tour day-by-day plans                          |
-| `TourMemberLocation`    | Real-time member locations                     |
-| `TourLocationHistory`   | Lịch sử vị trí thành viên tour                 |
-| `TourGeofence`          | Vùng an toàn/checkpoint cho tour               |
-| `TourLocationAlert`     | Cảnh báo SOS và geofence                       |
-| `Location`              | Map locations database                         |
-| `Chat`                  | Direct messages                                |
-| `UserBehavior`          | Theo dõi hành vi người dùng (AI Analytics)     |
-| `UserInterestProfile`   | Profile sở thích được AI phân tích             |
-| `PromotionalCampaign`   | Chiến dịch email marketing                     |
-| `EmailLog`              | Log gửi email                                  |
-| `GroupChat`          | Group chat rooms                               |
-| `Story`              | 24-hour stories                                |
-| `NFT`                | Achievement NFTs                               |
-| `Notification`       | User notifications                             |
-| `FriendRequest`      | Friend request management                      |
-| `Friendship`         | Friend relationships                           |
-| `Report`             | Content reports                                |
-| `Contact`            | Support tickets                                |
-| `BannedKeyword`      | Content moderation keywords                    |
-| `UserBehavior`       | Analytics tracking                             |
-| `UserPreferences`    | User settings                                  |
-| `UserSettings`       | Privacy/notification settings                  |
-| `SellerTourGuide`    | Seller-guide relationships                     |
+| Model                 | Mô tả                                          |
+| --------------------- | ---------------------------------------------- |
+| `User`                | Users với roles, gamification, social features |
+| `Post`                | Blog posts với categories, SEO, collaboration  |
+| `Comment`             | Nested comments với moderation                 |
+| `Tour`                | Tour listings với full details                 |
+| `Booking`             | Tour bookings với payment tracking             |
+| `BookingParticipant`  | Individual booking participants                |
+| `BookingItinerary`    | Booking-specific itineraries                   |
+| `TourAssignment`      | Tour guide assignments                         |
+| `TourProgress`        | Tour checkpoint tracking                       |
+| `TourItinerary`       | Tour day-by-day plans                          |
+| `TourMemberLocation`  | Real-time member locations                     |
+| `TourLocationHistory` | Lịch sử vị trí thành viên tour                 |
+| `TourGeofence`        | Vùng an toàn/checkpoint cho tour               |
+| `TourLocationAlert`   | Cảnh báo SOS và geofence                       |
+| `Location`            | Map locations database                         |
+| `Chat`                | Direct messages                                |
+| `UserBehavior`        | Theo dõi hành vi người dùng (AI Analytics)     |
+| `UserInterestProfile` | Profile sở thích được AI phân tích             |
+| `PromotionalCampaign` | Chiến dịch email marketing                     |
+| `EmailLog`            | Log gửi email                                  |
+| `GroupChat`           | Group chat rooms                               |
+| `Story`               | 24-hour stories                                |
+| `NFT`                 | Achievement NFTs                               |
+| `Notification`        | User notifications                             |
+| `FriendRequest`       | Friend request management                      |
+| `Friendship`          | Friend relationships                           |
+| `Report`              | Content reports                                |
+| `Contact`             | Support tickets                                |
+| `BannedKeyword`       | Content moderation keywords                    |
+| `UserBehavior`        | Analytics tracking                             |
+| `UserPreferences`     | User settings                                  |
+| `UserSettings`        | Privacy/notification settings                  |
+| `SellerTourGuide`     | Seller-guide relationships                     |
 
 ---
 
